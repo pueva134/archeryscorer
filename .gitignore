@@ -1,0 +1,16 @@
+# Node / JS / general
+node_modules/
+dist/
+
+# Gradle
+.gradle/
+build/
+
+# IDE / editor files
+.idea/
+*.iml
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
