@@ -1,6 +1,12 @@
 let arrowsPerEnd, endsCount, currentEnd, currentArrow;
 let allScores = [];
 let ctx, canvas, radius;
+function resizeCanvas() {
+  canvas.width = Math.min(window.innerWidth * 0.9, 400); // 90% of screen, max 400px
+  canvas.height = canvas.width; // keep square
+  radius = canvas.width / 2;
+  drawTarget(); // redraw after resizing
+}
 let bowStyle, targetFace;
 let currentEndScores = [];   // stores scores for the current end
 
@@ -109,10 +115,10 @@ function startSession() {
   document.getElementById('setup').style.display = 'none';
   document.getElementById('scoringArea').style.display = 'block';
 
-  canvas = document.getElementById('target');
-  ctx = canvas.getContext('2d');
-  radius = canvas.width / 2;
-  drawTarget();
+ canvas = document.getElementById('target');
+ctx = canvas.getContext('2d');
+resizeCanvas();
+
 
   canvas.addEventListener('click', scoreArrow);
   updateEndDisplay();
@@ -596,4 +602,9 @@ function logout() {
   document.getElementById('loginPage').style.display = 'block';
 }
 
+window.addEventListener('resize', () => {
+  if (canvas && ctx) {
+    resizeCanvas();
+  }
+});
 

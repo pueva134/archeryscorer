@@ -2,21 +2,28 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background: #f0f0f0;
   margin: 0;
-  padding: 20px;
+  padding: 0; /* remove fixed padding */
+  min-height: 100vh; /* ensure full height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .container {
-  max-width: 600px;
+  width: 95%; /* take nearly full width on mobile */
+  max-width: 600px; /* still look good on desktop */
   margin: auto;
   background: #fff;
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-sizing: border-box;
 }
 
 h1 {
   text-align: center;
   margin-bottom: 20px;
+  font-size: clamp(20px, 5vw, 28px); /* responsive text */
 }
 
 label {
@@ -28,24 +35,24 @@ label {
 
 input, select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   margin-top: 5px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 16px;
   box-sizing: border-box;
 }
 
 button {
   display: block;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 15px;
   border: none;
   border-radius: 8px;
   background: #007bff;
   color: #fff;
-  font-size: 16px;
+  font-size: 17px;
   cursor: pointer;
   transition: background 0.2s ease-in-out;
 }
@@ -59,6 +66,9 @@ canvas {
   margin: 15px auto;
   border-radius: 50%;
   border: 2px solid #ccc;
+  width: 90%;       /* responsive width */
+  max-width: 350px; /* limit on large screens */
+  height: auto;
 }
 
 #endScores {
@@ -73,12 +83,13 @@ a {
   text-align: center;
   color: #007bff;
   text-decoration: none;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 a:hover {
   text-decoration: underline;
 }
+
 .results-box {
   background: #f9f9f9;
   border: 2px solid #ddd;
@@ -92,6 +103,7 @@ a:hover {
 .results-box p {
   margin: 8px 0;
 }
+
 .history-item {
   background: #f9f9f9;
   border: 2px solid #ddd;
@@ -101,3 +113,20 @@ a:hover {
   font-size: 16px;
 }
 
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+    border-radius: 0; /* go edge-to-edge on small screens */
+    min-height: 100vh;
+  }
+
+  button {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  #endScores {
+    font-size: 16px;
+  }
+}

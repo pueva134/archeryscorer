@@ -6,14 +6,17 @@
   <title>My Scorer</title>
   <style>
     /* GENERAL STYLING */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #f2f2f2, #e6f0ff);
-      margin: 0;
-      padding: 0;
-      text-align: center;
-      color: #333;
-    }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #f2f2f2, #e6f0ff);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    color: #333;
+    height: 100vh;
+    width: 100vw;
+}
+
     h1, h2, h3 {
       font-family: 'Verdana', sans-serif;
     }
@@ -43,13 +46,15 @@
     /* CARDS */
     .card {
       background: #fff;
-      border-radius: 15px;
-      padding: 30px;
-      margin: 20px auto;
-      max-width: 400px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
-    }
+      border-radius: 0;       /* remove rounded edges */
+      padding: 20px;
+      margin: 0;              /* no margins */
+      width: 100%;            /* full width */
+      min-height: 100vh;      /* full height */
+      box-shadow: none;       /* remove shadow for fullscreen look */
+      transition: none;
+}
+
     .card:hover {
       transform: translateY(-5px);
     }
