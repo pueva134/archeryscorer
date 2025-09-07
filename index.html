@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Scorer</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Scorer</title>
+<link rel="stylesheet" href="style.css"/>
+<script type="module" src="script.js"></script>
 </head>
 <body>
-
 <div class="container">
 
   <!-- Login / Signup Screen -->
   <div id="loginPage" class="screen active">
     <h1>🏹 My Scorer 🏹</h1>
-    <input type="text" id="username" placeholder="Name">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+    <input type="text" id="username" placeholder="Enter your name"/>
+    <input type="email" id="email" placeholder="Email"/>
+    <input type="password" id="password" placeholder="Password"/>
     <select id="role">
       <option value="archer">Archer</option>
       <option value="coach">Coach</option>
@@ -26,7 +25,7 @@
     <div id="loginMessage" class="message"></div>
   </div>
 
-  <!-- Main Menu / Session Setup -->
+  <!-- Session Setup -->
   <div id="setup" class="screen">
     <h2>Session Setup</h2>
     <label>Bow Style:
@@ -49,16 +48,18 @@
     </label>
     <label>Target Face:
       <select id="targetFace">
-        <option value="122">122cm</option>
-        <option value="80">80cm</option>
-        <option value="40">40cm</option>
+        <option value="122">122cm (Outdoor)</option>
+        <option value="80">80cm (Outdoor)</option>
+        <option value="40">40cm (Indoor)</option>
+        <option value="3spot">40cm 3-Spot (Indoor)</option>
+        <option value="9spot">40cm 9-Spot (Indoor)</option>
       </select>
     </label>
     <label>Arrows per End:
-      <input type="number" id="arrowsPerEnd" value="6">
+      <input type="number" id="arrowsPerEnd" value="6"/>
     </label>
     <label>Number of Ends:
-      <input type="number" id="endsCount" value="6">
+      <input type="number" id="endsCount" value="6"/>
     </label>
     <button id="startSessionBtn">Start Session</button>
     <button id="viewHistoryBtn">View History</button>
@@ -68,31 +69,31 @@
   <div id="scoringArea" class="screen">
     <h2>End <span id="currentEnd">1</span></h2>
     <canvas id="target" width="300" height="300"></canvas>
-    <p>Tap target to record arrows</p>
+    <p>Tap the target to score an arrow</p>
     <div id="endScores"></div>
     <div id="endTotal">End Total: 0</div>
-    <button id="undoBtn">Undo Last Arrow</button>
+    <button id="undoBtn">⏪ Undo Last Arrow</button>
     <button id="nextEndBtn">Next End</button>
   </div>
 
   <!-- Results Screen -->
   <div id="results" class="screen">
-    <h2>Session Summary</h2>
+    <h2>Session Results</h2>
     <div id="sessionSummary"></div>
+    <h3>End Scores:</h3>
     <div id="scoreTable"></div>
+    <h3>Performance Graph</h3>
     <canvas id="scoreChart"></canvas>
-    <button id="backToSetupBtn">New Session</button>
+    <button id="backToSetupBtn">🔙 New Session</button>
   </div>
 
   <!-- History Screen -->
-  <div id="history" class="screen">
+  <div id="historyScreen" class="screen">
     <h2>Session History</h2>
     <div id="historyTable"></div>
-    <button id="backToMenuBtn">Back</button>
+    <button id="backToMenuBtn">🔙 Back to Menu</button>
   </div>
 
 </div>
-
-<script type="module" src="script.js"></script>
 </body>
 </html>

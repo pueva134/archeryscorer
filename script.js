@@ -1,14 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, collection, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import Chart from 'https://cdn.jsdelivr.net/npm/chart.js/auto/auto.esm.js';
-
+import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import Chart from 'https://cdn.jsdelivr.net/npm/chart.js/dist/chart.esm.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
   projectId: "my-scorer",
-  storageBucket: "my-scorer.firebasestorage.app",
+  storageBucket: "my-scorer.appspot.com",
   messagingSenderId: "243500946215",
   appId: "1:243500946215:web:bd976f1bd437edce684f02"
 };
@@ -23,15 +22,15 @@ let arrowScores = [];
 let currentEndNumber = 1;
 
 function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, user=>{
   if(user) currentUser = user;
 });
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", ()=>{
   const signupBtn = document.getElementById("signupBtn");
   const loginBtn = document.getElementById("loginBtn");
   const startSessionBtn = document.getElementById("startSessionBtn");
@@ -52,21 +51,21 @@ window.addEventListener("DOMContentLoaded", () => {
   undoBtn.addEventListener("click", undoLastArrow);
   nextEndBtn.addEventListener("click", nextEnd);
   backToSetupBtn.addEventListener("click", backToSetup);
-  backToMenuBtn.addEventListener("click", () => showScreen("setup"));
+  backToMenuBtn.addEventListener("click", ()=>showScreen("setup"));
 
-  canvas.addEventListener("click", e => {
+  canvas.addEventListener("click", e=>{
     if(!currentSession.arrowsPerEnd) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const center = canvas.width / 2;
+    const center = canvas.width/2;
     const dist = Math.sqrt(Math.pow(x-center,2)+Math.pow(y-center,2));
     let score = 0;
-    if(dist < 30) score = 10;
-    else if(dist < 60) score = 8;
-    else if(dist < 90) score = 6;
-    else if(dist < 120) score = 4;
-    else score = 1;
+    if(dist<30) score=10;
+    else if(dist<60) score=8;
+    else if(dist<90) score=6;
+    else if(dist<120) score=4;
+    else score=1;
     arrowScores.push(score);
     updateEndScores();
   });
@@ -78,7 +77,7 @@ window.addEventListener("DOMContentLoaded", () => {
     for(let i=0;i<colors.length;i++){
       ctx.beginPath();
       ctx.arc(radius,radius,radius-i*30,0,2*Math.PI);
-      ctx.fillStyle = colors[i];
+      ctx.fillStyle=colors[i];
       ctx.fill();
     }
   }
@@ -87,58 +86,58 @@ window.addEventListener("DOMContentLoaded", () => {
   function updateEndScores(){
     document.getElementById("endScores").innerText = arrowScores.join(" | ");
     const total = arrowScores.reduce((a,b)=>a+b,0);
-    document.getElementById("endTotal").innerText = "End Total: " + total;
+    document.getElementById("endTotal").innerText = "End Total: "+total;
   }
 
   async function signup(){
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
+    const username=document.getElementById("username").value;
+    const email=document.getElementById("email").value;
+    const password=document.getElementById("password").value;
+    const role=document.getElementById("role").value;
 
-    if(!username || !email || !password){ msgDiv.innerText = "Fill all fields!"; return; }
+    if(!username||!email||!password){ msgDiv.innerText="Fill all fields!"; return;}
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth,email,password);
-      const uid = userCredential.user.uid;
-      await setDoc(doc(db,"users",uid), { name: username, role: role, sessions: [] });
-      currentUser = userCredential.user;
-      msgDiv.innerText = "";
+    try{
+      const userCredential=await createUserWithEmailAndPassword(auth,email,password);
+      const uid=userCredential.user.uid;
+      await setDoc(doc(db,"users",uid),{name:username,role:role,sessions:[]});
+      currentUser=userCredential.user;
+      msgDiv.innerText="";
       showScreen("setup");
-    } catch(e){
-      msgDiv.innerText = e.message;
+    }catch(e){
+      msgDiv.innerText=e.message;
     }
   }
 
   async function login(){
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const email=document.getElementById("email").value;
+    const password=document.getElementById("password").value;
 
-    if(!email || !password){ msgDiv.innerText = "Enter email & password!"; return; }
+    if(!email||!password){ msgDiv.innerText="Enter email & password!"; return;}
 
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth,email,password);
-      currentUser = userCredential.user;
-      msgDiv.innerText = "";
+    try{
+      const userCredential=await signInWithEmailAndPassword(auth,email,password);
+      currentUser=userCredential.user;
+      msgDiv.innerText="";
       showScreen("setup");
-    } catch(e){
-      msgDiv.innerText = e.message;
+    }catch(e){
+      msgDiv.innerText=e.message;
     }
   }
 
   function startSession(){
-    currentSession = {
-      bowStyle: document.getElementById("bowStyle").value,
-      distance: parseInt(document.getElementById("distance").value),
-      targetFace: document.getElementById("targetFace").value,
-      arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
-      endsCount: parseInt(document.getElementById("endsCount").value),
-      ends: [],
-      totalScore: 0
+    currentSession={
+      bowStyle:document.getElementById("bowStyle").value,
+      distance:parseInt(document.getElementById("distance").value),
+      targetFace:document.getElementById("targetFace").value,
+      arrowsPerEnd:parseInt(document.getElementById("arrowsPerEnd").value),
+      endsCount:parseInt(document.getElementById("endsCount").value),
+      ends:[],
+      totalScore:0
     };
-    arrowScores = [];
-    currentEndNumber = 1;
-    document.getElementById("currentEnd").innerText = currentEndNumber;
+    arrowScores=[];
+    currentEndNumber=1;
+    document.getElementById("currentEnd").innerText=currentEndNumber;
     showScreen("scoringArea");
     drawTarget();
     updateEndScores();
@@ -150,74 +149,69 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   async function nextEnd(){
-    if(arrowScores.length !== currentSession.arrowsPerEnd){
+    if(arrowScores.length!==currentSession.arrowsPerEnd){
       alert("Shoot all arrows first!");
       return;
     }
-
     currentSession.ends.push([...arrowScores]);
-    currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
-    arrowScores = [];
+    currentSession.totalScore+=arrowScores.reduce((a,b)=>a+b,0);
+    arrowScores=[];
     currentEndNumber++;
-
-    if(currentEndNumber > currentSession.endsCount){
+    if(currentEndNumber>currentSession.endsCount){
       await saveSession();
       showResults();
-    } else {
-      document.getElementById("currentEnd").innerText = currentEndNumber;
+    }else{
+      document.getElementById("currentEnd").innerText=currentEndNumber;
       updateEndScores();
     }
   }
 
   async function saveSession(){
     if(!currentUser) return;
-    const uid = currentUser.uid;
-    const userRef = doc(db,"users",uid);
-    await updateDoc(userRef, {
-      sessions: arrayUnion({ ...currentSession, date: Timestamp.now() })
+    const uid=currentUser.uid;
+    const userRef=doc(db,"users",uid);
+    await updateDoc(userRef,{
+      sessions: arrayUnion({...currentSession,date:Timestamp.now()})
     });
   }
 
   function showResults(){
     showScreen("results");
-    document.getElementById("sessionSummary").innerHTML = `
+    document.getElementById("sessionSummary").innerHTML=`
       <p>Bow: ${currentSession.bowStyle}</p>
       <p>Distance: ${currentSession.distance}m</p>
       <p>Total Score: ${currentSession.totalScore}</p>
       <p>Ends Count: ${currentSession.endsCount}</p>
     `;
-
-    const table = document.createElement("table");
-    const header = document.createElement("tr");
-    header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
+    const table=document.createElement("table");
+    const header=document.createElement("tr");
+    header.innerHTML="<th>End</th>"+[...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('')+"<th>End Total</th>";
     table.appendChild(header);
-
-    currentSession.ends.forEach((end,i) => {
-      const row = document.createElement("tr");
-      const endTotal = end.reduce((a,b)=>a+b,0);
-      row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    currentSession.ends.forEach((end,i)=>{
+      const row=document.createElement("tr");
+      const endTotal=end.reduce((a,b)=>a+b,0);
+      row.innerHTML=`<td>${i+1}</td>`+end.map(a=>`<td>${a}</td>`).join('')+`<td>${endTotal}</td>`;
       table.appendChild(row);
     });
-
-    const scoreTableDiv = document.getElementById("scoreTable");
-    scoreTableDiv.innerHTML = "";
+    const scoreTableDiv=document.getElementById("scoreTable");
+    scoreTableDiv.innerHTML="";
     scoreTableDiv.appendChild(table);
 
-    const ctxChart = document.getElementById("scoreChart").getContext("2d");
-    new Chart(ctxChart, {
-      type: 'bar',
-      data: {
-        labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
-        datasets: [{ label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)' }]
+    const ctxChart=document.getElementById("scoreChart").getContext("2d");
+    new Chart(ctxChart,{
+      type:'bar',
+      data:{
+        labels:currentSession.ends.map((_,i)=>`End ${i+1}`),
+        datasets:[{label:'End Total',data:currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)),backgroundColor:'rgba(59,130,246,0.7)'}]
       },
-      options: { responsive: true, maintainAspectRatio: false }
+      options:{responsive:true,maintainAspectRatio:false}
     });
   }
 
   function backToSetup(){
-    currentEndNumber = 1;
-    arrowScores = [];
-    currentSession = {};
+    currentEndNumber=1;
+    arrowScores=[];
+    currentSession={};
     showScreen("setup");
     drawTarget();
     updateEndScores();
@@ -225,18 +219,18 @@ window.addEventListener("DOMContentLoaded", () => {
 
   async function viewHistory(){
     if(!currentUser) return;
-    const uid = currentUser.uid;
-    const userDoc = await getDoc(doc(db,"users",uid));
+    const uid=currentUser.uid;
+    const userDoc=await getDoc(doc(db,"users",uid));
     if(userDoc.exists()){
-      const sessions = userDoc.data().sessions || [];
-      const table = document.createElement("table");
-      table.innerHTML = `<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
-      sessions.forEach(s => {
-        const date = new Date(s.date.seconds * 1000).toLocaleDateString();
-        table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
+      const sessions=userDoc.data().sessions||[];
+      const table=document.createElement("table");
+      table.innerHTML=`<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
+      sessions.forEach(s=>{
+        const date=new Date(s.date.seconds*1000).toLocaleDateString();
+        table.innerHTML+=`<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
       });
-      const historyDiv = document.getElementById("historyTable");
-      historyDiv.innerHTML = "";
+      const historyDiv=document.getElementById("historyTable");
+      historyDiv.innerHTML="";
       historyDiv.appendChild(table);
       showScreen("historyScreen");
     }
