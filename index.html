@@ -20,14 +20,15 @@
         }
 
         .container {
-            width: 100%;
-            max-width: 800px;
-            background: #1e293b;
-            border-radius: 15px;
-            padding: 40px 30px;
-            margin: 40px auto;
-            box-sizing: border-box;
-        }
+    width: 95%;          /* Use most of the viewport width */
+    max-width: 800px;    /* Keeps layout centered on larger screens */
+    background: #1e293b;
+    border-radius: 15px;
+    padding: 20px;       /* Reduced padding for small screens */
+    margin: 40px auto;
+    box-sizing: border-box;
+}
+
 
         .screen {
             display: none;
@@ -105,22 +106,25 @@
             font-size: 16px;
         }
 
-       #scoreTable {
-        overflow-x: auto;
-        margin-top: 20px;
-        -webkit-overflow-scrolling: touch;
+      #scoreTable {
+    width: 100%;
+    overflow-x: auto;         /* Enables horizontal scroll only for table */
+    -webkit-overflow-scrolling: touch;
+    margin-top: 20px;
 }
 
-      table {
-       width: 100%;
-        border-collapse: collapse;
-        table-layout: auto;
+#scoreTable table {
+    width: 100%;
+    min-width: 600px;         /* Ensures table doesn’t shrink too much */
+    border-collapse: collapse;
+    table-layout: fixed;      /* Makes columns evenly spaced */
 }
 
-      th, td {
-        border: 1px solid #64748b;
-        padding: 10px;
-        text-align: center;
+th, td {
+    border: 1px solid #64748b;
+    padding: 10px;
+    text-align: center;
+    word-wrap: break-word;    /* Prevents long text from stretching cells */
 }
 
         @media (max-width: 768px) {
