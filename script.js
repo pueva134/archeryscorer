@@ -142,7 +142,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    if(!email || !password){ msgDiv.innerText="Enter email & password!"; return; }
+    if(!email || !password){ 
+      msgDiv.innerText="Enter email & password!"; 
+      return;
+     }
 
     try{
       const userCredential = await signInWithEmailAndPassword(auth,email,password);

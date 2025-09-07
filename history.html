@@ -5,13 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My History</title>
 <link rel="stylesheet" href="style.css">
-<script type="module" src="history.js"></script>
+
+<!-- Chart.js (for optional mini charts) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="container">
-<h1>📜 My History</h1>
-<div id="historyList"></div>
-<button onclick="window.location.href='index.html'">🔙 Back</button>
+
+    <h1>📜 My History</h1>
+    
+    <!-- Streak & Badges -->
+    <div id="streakContainer"></div>
+    <h3>Badges Earned:</h3>
+    <div id="badgesContainer" class="horizontal-scroll"></div>
+
+    <!-- Session History -->
+    <div id="historyList"></div>
+
+    <button onclick="window.location.href='index.html'">🔙 Back</button>
 </div>
+
+<script type="module" src="history.js"></script>
 </body>
 </html>
