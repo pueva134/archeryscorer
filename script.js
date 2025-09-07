@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import Chart from import Chart from "https://cdn.jsdelivr.net/npm/chart.js/auto/auto.js";
+import Chart from "https://cdn.jsdelivr.net/npm/chart.js/auto/auto.js";
 
 
 // ---- Global error surfacing so you see errors on live too ----
