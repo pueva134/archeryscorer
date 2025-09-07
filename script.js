@@ -1,20 +1,14 @@
 // ------------------------------
-// script.js (Module)
+// script.js
 // ------------------------------
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { 
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import Chart from "https://cdn.jsdelivr.net/npm/chart.js/auto/auto.js";
 
 // ------------------------------
-// Firebase Config
+// Firebase Configuration
 // ------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
@@ -24,7 +18,6 @@ const firebaseConfig = {
   messagingSenderId: "243500946215",
   appId: "1:243500946215:web:bd976f1bd437edce684f02"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore(app);
@@ -40,8 +33,8 @@ let currentEndNumber = 1;
 // ------------------------------
 // Utility Functions
 // ------------------------------
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
@@ -51,15 +44,15 @@ function showScreen(id) {
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 
-function drawTarget() {
+function drawTarget(){
   if(!ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const colors = ['#f00','#f90','#ff0','#0f0','#00f'];
-  let radius = canvas.width / 2;
-  for (let i=0;i<colors.length;i++){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const colors=['#f00','#f90','#ff0','#0f0','#00f'];
+  const radius=canvas.width/2;
+  for(let i=0;i<colors.length;i++){
     ctx.beginPath();
-    ctx.arc(radius, radius, radius - i*30, 0, 2*Math.PI);
-    ctx.fillStyle = colors[i];
+    ctx.arc(radius,radius,radius-i*30,0,2*Math.PI);
+    ctx.fillStyle=colors[i];
     ctx.fill();
   }
 }
@@ -69,6 +62,10 @@ function updateEndScores(){
   const endTotalDiv = document.getElementById("endTotal");
   if(endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
   if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
+
+  // Enable Next End button only when all arrows shot
+  const nextEndBtn = document.getElementById("nextEndBtn");
+  if(nextEndBtn) nextEndBtn.disabled = arrowScores.length !== currentSession.arrowsPerEnd;
 }
 
 // ------------------------------
@@ -79,45 +76,45 @@ onAuthStateChanged(auth, user => {
 });
 
 // ------------------------------
-// Button Event Handlers
+// Button Handlers
 // ------------------------------
-function attachButtonHandlers() {
-  const signupBtn = document.getElementById("signupBtn");
-  const loginBtn = document.getElementById("loginBtn");
-  const startSessionBtn = document.getElementById("startSessionBtn");
-  const viewHistoryBtn = document.getElementById("viewHistoryBtn");
-  const undoBtn = document.getElementById("undoBtn");
-  const nextEndBtn = document.getElementById("nextEndBtn");
-  const backToSetupBtn = document.getElementById("backToSetupBtn");
-  const backToMenuBtn = document.getElementById("backToMenuBtn");
-  const msgDiv = document.getElementById("loginMessage");
+document.getElementById("signupBtn")?.addEventListener("click", signup);
+document.getElementById("loginBtn")?.addEventListener("click", login);
+document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
+document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
+document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
+document.getElementById("backToMenuBtn")?.addEventListener("click",()=>showScreen("setup"));
 
-  signupBtn?.addEventListener("click", signup);
-  loginBtn?.addEventListener("click", login);
-  startSessionBtn?.addEventListener("click", startSession);
-  viewHistoryBtn?.addEventListener("click", viewHistory);
-  undoBtn?.addEventListener("click", undoLastArrow);
-  nextEndBtn?.addEventListener("click", nextEnd);
-  backToSetupBtn?.addEventListener("click", backToSetup);
-  backToMenuBtn?.addEventListener("click", () => showScreen("setup"));
+// ------------------------------
+// Canvas Click for Arrow Score
+// ------------------------------
+canvas?.addEventListener("click", e=>{
+  if(!currentSession.arrowsPerEnd) return;
 
-  canvas?.addEventListener("click", e => {
-    if(!currentSession.arrowsPerEnd) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const center = canvas.width / 2;
-    const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
-    let score = 0;
-    if(dist < 30) score = 10;
-    else if(dist < 60) score = 8;
-    else if(dist < 90) score = 6;
-    else if(dist < 120) score = 4;
-    else score = 1;
-    arrowScores.push(score);
-    updateEndScores();
-  });
-}
+  // Limit arrows per end
+  if(arrowScores.length >= currentSession.arrowsPerEnd){
+    alert("All arrows for this end have been shot!");
+    return;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const center = canvas.width/2;
+  const dist = Math.sqrt(Math.pow(x-center,2)+Math.pow(y-center,2));
+
+  let score = 0;
+  if(dist<30) score=10;
+  else if(dist<60) score=8;
+  else if(dist<90) score=6;
+  else if(dist<120) score=4;
+  else score=1;
+
+  arrowScores.push(score);
+  updateEndScores();
+});
 
 // ------------------------------
 // Main Functions
@@ -128,7 +125,7 @@ async function signup(){
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
-  if(!username||!email||!password){ msgDiv.innerText = "Fill all fields!"; return; }
+  if(!username||!email||!password){ msgDiv.innerText="Fill all fields!"; return; }
   try{
     const userCredential = await createUserWithEmailAndPassword(auth,email,password);
     const uid = userCredential.user.uid;
@@ -145,7 +142,7 @@ async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
-  if(!email||!password){ msgDiv.innerText = "Enter email & password!"; return; }
+  if(!email||!password){ msgDiv.innerText="Enter email & password!"; return; }
   try{
     const userCredential = await signInWithEmailAndPassword(auth,email,password);
     currentUser = userCredential.user;
@@ -157,7 +154,7 @@ async function login(){
 }
 
 function startSession(){
-  currentSession = {
+  currentSession={
     bowStyle: document.getElementById("bowStyle").value,
     distance: parseInt(document.getElementById("distance").value),
     targetFace: document.getElementById("targetFace").value,
@@ -166,9 +163,9 @@ function startSession(){
     ends: [],
     totalScore: 0
   };
-  arrowScores = [];
-  currentEndNumber = 1;
-  document.getElementById("currentEnd").innerText = currentEndNumber;
+  arrowScores=[];
+  currentEndNumber=1;
+  document.getElementById("currentEnd").innerText=currentEndNumber;
   showScreen("scoringArea");
   drawTarget();
   updateEndScores();
@@ -180,13 +177,13 @@ function undoLastArrow(){
 }
 
 async function nextEnd(){
-  if(arrowScores.length !== currentSession.arrowsPerEnd){
+  if(arrowScores.length!==currentSession.arrowsPerEnd){
     alert("Shoot all arrows first!");
     return;
   }
   currentSession.ends.push([...arrowScores]);
   currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
-  arrowScores = [];
+  arrowScores=[];
   currentEndNumber++;
   if(currentEndNumber > currentSession.endsCount){
     await saveSession();
@@ -206,52 +203,79 @@ async function saveSession(){
   });
 }
 
+// ------------------------------
+// Show Results + Badges
+// ------------------------------
 function showResults(){
   showScreen("results");
-  const summaryDiv = document.getElementById("sessionSummary");
-  summaryDiv.innerHTML = `
+
+  // Summary
+  document.getElementById("sessionSummary").innerHTML = `
     <p>Bow: ${currentSession.bowStyle}</p>
     <p>Distance: ${currentSession.distance}m</p>
     <p>Total Score: ${currentSession.totalScore}</p>
     <p>Ends Count: ${currentSession.endsCount}</p>
   `;
 
-  // Table
+  // End Scores Table
   const table = document.createElement("table");
   const header = document.createElement("tr");
-  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
+  header.innerHTML = "<th>End</th>"+[...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('')+"<th>End Total</th>";
   table.appendChild(header);
   currentSession.ends.forEach((end,i)=>{
     const row = document.createElement("tr");
     const endTotal = end.reduce((a,b)=>a+b,0);
-    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    row.innerHTML = `<td>${i+1}</td>`+end.map(a=>`<td>${a}</td>`).join('')+`<td>${endTotal}</td>`;
     table.appendChild(row);
   });
   const scoreTableDiv = document.getElementById("scoreTable");
   scoreTableDiv.innerHTML = "";
   scoreTableDiv.appendChild(table);
 
-  // Chart
+  // Chart.js Graph
   const ctxChart = document.getElementById("scoreChart").getContext("2d");
   new Chart(ctxChart, {
     type: 'bar',
     data: {
       labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
-      datasets: [{label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)'}]
+      datasets:[{label:'End Total', data:currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor:'rgba(59,130,246,0.7)'}]
     },
-    options: {responsive:true, maintainAspectRatio:false}
+    options:{responsive:true, maintainAspectRatio:false}
+  });
+
+  // Badges Example
+  const badgesDiv = document.getElementById("badgesDiv");
+  badgesDiv.innerHTML = "";
+  let badges = [];
+  // Perfect End Badge
+  currentSession.ends.forEach((end,i)=>{
+    if(end.every(a=>a===10)) badges.push({title:`Perfect End ${i+1}`});
+  });
+  // High Score Badge
+  if(currentSession.totalScore >= currentSession.arrowsPerEnd * currentSession.endsCount * 9) badges.push({title:"High Score"});
+  badges.forEach(b=>{
+    const div = document.createElement("div");
+    div.className = "badge";
+    div.innerText = b.title;
+    badgesDiv.appendChild(div);
   });
 }
 
+// ------------------------------
+// Back to Setup
+// ------------------------------
 function backToSetup(){
-  currentEndNumber = 1;
-  arrowScores = [];
-  currentSession = {};
+  arrowScores=[];
+  currentEndNumber=1;
+  currentSession={};
   showScreen("setup");
   drawTarget();
   updateEndScores();
 }
 
+// ------------------------------
+// View History
+// ------------------------------
 async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -272,12 +296,7 @@ async function viewHistory(){
 }
 
 // ------------------------------
-// Initialize App
+// Initial Draw
 // ------------------------------
-function init() {
-  attachButtonHandlers();
-  drawTarget();
-  updateEndScores();
-}
-
-window.addEventListener("DOMContentLoaded", init);
+drawTarget();
+updateEndScores();
