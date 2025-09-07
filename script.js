@@ -3,6 +3,33 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import Chart from import Chart from "https://cdn.jsdelivr.net/npm/chart.js/auto/auto.js";
 
+
+// ---- Global error surfacing so you see errors on live too ----
+window.addEventListener('error', (e) => {
+  const m = document.getElementById('loginMessage');
+  if (m) m.innerText = 'Error: ' + (e?.error?.message || e.message);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const m = document.getElementById('loginMessage');
+  if (m) m.innerText = 'Error: ' + (e?.reason?.message || String(e.reason));
+});
+
+// ---- Robust init (works even if DOMContentLoaded already fired) ----
+function initApp() {
+  try {
+    attachHandlers(); // aapka DOMContentLoaded wala content yahan shift karein
+  } catch (err) {
+    const m = document.getElementById('loginMessage');
+    if (m) m.innerText = 'Init failed: ' + err.message;
+    console.error(err);
+  }
+}
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
