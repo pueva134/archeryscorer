@@ -1,14 +1,20 @@
 // ------------------------------
-// script.js
+// script.js (Module)
 // ------------------------------
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import Chart from "https://cdn.jsdelivr.net/npm/chart.js/auto/auto.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { 
+  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ------------------------------
-// Firebase Configuration
+// Firebase Config
 // ------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
@@ -75,41 +81,43 @@ onAuthStateChanged(auth, user => {
 // ------------------------------
 // Button Event Handlers
 // ------------------------------
-const signupBtn = document.getElementById("signupBtn");
-const loginBtn = document.getElementById("loginBtn");
-const startSessionBtn = document.getElementById("startSessionBtn");
-const viewHistoryBtn = document.getElementById("viewHistoryBtn");
-const undoBtn = document.getElementById("undoBtn");
-const nextEndBtn = document.getElementById("nextEndBtn");
-const backToSetupBtn = document.getElementById("backToSetupBtn");
-const backToMenuBtn = document.getElementById("backToMenuBtn");
-const msgDiv = document.getElementById("loginMessage");
+function attachButtonHandlers() {
+  const signupBtn = document.getElementById("signupBtn");
+  const loginBtn = document.getElementById("loginBtn");
+  const startSessionBtn = document.getElementById("startSessionBtn");
+  const viewHistoryBtn = document.getElementById("viewHistoryBtn");
+  const undoBtn = document.getElementById("undoBtn");
+  const nextEndBtn = document.getElementById("nextEndBtn");
+  const backToSetupBtn = document.getElementById("backToSetupBtn");
+  const backToMenuBtn = document.getElementById("backToMenuBtn");
+  const msgDiv = document.getElementById("loginMessage");
 
-signupBtn?.addEventListener("click", signup);
-loginBtn?.addEventListener("click", login);
-startSessionBtn?.addEventListener("click", startSession);
-viewHistoryBtn?.addEventListener("click", viewHistory);
-undoBtn?.addEventListener("click", undoLastArrow);
-nextEndBtn?.addEventListener("click", nextEnd);
-backToSetupBtn?.addEventListener("click", backToSetup);
-backToMenuBtn?.addEventListener("click", () => showScreen("setup"));
+  signupBtn?.addEventListener("click", signup);
+  loginBtn?.addEventListener("click", login);
+  startSessionBtn?.addEventListener("click", startSession);
+  viewHistoryBtn?.addEventListener("click", viewHistory);
+  undoBtn?.addEventListener("click", undoLastArrow);
+  nextEndBtn?.addEventListener("click", nextEnd);
+  backToSetupBtn?.addEventListener("click", backToSetup);
+  backToMenuBtn?.addEventListener("click", () => showScreen("setup"));
 
-canvas?.addEventListener("click", e => {
-  if(!currentSession.arrowsPerEnd) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const center = canvas.width / 2;
-  const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
-  let score = 0;
-  if(dist < 30) score = 10;
-  else if(dist < 60) score = 8;
-  else if(dist < 90) score = 6;
-  else if(dist < 120) score = 4;
-  else score = 1;
-  arrowScores.push(score);
-  updateEndScores();
-});
+  canvas?.addEventListener("click", e => {
+    if(!currentSession.arrowsPerEnd) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const center = canvas.width / 2;
+    const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
+    let score = 0;
+    if(dist < 30) score = 10;
+    else if(dist < 60) score = 8;
+    else if(dist < 90) score = 6;
+    else if(dist < 120) score = 4;
+    else score = 1;
+    arrowScores.push(score);
+    updateEndScores();
+  });
+}
 
 // ------------------------------
 // Main Functions
@@ -119,6 +127,7 @@ async function signup(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
+  const msgDiv = document.getElementById("loginMessage");
   if(!username||!email||!password){ msgDiv.innerText = "Fill all fields!"; return; }
   try{
     const userCredential = await createUserWithEmailAndPassword(auth,email,password);
@@ -135,6 +144,7 @@ async function signup(){
 async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  const msgDiv = document.getElementById("loginMessage");
   if(!email||!password){ msgDiv.innerText = "Enter email & password!"; return; }
   try{
     const userCredential = await signInWithEmailAndPassword(auth,email,password);
@@ -205,10 +215,11 @@ function showResults(){
     <p>Total Score: ${currentSession.totalScore}</p>
     <p>Ends Count: ${currentSession.endsCount}</p>
   `;
+
   // Table
   const table = document.createElement("table");
   const header = document.createElement("tr");
-  header.innerHTML = "<th>End</th>"+[...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('')+"<th>End Total</th>";
+  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
   table.appendChild(header);
   currentSession.ends.forEach((end,i)=>{
     const row = document.createElement("tr");
@@ -219,6 +230,7 @@ function showResults(){
   const scoreTableDiv = document.getElementById("scoreTable");
   scoreTableDiv.innerHTML = "";
   scoreTableDiv.appendChild(table);
+
   // Chart
   const ctxChart = document.getElementById("scoreChart").getContext("2d");
   new Chart(ctxChart, {
@@ -232,9 +244,9 @@ function showResults(){
 }
 
 function backToSetup(){
-  currentEndNumber=1;
-  arrowScores=[];
-  currentSession={};
+  currentEndNumber = 1;
+  arrowScores = [];
+  currentSession = {};
   showScreen("setup");
   drawTarget();
   updateEndScores();
@@ -260,7 +272,12 @@ async function viewHistory(){
 }
 
 // ------------------------------
-// Initial Target Draw
+// Initialize App
 // ------------------------------
-drawTarget();
-updateEndScores();
+function init() {
+  attachButtonHandlers();
+  drawTarget();
+  updateEndScores();
+}
+
+window.addEventListener("DOMContentLoaded", init);
