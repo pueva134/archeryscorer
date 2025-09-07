@@ -1,30 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My History</title>
-<link rel="stylesheet" href="style.css">
-
-<!-- Chart.js (for optional mini charts) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <title>Archery History</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-
-    <h1>📜 My History</h1>
-    
-    <!-- Streak & Badges -->
-    <div id="streakContainer"></div>
-    <h3>Badges Earned:</h3>
-    <div id="badgesContainer" class="horizontal-scroll"></div>
-
-    <!-- Session History -->
-    <div id="historyList"></div>
-
-    <button onclick="window.location.href='index.html'">🔙 Back</button>
+  <h1>📜 History</h1>
+  <div id="historyList"></div>
+  <a href="index.html">⬅ Back to Home</a>
 </div>
 
-<script type="module" src="history.js"></script>
+<script>
+  function loadHistory() {
+    let history = JSON.parse(localStorage.getItem("archeryHistory")) || [];
+    let historyList = document.getElementById("historyList");
+
+    if (history.length === 0) {
+      historyList.innerHTML = "<p>No sessions saved yet.</p>";
+      return;
+    }
+
+    historyList.innerHTML = history.map(session => `
+      <div class="history-item">
+        <p><strong>Date:</strong> ${session.date}</p>
+        <p><strong>Bow:</strong> ${session.bow}</p>
+        <p><strong>Target:</strong> ${session.target}</p>
+        <p><strong>Total Score:</strong> ${session.total}</p>
+        <p><strong>Average:</strong> ${session.avg}</p>
+      </div>
+    `).join("");
+  }
+
+  loadHistory();
+</script>
 </body>
 </html>
+
