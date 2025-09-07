@@ -3,12 +3,8 @@
 // ------------------------------
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { 
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { 
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import Chart from "https://cdn.jsdelivr.net/npm/chart.js/auto/auto.js";
 
 // ------------------------------
@@ -33,35 +29,26 @@ let currentUser = null;
 let currentSession = {};
 let arrowScores = [];
 let currentEndNumber = 1;
-let chartInstance = null;
 
 // ------------------------------
 // Utility Functions
 // ------------------------------
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-function updateEndScores() {
-  const endScoresDiv = document.getElementById("endScores");
-  const endTotalDiv = document.getElementById("endTotal");
-  const nextEndBtn = document.getElementById("nextEndBtn");
+// ------------------------------
+// Canvas Target
+// ------------------------------
+const canvas = document.getElementById("target");
+const ctx = canvas?.getContext("2d");
 
-  if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
-  if (endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
-
-  if(nextEndBtn) nextEndBtn.disabled = arrowScores.length !== currentSession.arrowsPerEnd;
-}
-
-function drawTarget() {
-  const canvas = document.getElementById("target");
-  const ctx = canvas?.getContext("2d");
+function drawTarget(){
   if(!ctx) return;
-
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const colors=['#f00','#f90','#ff0','#0f0','#00f'];
-  const radius = canvas.width/2;
+  const radius=canvas.width/2;
   for(let i=0;i<colors.length;i++){
     ctx.beginPath();
     ctx.arc(radius,radius,radius-i*30,0,2*Math.PI);
@@ -70,18 +57,48 @@ function drawTarget() {
   }
 }
 
+function updateEndScores(){
+  const endScoresDiv = document.getElementById("endScores");
+  const endTotalDiv = document.getElementById("endTotal");
+  if(endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
+  if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
+
+  // Enable Next End button only when all arrows shot
+  const nextEndBtn = document.getElementById("nextEndBtn");
+  if(nextEndBtn) nextEndBtn.disabled = arrowScores.length !== currentSession.arrowsPerEnd;
+}
+
 // ------------------------------
-// Arrow Shooting
+// Auth State Listener
 // ------------------------------
-function shootArrow(e){
+onAuthStateChanged(auth, user => {
+  if(user) currentUser = user;
+});
+
+// ------------------------------
+// Button Handlers
+// ------------------------------
+document.getElementById("signupBtn")?.addEventListener("click", signup);
+document.getElementById("loginBtn")?.addEventListener("click", login);
+document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
+document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
+document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
+document.getElementById("backToMenuBtn")?.addEventListener("click",()=>showScreen("setup"));
+
+// ------------------------------
+// Canvas Click for Arrow Score
+// ------------------------------
+canvas?.addEventListener("click", e=>{
   if(!currentSession.arrowsPerEnd) return;
 
+  // Limit arrows per end
   if(arrowScores.length >= currentSession.arrowsPerEnd){
     alert("All arrows for this end have been shot!");
     return;
   }
 
-  const canvas = document.getElementById("target");
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -97,61 +114,47 @@ function shootArrow(e){
 
   arrowScores.push(score);
   updateEndScores();
-}
-
-// ------------------------------
-// Auth Listener
-// ------------------------------
-onAuthStateChanged(auth, user => {
-  if(user) currentUser = user;
 });
 
 // ------------------------------
 // Main Functions
 // ------------------------------
-async function signup() {
+async function signup(){
   const username = document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
-
-  if(!username || !email || !password){
-    msgDiv.innerText="Fill all fields!";
-    return;
-  }
-
-  try {
+  if(!username||!email||!password){ msgDiv.innerText="Fill all fields!"; return; }
+  try{
     const userCredential = await createUserWithEmailAndPassword(auth,email,password);
     const uid = userCredential.user.uid;
     await setDoc(doc(db,"users",uid), { name: username, role: role, sessions: [] });
     currentUser = userCredential.user;
     msgDiv.innerText = "";
     showScreen("setup");
-  } catch(e) {
+  }catch(e){
     msgDiv.innerText = e.message;
   }
 }
 
-async function login() {
+async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
-
   if(!email||!password){ msgDiv.innerText="Enter email & password!"; return; }
-
-  try {
+  try{
     const userCredential = await signInWithEmailAndPassword(auth,email,password);
     currentUser = userCredential.user;
     msgDiv.innerText = "";
     showScreen("setup");
-  } catch(e) {
+  }catch(e){
     msgDiv.innerText = e.message;
   }
 }
 
-function startSession() {
-  currentSession = {
+function startSession(){
+  currentSession={
     bowStyle: document.getElementById("bowStyle").value,
     distance: parseInt(document.getElementById("distance").value),
     targetFace: document.getElementById("targetFace").value,
@@ -160,32 +163,28 @@ function startSession() {
     ends: [],
     totalScore: 0
   };
-
-  arrowScores = [];
-  currentEndNumber = 1;
-  document.getElementById("currentEnd").innerText = currentEndNumber;
-
+  arrowScores=[];
+  currentEndNumber=1;
+  document.getElementById("currentEnd").innerText=currentEndNumber;
   showScreen("scoringArea");
   drawTarget();
   updateEndScores();
 }
 
-function undoLastArrow() {
+function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
 }
 
-async function nextEnd() {
-  if(arrowScores.length !== currentSession.arrowsPerEnd){
+async function nextEnd(){
+  if(arrowScores.length!==currentSession.arrowsPerEnd){
     alert("Shoot all arrows first!");
     return;
   }
-
   currentSession.ends.push([...arrowScores]);
   currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
-  arrowScores = [];
+  arrowScores=[];
   currentEndNumber++;
-
   if(currentEndNumber > currentSession.endsCount){
     await saveSession();
     showResults();
@@ -195,17 +194,19 @@ async function nextEnd() {
   }
 }
 
-async function saveSession() {
+async function saveSession(){
   if(!currentUser) return;
   const uid = currentUser.uid;
   const userRef = doc(db,"users",uid);
-  await updateDoc(userRef, { sessions: arrayUnion({...currentSession, date: Timestamp.now()}) });
+  await updateDoc(userRef,{
+    sessions: arrayUnion({...currentSession, date: Timestamp.now()})
+  });
 }
 
 // ------------------------------
-// Results + Badges
+// Show Results + Badges
 // ------------------------------
-function showResults() {
+function showResults(){
   showScreen("results");
 
   // Summary
@@ -216,46 +217,45 @@ function showResults() {
     <p>Ends Count: ${currentSession.endsCount}</p>
   `;
 
-  // Table
+  // End Scores Table
   const table = document.createElement("table");
   const header = document.createElement("tr");
   header.innerHTML = "<th>End</th>"+[...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('')+"<th>End Total</th>";
   table.appendChild(header);
-
   currentSession.ends.forEach((end,i)=>{
     const row = document.createElement("tr");
     const endTotal = end.reduce((a,b)=>a+b,0);
-    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    row.innerHTML = `<td>${i+1}</td>`+end.map(a=>`<td>${a}</td>`).join('')+`<td>${endTotal}</td>`;
     table.appendChild(row);
   });
-
   const scoreTableDiv = document.getElementById("scoreTable");
   scoreTableDiv.innerHTML = "";
   scoreTableDiv.appendChild(table);
 
-  // Chart
+  // Chart.js Graph
   const ctxChart = document.getElementById("scoreChart").getContext("2d");
-  if(chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctxChart, {
-    type:'bar',
-    data:{
+  new Chart(ctxChart, {
+    type: 'bar',
+    data: {
       labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
       datasets:[{label:'End Total', data:currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor:'rgba(59,130,246,0.7)'}]
     },
     options:{responsive:true, maintainAspectRatio:false}
   });
 
-  // Badges
+  // Badges Example
   const badgesDiv = document.getElementById("badgesDiv");
   badgesDiv.innerHTML = "";
   let badges = [];
+  // Perfect End Badge
   currentSession.ends.forEach((end,i)=>{
     if(end.every(a=>a===10)) badges.push({title:`Perfect End ${i+1}`});
   });
-  if(currentSession.totalScore >= currentSession.arrowsPerEnd * currentSession.endsCount * 0.9) badges.push({title:"High Score"});
+  // High Score Badge
+  if(currentSession.totalScore >= currentSession.arrowsPerEnd * currentSession.endsCount * 9) badges.push({title:"High Score"});
   badges.forEach(b=>{
     const div = document.createElement("div");
-    div.className="badge";
+    div.className = "badge";
     div.innerText = b.title;
     badgesDiv.appendChild(div);
   });
@@ -264,10 +264,10 @@ function showResults() {
 // ------------------------------
 // Back to Setup
 // ------------------------------
-function backToSetup() {
-  arrowScores = [];
-  currentEndNumber = 1;
-  currentSession = {};
+function backToSetup(){
+  arrowScores=[];
+  currentEndNumber=1;
+  currentSession={};
   showScreen("setup");
   drawTarget();
   updateEndScores();
@@ -276,11 +276,10 @@ function backToSetup() {
 // ------------------------------
 // View History
 // ------------------------------
-async function viewHistory() {
+async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
   const userDoc = await getDoc(doc(db,"users",uid));
-
   if(userDoc.exists()){
     const sessions = userDoc.data().sessions || [];
     const table = document.createElement("table");
@@ -297,23 +296,10 @@ async function viewHistory() {
 }
 
 // ------------------------------
-// DOMContentLoaded - Attach all listeners
+// Initial Draw
 // ------------------------------
-window.addEventListener("DOMContentLoaded", () => {
-  // Buttons
-  document.getElementById("signupBtn").addEventListener("click", signup);
-  document.getElementById("loginBtn").addEventListener("click", login);
-  document.getElementById("startSessionBtn").addEventListener("click", startSession);
-  document.getElementById("viewHistoryBtn").addEventListener("click", viewHistory);
-  document.getElementById("undoBtn").addEventListener("click", undoLastArrow);
-  document.getElementById("nextEndBtn").addEventListener("click", nextEnd);
-  document.getElementById("backToSetupBtn").addEventListener("click", backToSetup);
-  document.getElementById("backToMenuBtn").addEventListener("click", () => showScreen("setup"));
+drawTarget();
+updateEndScores();
 
-  // Canvas click
-  document.getElementById("target").addEventListener("click", shootArrow);
 
-  // Initial draw
-  drawTarget();
-  updateEndScores();
-});
+window.addEventListener("DOMContentLoaded", init);
