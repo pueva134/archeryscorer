@@ -124,28 +124,24 @@ button:hover {
 </head>
 
 <body>
-  <!-- Login Page -->
-  <div id="loginPage" class="section">
-    <div class="container">
+  <div class="container">
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="screen">
       <h1>🏹 My Scorer 🏹</h1>
       <input type="text" id="username" placeholder="Enter your name" />
-      <button class="full-width" onclick="login()">Login</button>
+      <button onclick="login()">Login</button>
     </div>
-  </div>
 
-  <!-- Main Screen -->
-  <div id="mainScreen" class="section" style="display:none;">
-    <div class="container">
+    <!-- MAIN SCREEN -->
+    <div id="mainScreen" class="screen" style="display:none;">
       <h1>🏹 My Scorer 🏹</h1>
       <p>Hello, <span id="displayName"></span>!</p>
-      <button class="full-width" onclick="goToSelection()">Start Session</button>
-      <button class="full-width" onclick="logout()">Logout</button>
+      <button onclick="goToSelection()">Start Session</button>
+      <button onclick="logout()">Logout</button>
     </div>
-  </div>
 
-  <!-- Selection Area -->
-  <div id="setup" class="section" style="display:none;">
-    <div class="container">
+    <!-- SELECTION AREA -->
+    <div id="setup" class="screen" style="display:none;">
       <h2>Session Setup</h2>
       <label>Bow Style:
         <select id="bowStyle">
@@ -187,9 +183,7 @@ button:hover {
     </div>
   </div>
 
-  <!-- Scoring Area -->
-  <div id="scoringArea" class="section" style="display:none;">
-    <div class="container">
+<div id="scoringArea" class="screen" style="display:none;">
       <h2>End <span id="currentEnd">1</span></h2>
       <canvas id="target" width="300" height="300"></canvas>
       <p>Tap the target to score an arrow</p>
@@ -198,11 +192,8 @@ button:hover {
       <button onclick="undoLastArrow()">⏪ Undo Last Arrow</button>
       <button onclick="nextEnd()">Next End</button>
     </div>
-  </div>
-
   <!-- Results Area -->
-  <div id="results" class="section" style="display:none;">
-    <div class="container">
+  <div id="results" class="screen" style="display:none;">
       <h2>Session Results</h2>
       <p><strong>Bow:</strong> <span id="resultBow"></span></p>
       <p><strong>Target:</strong> <span id="resultTarget"></span></p>
