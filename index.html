@@ -1,220 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="chart.js"></script>
   <meta charset="UTF-8">
   <title>My Scorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    /* GENERAL STYLING */
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to right, #f2f2f2, #e6f0ff);
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    color: #333;
-    height: 100vh;
-    width: 100vw;
+/* GENERAL STYLING */
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: linear-gradient(to right, #141e30, #243b55);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  color: #fff;
 }
 
-    h1, h2, h3 {
-      font-family: 'Verdana', sans-serif;
-    }
-    button {
-      background: linear-gradient(45deg, #ff9966, #ff5e62);
-      border: none;
-      color: white;
-      padding: 10px 25px;
-      margin: 10px;
-      border-radius: 25px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    input, select {
-      padding: 8px 12px;
-      margin: 5px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
+/* FULL PAGE SECTIONS */
+.section {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
 
-    /* CARDS */
-    .card {
-  max-width: 90%;   /* use most of the screen instead of fixed 400px */
+/* MAIN CONTAINER */
+.container {
   width: 100%;
-  padding: 40px;    /* more breathing space */
-  font-size: 18px;  /* bigger text */
+  max-width: 600px;  /* keeps it centered & readable */
+  background: #1e293b;
+  border-radius: 15px;
+  padding: 40px 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  text-align: center;
 }
 
+/* HEADINGS */
+h1 {
+  font-size: 36px;
+  color: #facc15;
+  margin-bottom: 20px;
+}
+h2 {
+  font-size: 26px;
+  margin-top: 20px;
+  color: #93c5fd;
+}
+h3 {
+  font-size: 20px;
+  margin-top: 15px;
+  color: #a5b4fc;
+}
 
-    .card:hover {
-      transform: translateY(-5px);
-    }
+/* INPUTS & SELECTS */
+input, select {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 12px 0;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  background: #334155;
+  color: #fff;
+  box-sizing: border-box;
+}
 
-    /* LOGIN & MAIN SCREEN */
-    #loginPage, #mainScreen {
-      padding-top: 80px;
-    }
+/* BUTTONS */
+button {
+  background: linear-gradient(45deg, #06b6d4, #3b82f6);
+  border: none;
+  color: white;
+  padding: 14px 20px;
+  margin: 12px 6px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+button.full-width {
+  width: 100%;
+  margin: 10px 0;
+}
 
-    /* SELECTION & RESULTS */
-    #setup, #results, #scoringArea, #historyContainer {
-      max-width: 700px;
-      margin: 20px auto;
-      text-align: center;
-    }
+/* CANVAS */
+#target {
+  display: block;
+  margin: 20px auto;
+  border-radius: 50%;
+  border: 4px solid #facc15;
+  background: #0f172a;
+  max-width: 90%;
+  height: auto;
+}
 
-    /* TARGET CANVAS */
-    #target {
-      border: 3px solid #666;
-      border-radius: 50%;
-      margin: 20px 0;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    #target:hover {
-      transform: scale(1.05);
-    }
+/* RESULTS & HISTORY */
+.results-box, .history-item {
+  background: #334155;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 15px 0;
+  font-size: 16px;
+}
 
-    /* TABLES */
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 15px;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background: linear-gradient(to right, #ff9966, #ff5e62);
-      color: white;
-    }
-
-    /* LINKS */
-    a {
-      text-decoration: none;
-      color: #ff5e62;
-      font-weight: bold;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-
-    /* RESPONSIVE */
-    @media screen and (max-width: 480px) {
-      .card {
-        max-width: 90%;
-      }
-      canvas {
-        width: 250px !important;
-        height: 250px !important;
-      }
-    }
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  h1 { font-size: 28px; }
+  h2 { font-size: 22px; }
+  h3 { font-size: 18px; }
+  .container { padding: 25px 20px; }
+}
   </style>
 </head>
+
 <body>
+  <!-- Login Page -->
+  <div id="loginPage" class="section">
+    <div class="container">
+      <h1>🏹 My Scorer 🏹</h1>
+      <input type="text" id="username" placeholder="Enter your name" />
+      <button class="full-width" onclick="login()">Login</button>
+    </div>
+  </div>
 
-<!-- Login Page -->
-<div id="loginPage" class="card">
-  <h1>🏹 My Scorer 🏹</h1>
-  <input type="text" id="username" placeholder="Enter your name" />
-  <br>
-  <button onclick="login()">Login</button>
-</div>
+  <!-- Main Screen -->
+  <div id="mainScreen" class="section" style="display:none;">
+    <div class="container">
+      <h1>🏹 My Scorer 🏹</h1>
+      <p>Hello, <span id="displayName"></span>!</p>
+      <button class="full-width" onclick="goToSelection()">Start Session</button>
+      <button class="full-width" onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-<!-- Main Screen -->
-<div id="mainScreen" class="card" style="display:none;">
-  <h1>🏹 My Scorer 🏹</h1>
-  <p>Hello, <span id="displayName"></span>!</p>
-  <button onclick="goToSelection()">Start Session</button>
-  <button onclick="logout()">Logout</button>
-</div>
+  <!-- Selection Area -->
+  <div id="setup" class="section" style="display:none;">
+    <div class="container">
+      <h2>Session Setup</h2>
+      <label>Bow Style:
+        <select id="bowStyle">
+          <option value="Recurve">Recurve</option>
+          <option value="Compound">Compound</option>
+          <option value="Barebow">Barebow</option>
+          <option value="Longbow">Longbow</option>
+        </select>
+      </label>
+      <label>Distance:
+        <select id="distance">
+          <option value="15">15m</option>
+          <option value="18">18m</option>
+          <option value="30">30m</option>
+          <option value="40">40m</option>
+          <option value="50">50m</option>
+          <option value="70">70m</option>
+        </select>
+      </label>
+      <label>Target Face:
+        <select id="targetFace">
+          <option value="122">122cm (Outdoor)</option>
+          <option value="80">80cm (Outdoor)</option>
+          <option value="40">40cm (Indoor)</option>
+          <option value="3spot">40cm 3-Spot (Indoor)</option>
+          <option value="9spot">40cm 9-Spot (Indoor)</option>
+        </select>
+      </label>
+      <label>Arrows per End: 
+        <input type="number" id="arrowsPerEnd" value="6">
+      </label>
+      <label>Number of Ends: 
+        <input type="number" id="endsCount" value="6">
+      </label>
+      <button class="full-width" onclick="startSession()">Start Session</button>
+      <button class="full-width" onclick="viewUserHistory()">📜 View My History</button>
+      <div id="historyContainer"></div>
+      <button class="full-width" onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-<!-- Selection Area -->
-<div id="setup" class="card" style="display:none;">
-  <h2>Session Setup</h2>
-  <label>Bow Style:
-    <select id="bowStyle">
-      <option value="Recurve">Recurve</option>
-      <option value="Compound">Compound</option>
-      <option value="Barebow">Barebow</option>
-      <option value="Longbow">Longbow</option>
-    </select>
-  </label>
-  <br>
-<label>Distance:
-  <select id="distance">
-    <option value="15">15m</option>
-    <option value="18">18m</option>
-    <option value="30">30m</option>
-    <option value="40">40m</option>
-    <option value="50">50m</option>
-    <option value="70">70m</option>
-  </select>
-</label>
-  <br>
-  <label>Target Face:
-    <select id="targetFace">
-      <option value="122">122cm (Outdoor)</option>
-      <option value="80">80cm (Outdoor)</option>
-      <option value="40">40cm (Indoor)</option>
-      <option value="3spot">40cm 3-Spot (Indoor)</option>
-      <option value="9spot">40cm 9-Spot (Indoor)</option>
-    </select>
-  </label>
-  <br>
-  <label>Arrows per End: 
-    <input type="number" id="arrowsPerEnd" value="6">
-  </label>
-  <br>
-  <label>Number of Ends: 
-    <input type="number" id="endsCount" value="6">
-  </label>
-  <br>
-  <button onclick="startSession()">Start Session</button>
-  <button onclick="viewUserHistory()">📜 View My History</button>
-  <div id="historyContainer"></div>
-  <button onclick="logout()">Logout</button>
-</div>
+  <!-- Scoring Area -->
+  <div id="scoringArea" class="section" style="display:none;">
+    <div class="container">
+      <h2>End <span id="currentEnd">1</span></h2>
+      <canvas id="target" width="300" height="300"></canvas>
+      <p>Tap the target to score an arrow</p>
+      <div id="endScores"></div>
+      <div id="endTotal">End Total: 0</div>
+      <button onclick="undoLastArrow()">⏪ Undo Last Arrow</button>
+      <button onclick="nextEnd()">Next End</button>
+    </div>
+  </div>
 
-<!-- Scoring Area -->
-<div id="scoringArea" class="card" style="display:none;">
-  <h2>End <span id="currentEnd">1</span></h2>
-  <canvas id="target" width="300" height="300"></canvas>
-  <p>Tap the target to score an arrow</p>
-  <div id="endScores"></div>
-  <div id="endScores"></div>
-<div id="endTotal">End Total: 0</div>
-<button onclick="undoLastArrow()">⏪ Undo Last Arrow</button>
-  <button onclick="nextEnd()">Next End</button>
-</div>
+  <!-- Results Area -->
+  <div id="results" class="section" style="display:none;">
+    <div class="container">
+      <h2>Session Results</h2>
+      <p><strong>Bow:</strong> <span id="resultBow"></span></p>
+      <p><strong>Target:</strong> <span id="resultTarget"></span></p>
+      <p><strong>Distance:</strong> <span id="resultDistance"></span> m</p>
+      <p><strong>Total Score:</strong> <span id="totalScore"></span></p>
+      <p><strong>Average Score:</strong> <span id="avgScore"></span></p>
 
+      <h3>End Scores:</h3>
+      <div id="scoreTable" style="overflow-x:auto;"></div>
+      <h3>Performance Graph</h3>
+      <canvas id="scoreChart" width="400" height="200"></canvas>
+      <button class="full-width" onclick="backToSetup()">🔙 New Session</button>
+    </div>
+  </div>
 
-<!-- Results Area -->
-<div id="results" class="card" style="display:none;">
-  <h2>Session Results</h2>
-  <p><strong>Bow:</strong> <span id="resultBow"></span></p>
-  <p><strong>Target:</strong> <span id="resultTarget"></span></p>
-  <p><strong>Distance:</strong> <span id="resultDistance"></span> m</p>
-  <p><strong>Total Score:</strong> <span id="totalScore"></span></p>
-  <p><strong>Average Score:</strong> <span id="avgScore"></span></p>
-
-  <h3>End Scores:</h3>
-  <div id="scoreTable" style="overflow-x:auto;"></div>
-  <h3>Performance Graph</h3>
-  <canvas id="scoreChart" width="400" height="200"></canvas>
-  <button onclick="backToSetup()">🔙 New Session</button>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
+  <!-- Script -->
+  <script src="script.js"></script>
 </body>
 </html>

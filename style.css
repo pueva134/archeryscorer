@@ -1,132 +1,88 @@
+/* GENERAL STYLING */
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f0f0f0;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: linear-gradient(to right, #141e30, #243b55); /* dark gradient for professional look */
   margin: 0;
-  padding: 0; /* remove fixed padding */
-  min-height: 100vh; /* ensure full height */
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+/* MAIN CONTAINER */
 .container {
-  width: 95%; /* take nearly full width on mobile */
-  max-width: 600px; /* still look good on desktop */
-  margin: auto;
-  background: #fff;
-  padding: 20px;
+  width: 90%;
+  max-width: 1200px;
+  background: #1e293b;
   border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  box-sizing: border-box;
+  padding: 40px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  overflow-y: auto;
 }
 
+/* HEADINGS */
 h1 {
+  font-size: 48px;
+  color: #facc15; /* gold */
   text-align: center;
-  margin-bottom: 20px;
-  font-size: clamp(20px, 5vw, 28px); /* responsive text */
+}
+h2 {
+  font-size: 32px;
+  margin-top: 20px;
+  color: #93c5fd; /* light blue */
+}
+h3 {
+  font-size: 24px;
+  margin-top: 15px;
+  color: #a5b4fc; /* indigo */
 }
 
-label {
-  display: block;
-  margin: 10px 0;
-  font-size: 16px;
-  font-weight: 500;
-}
-
+/* INPUTS & SELECTS */
 input, select {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-button {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  margin-top: 15px;
-  border: none;
-  border-radius: 8px;
-  background: #007bff;
-  color: #fff;
-  font-size: 17px;
-  cursor: pointer;
-  transition: background 0.2s ease-in-out;
-}
-
-button:hover {
-  background: #0056b3;
-}
-
-canvas {
-  display: block;
-  margin: 15px auto;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  width: 90%;       /* responsive width */
-  max-width: 350px; /* limit on large screens */
-  height: auto;
-}
-
-#endScores {
-  text-align: center;
+  padding: 12px 15px;
   margin: 10px 0;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  background: #334155;
+  color: #fff;
+}
+
+/* BUTTONS */
+button {
+  background: linear-gradient(45deg, #06b6d4, #3b82f6);
+  border: none;
+  color: white;
+  padding: 12px 25px;
+  margin: 15px 10px;
+  border-radius: 12px;
   font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 }
 
-a {
-  display: inline-block;
-  margin-top: 10px;
-  text-align: center;
-  color: #007bff;
-  text-decoration: none;
-  font-size: 16px;
+/* CANVAS */
+#target {
+  display: block;
+  margin: 30px auto;
+  border-radius: 50%;
+  border: 4px solid #facc15;
+  background: #0f172a;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
-.results-box {
-  background: #f9f9f9;
-  border: 2px solid #ddd;
+/* RESULTS & HISTORY */
+.results-box, .history-item {
+  background: #334155;
   border-radius: 10px;
-  padding: 15px 20px;
-  margin: 15px 0;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.results-box p {
-  margin: 8px 0;
-}
-
-.history-item {
-  background: #f9f9f9;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-/* Mobile adjustments */
-@media (max-width: 480px) {
-  .container {
-    padding: 15px;
-    border-radius: 0; /* go edge-to-edge on small screens */
-    min-height: 100vh;
-  }
-
-  button {
-    font-size: 16px;
-    padding: 10px;
-  }
-
-  #endScores {
-    font-size: 16px;
-  }
+  padding: 20px;
+  margin: 20px 0;
+  font-size: 18px;
 }
