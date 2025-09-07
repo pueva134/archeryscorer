@@ -1,262 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>My Scorer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Scorer</title>
+<link rel="stylesheet" href="style.css">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(to right, #141e30, #243b55);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            color: #fff;
-        }
-
-        .container {
-    width: 95%;          /* Use most of the viewport width */
-    max-width: 800px;    /* Keeps layout centered on larger screens */
-    background: #1e293b;
-    border-radius: 15px;
-    padding: 20px;       /* Reduced padding for small screens */
-    margin: 40px auto;
-    box-sizing: border-box;
-}
-
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        h1 {
-            font-size: 36px;
-            color: #facc15;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 26px;
-            margin-top: 20px;
-            color: #93c5fd;
-        }
-
-        h3 {
-            font-size: 20px;
-            margin-top: 15px;
-            color: #a5b4fc;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 14px 16px;
-            margin: 12px 0;
-            border-radius: 10px;
-            border: none;
-            font-size: 16px;
-            background: #334155;
-            color: #fff;
-            box-sizing: border-box;
-        }
-
-        button {
-            background: linear-gradient(45deg, #06b6d4, #3b82f6);
-            border: none;
-            color: white;
-            padding: 14px 20px;
-            margin: 12px 0;
-            border-radius: 12px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-        }
-
-        #target {
-            display: block;
-            margin: 20px auto;
-            border-radius: 50%;
-            border: 4px solid #facc15;
-            background: #0f172a;
-            max-width: 100%;
-            height: auto;
-        }
-
-        .results-box,
-        .history-item {
-            background: #334155;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            font-size: 16px;
-        }
-
-      #scoreTable {
-    width: 100%;
-    overflow-x: auto;         /* Enables horizontal scroll only for table */
-    -webkit-overflow-scrolling: touch;
-    margin-top: 20px;
-}
-
-#scoreTable table {
-    width: 100%;
-    min-width: 600px;         /* Ensures table doesn’t shrink too much */
-    border-collapse: collapse;
-    table-layout: fixed;      /* Makes columns evenly spaced */
-}
-
-th, td {
-    border: 1px solid #64748b;
-    padding: 10px;
-    text-align: center;
-    word-wrap: break-word;    /* Prevents long text from stretching cells */
-}
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 28px;
-            }
-
-            h2 {
-                font-size: 22px;
-            }
-
-            h3 {
-                font-size: 18px;
-            }
-
-            .container {
-                padding: 25px 20px;
-                max-width: 95%;
-            }
-
-            table {
-                min-width: 100%; /* Allow table to adapt better on small screens */
-            }
-        }
-    </style>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
-    <div class="container">
+<div class="container">
 
-        <div id="loginPage" class="screen active">
-            <h1>🏹 My Scorer 🏹</h1>
-            <input type="text" id="username" placeholder="Enter your name" />
-            <button onclick="login()">Login</button>
-        </div>
-
-        <div id="mainScreen" class="screen">
-            <h1>🏹 My Scorer 🏹</h1>
-            <p>Hello, <span id="displayName"></span>!</p>
-            <button onclick="goToSelection()">Start Session</button>
-            <button onclick="logout()">Logout</button>
-        </div>
-
-        <div id="setup" class="screen">
-            <h2>Session Setup</h2>
-            <label>Bow Style:
-                <select id="bowStyle">
-                    <option value="Recurve">Recurve</option>
-                    <option value="Compound">Compound</option>
-                    <option value="Barebow">Barebow</option>
-                    <option value="Longbow">Longbow</option>
-                </select>
-            </label>
-            <label>Distance:
-                <select id="distance">
-                    <option value="15">15m</option>
-                    <option value="18">18m</option>
-                    <option value="30">30m</option>
-                    <option value="40">40m</option>
-                    <option value="50">50m</option>
-                    <option value="70">70m</option>
-                </select>
-            </label>
-            <label>Target Face:
-                <select id="targetFace">
-                    <option value="122">122cm (Outdoor)</option>
-                    <option value="80">80cm (Outdoor)</option>
-                    <option value="40">40cm (Indoor)</option>
-                    <option value="3spot">40cm 3-Spot (Indoor)</option>
-                    <option value="9spot">40cm 9-Spot (Indoor)</option>
-                </select>
-            </label>
-            <label>Arrows per End:
-                <input type="number" id="arrowsPerEnd" value="6">
-            </label>
-            <label>Number of Ends:
-                <input type="number" id="endsCount" value="6">
-            </label>
-            <button class="full-width" onclick="startSession()">Start Session</button>
-            <button class="full-width" onclick="viewUserHistory()">📜 View My History</button>
-            <div id="historyContainer"></div>
-            <button class="full-width" onclick="logout()">Logout</button>
-        </div>
-
-        <div id="scoringArea" class="screen">
-            <h2>End <span id="currentEnd">1</span></h2>
-            <canvas id="target" width="300" height="300"></canvas>
-            <p>Tap the target to score an arrow</p>
-            <div id="endScores"></div>
-            <div id="endTotal">End Total: 0</div>
-            <button onclick="undoLastArrow()">⏪ Undo Last Arrow</button>
-            <button onclick="nextEnd()">Next End</button>
-        </div>
-
-        <div id="results" class="screen">
-            <h2>Session Results</h2>
-            <p><strong>Bow:</strong> <span id="resultBow"></span></p>
-            <p><strong>Target:</strong> <span id="resultTarget"></span></p>
-            <p><strong>Distance:</strong> <span id="resultDistance"></span> m</p>
-            <p><strong>Total Score:</strong> <span id="totalScore"></span></p>
-            <p><strong>Average Score:</strong> <span id="avgScore"></span></p>
-
-            <h3>End Scores:</h3>
-            <div id="scoreTable" class="overflow-x-auto">
-    <table>
-        <thead>
-            <tr class="bg-gray-700">
-                <th>End</th>
-                <th>Arrow 1</th>
-                <th>Arrow 2</th>
-                <th>Arrow 3</th>
-                <th>Arrow 4</th>
-                <th>Arrow 5</th>
-                <th>Arrow 6</th>
-                <th>End Total</th>
-            </tr>
-        </thead>
-        <tbody id="scoreRows">
-            <!-- Dynamic rows will go here -->
-        </tbody>
-    </table>
-</div>
-
-            <h3>Performance Graph</h3>
-            <canvas id="scoreChart" width="400" height="200"></canvas>
-
-            <button class="full-width" onclick="backToSetup()">🔙 New Session</button>
-        </div>
-
+    <!-- Login/Signup Screen -->
+    <div id="loginPage" class="screen active">
+        <h1>🏹 My Scorer 🏹</h1>
+        <input type="text" id="username" placeholder="Enter your name" />
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
+        <button id="signupBtn">Sign Up</button>
+        <button id="loginBtn">Login</button>
     </div>
 
-    <script src="script.js"></script>
-</body>
+    <!-- Setup Screen -->
+    <div id="setup" class="screen">
+        <h2>Session Setup</h2>
+        <label>Bow Style:
+            <select id="bowStyle">
+                <option value="Recurve">Recurve</option>
+                <option value="Compound">Compound</option>
+                <option value="Barebow">Barebow</option>
+                <option value="Longbow">Longbow</option>
+            </select>
+        </label>
+        <label>Distance:
+            <select id="distance">
+                <option value="15">15m</option>
+                <option value="18">18m</option>
+                <option value="30">30m</option>
+                <option value="40">40m</option>
+                <option value="50">50m</option>
+                <option value="70">70m</option>
+            </select>
+        </label>
+        <label>Target Face:
+            <select id="targetFace">
+                <option value="122">122cm (Outdoor)</option>
+                <option value="80">80cm (Outdoor)</option>
+                <option value="40">40cm (Indoor)</option>
+                <option value="3spot">40cm 3-Spot (Indoor)</option>
+                <option value="9spot">40cm 9-Spot (Indoor)</option>
+            </select>
+        </label>
+        <label>Arrows per End:
+            <input type="number" id="arrowsPerEnd" value="6">
+        </label>
+        <label>Number of Ends:
+            <input type="number" id="endsCount" value="6">
+        </label>
+        <button id="startSessionBtn">Start Session</button>
+    </div>
 
+    <!-- Scoring Screen -->
+    <div id="scoringArea" class="screen">
+        <h2>End <span id="currentEnd">1</span></h2>
+        <canvas id="target" width="300" height="300"></canvas>
+        <p>Tap the target to score an arrow</p>
+        <div id="endScores"></div>
+        <div id="endTotal">End Total: 0</div>
+        <button id="undoBtn">⏪ Undo Last Arrow</button>
+        <button id="nextEndBtn">Next End</button>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results" class="screen">
+        <h2>Session Results</h2>
+        <div id="sessionSummary"></div>
+        <h3>End Scores:</h3>
+        <div id="scoreTable"></div>
+        <h3>Badges Earned:</h3>
+        <div id="badgesContainer" class="horizontal-scroll"></div>
+        <h3>Performance Graph</h3>
+        <canvas id="scoreChart" width="400" height="200"></canvas>
+        <button id="backToSetupBtn">🔙 New Session</button>
+    </div>
+
+</div>
+
+<!-- Your Script -->
+<script type="module" src="script.js"></script>
+</body>
 </html>

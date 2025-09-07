@@ -1,610 +1,225 @@
-let arrowsPerEnd, endsCount, currentEnd, currentArrow;
-let allScores = [];
-let ctx, canvas, radius;
-function resizeCanvas() {
-  canvas.width = Math.min(window.innerWidth * 0.9, 400); // 90% of screen, max 400px
-  canvas.height = canvas.width; // keep square
-  radius = canvas.width / 2;
-  drawTarget(); // redraw after resizing
-}
-let bowStyle, targetFace;
-let currentEndScores = [];   // stores scores for the current end
+// Firebase Setup
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-
-// LOGIN & MAIN SCREEN FUNCTIONS
-function login() {
-  const name = document.getElementById('username').value.trim();
-  if(name === "") {
-    alert("Please enter your name");
-    return;
-  }
-  localStorage.setItem("archerName", name);
-  document.getElementById('displayName').innerText = name;
-  document.getElementById('loginPage').style.display = "none";
-  document.getElementById('mainScreen').style.display = "block";
-}
-
-function goToSelection() {
-  document.getElementById('mainScreen').style.display = "none";
-  document.getElementById('setup').style.display = "block";
-}
-// SELECTION AREA DYNAMIC UPDATES
-const bowStyleSelect = document.getElementById('bowStyle');
-const distanceSelect = document.getElementById('distance');
-const targetFaceSelect = document.getElementById('targetFace');
-
-// Bow → Distance mapping
-const bowDistances = {
-  "Recurve": [15, 18, 30, 40, 70],
-  "Compound": [15, 18, 50],
-  "Barebow": [15, 18, 30, 40],
-  "Longbow": [15, 18, 30, 40]
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
+  authDomain: "my-scorer.firebaseapp.com",
+  projectId: "my-scorer",
+  storageBucket: "my-scorer.firebasestorage.app",
+  messagingSenderId: "243500946215",
+  appId: "1:243500946215:web:bd976f1bd437edce684f02"
 };
 
-// Distance → Target face mapping
-function getTargetFaces(bow, distance) {
-  // Special case: Compound 50m → only 40cm indoor
-  if (bow === "Compound" && distance === 50) {
-    return [
-      { value: "40", text: "40cm (Indoor)" }
-    ];
-  }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore(app);
 
-  if (distance === 15 || distance === 18) {
-    return [
-      { value: "40", text: "40cm (Indoor)" },
-      { value: "3spot", text: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", text: "40cm 9-Spot (Indoor)" }
-    ];
-  } else {
-    return [
-      { value: "122", text: "122cm (Outdoor)" },
-      { value: "80", text: "80cm (Outdoor)" }
-    ];
-  }
+// Screens
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-// Update distance options when bow style changes
-bowStyleSelect.addEventListener('change', () => {
-  const bow = bowStyleSelect.value;
-  const distances = bowDistances[bow] || [];
-  
-  distanceSelect.innerHTML = "";
-  distances.forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.text = `${d}m`;
-    distanceSelect.appendChild(opt);
-  });
+// Globals
+let currentUser = null;
+let currentSession = {};
+let arrowScores = [];
+let currentEndNumber = 1;
 
-  updateTargetFaces();
+// Auth State
+onAuthStateChanged(auth,user=>{
+  if(user) currentUser = user;
 });
 
-// Update target faces when distance changes
-distanceSelect.addEventListener('change', updateTargetFaces);
+// -------------------
+// Signup & Login
+// -------------------
+async function signup(){
+  const username = document.getElementById("username").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msgDiv = document.getElementById("loginMessage");
 
-function updateTargetFaces() {
-  const bow = bowStyleSelect.value;
-  const dist = parseInt(distanceSelect.value);
-  const faces = getTargetFaces(bow, dist);
+  if(!username || !email || !password){ msgDiv.innerText="Fill all fields!"; return; }
 
-  targetFaceSelect.innerHTML = "";
-  faces.forEach(f => {
-    const opt = document.createElement('option');
-    opt.value = f.value;
-    opt.text = f.text;
-    targetFaceSelect.appendChild(opt);
-  });
+  try{
+    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
+    const uid = userCredential.user.uid;
+    await setDoc(doc(db,"users",uid),{name:username,sessions:[]});
+    currentUser = userCredential.user;
+    msgDiv.innerText="";
+    showScreen("setup");
+  } catch(e){ msgDiv.innerText=e.message; }
 }
 
-// Initialize selection area on page load
-bowStyleSelect.dispatchEvent(new Event('change'));
+async function login(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msgDiv = document.getElementById("loginMessage");
 
+  if(!email || !password){ msgDiv.innerText="Enter email & password!"; return; }
 
-// START SESSION
-function startSession() {
-  bowStyle = document.getElementById('bowStyle').value;
-  targetFace = document.getElementById('targetFace').value;
-  const distance = parseInt(document.getElementById('distance').value);
-  arrowsPerEnd = parseInt(document.getElementById('arrowsPerEnd').value);
-  endsCount = parseInt(document.getElementById('endsCount').value);
-  currentEnd = 1;
-  currentArrow = 0;
-  allScores = [];
-
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('scoringArea').style.display = 'block';
-
- canvas = document.getElementById('target');
-ctx = canvas.getContext('2d');
-resizeCanvas();
-
-
-  canvas.addEventListener('click', scoreArrow);
-  updateEndDisplay();
+  try{
+    const userCredential = await signInWithEmailAndPassword(auth,email,password);
+    currentUser = userCredential.user;
+    msgDiv.innerText="";
+    showScreen("setup");
+  } catch(e){ msgDiv.innerText=e.message; }
 }
 
-// DRAW TARGET
-function drawTarget() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// -------------------
+// Attach Event Listeners
+// -------------------
+window.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("signupBtn").addEventListener("click",signup);
+  document.getElementById("loginBtn").addEventListener("click",login);
+  document.getElementById("startSessionBtn").addEventListener("click",startSession);
+  document.getElementById("undoBtn").addEventListener("click",undoLastArrow);
+  document.getElementById("nextEndBtn").addEventListener("click",nextEnd);
+  document.getElementById("backToSetupBtn").addEventListener("click",backToSetup);
+});
 
-  let minRing = 1; // default outdoor (1–10)
-
-  if (targetFace === "40" || targetFace === "3spot") {
-    minRing = 6; // indoor & 3-spot start from 6
-  }
-if (targetFace === "9spot") {
-    drawNineSpot();
-    return;
-}
-  // Draw single face
-  if (targetFace !== "3spot") {
-    let ringCount = 10 - minRing + 1;
-    for (let i = 10; i >= minRing; i--) {
-      ctx.beginPath();
-      ctx.arc(radius, radius, (i - minRing + 1) * (radius / ringCount), 0, Math.PI * 2);
-      ctx.fillStyle = getColorForRing(i);
-      ctx.fill();
-      ctx.strokeStyle = "#080808ff";
-      ctx.stroke();
-    }
-  } else {
-    // Draw 3 vertical indoor spots
-    const spotRadius = radius / 3;
-    const centers = [
-      { x: radius, y: radius / 2 },
-      { x: radius, y: radius },
-      { x: radius, y: radius * 1.5 }
-    ];
-    centers.forEach(c => {
-      for (let i = 10; i >= 6; i--) {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, (10 - i + 1) * (spotRadius / 5), 0, Math.PI * 2);
-        ctx.fillStyle = getColorForRing(i);
-        ctx.fill();
-        ctx.strokeStyle = "#0c0c0cff";
-        ctx.stroke();
-      }
-    });
-  }
-}
-function drawNineSpot() {
-  const spotRadius = radius / 5; // size of each mini target
-  const gap = spotRadius * 2.5;  // spacing between centers
-
-  const centers = [];
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 3; col++) {
-      centers.push({
-        x: radius - gap + col * gap,
-        y: radius - gap + row * gap
-      });
-    }
-  }
-
-  // Draw each mini target (only rings 4 & 5)
-  centers.forEach(c => {
-    for (let i = 5; i >= 4; i--) {
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, (i - 3) * (spotRadius / 2), 0, Math.PI * 2);
-      ctx.fillStyle = getColorForRing(i);
-      ctx.fill();
-      ctx.strokeStyle = "#0e0c0cff";
-      ctx.stroke();
-    }
-  });
-
-  // Save centers globally so scoring works
-  window.nineSpotCenters = centers;
-  window.nineSpotRadius = spotRadius;
+// -------------------
+// Session Setup
+// -------------------
+function startSession(){
+  currentSession = {
+    bowStyle: document.getElementById("bowStyle").value,
+    distance: parseInt(document.getElementById("distance").value),
+    targetFace: document.getElementById("targetFace").value,
+    arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
+    endsCount: parseInt(document.getElementById("endsCount").value),
+    ends: [],
+    totalScore: 0
+  };
+  arrowScores = [];
+  currentEndNumber=1;
+  document.getElementById("currentEnd").innerText=currentEndNumber;
+  showScreen("scoringArea");
+  drawTarget();
 }
 
+// -------------------
+// Target & Scoring
+// -------------------
+const canvas = document.getElementById("target");
+const ctx = canvas.getContext("2d");
 
-// RING COLORS
-function getColorForRing(score) {
-  if (score >= 9) return "#d7f52bff"; // Gold
-  if (score >= 7) return "#FF0000"; // Red
-  if (score >= 5) return "#02cbfdff"; // Blue
-  if (score >= 3) return "#000000"; // Black
-  return "#FFFFFF"; // White
-}
-
-// GET TARGET FACE SCORES
-function getTargetFaceScores(faceType) {
-  switch(faceType) {
-      case '40': // indoor
-      case '3spot': // compound/3-spot
-          return [1,2,3,4,5];
-      case '9spot': // 9-spot
-          return [4,5]
-      default: // outdoor/standard
-          return [1,2,3,4,5,6,7,8,9,10];
+function drawTarget(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const colors=['#f00','#f90','#ff0','#0f0','#00f'];
+  let radius=canvas.width/2;
+  for(let i=0;i<colors.length;i++){
+    ctx.beginPath();
+    ctx.arc(radius,radius,radius-i*30,0,2*Math.PI);
+    ctx.fillStyle=colors[i];
+    ctx.fill();
   }
 }
 
-// CALCULATE SCORE
-function calculateScore(distance, maxRadius, faceType) {
-  const scores = getTargetFaceScores(faceType);
-  const step = maxRadius / scores.length;
-  for (let i = 0; i < scores.length; i++) {
-      if (distance <= step * (i + 1)) {
-          return scores[scores.length - 1 - i];
-      }
-  }
-  return 0;
-}
-
-// HANDLE ARROW SCORING
-function scoreArrow(event) {
+canvas.addEventListener("click",e=>{
   const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  let score = 0;
-
-  if (targetFace === "9spot") {
-    nineSpotCenters.forEach(c => {
-      const d = Math.sqrt((x - c.x) ** 2 + (y - c.y) ** 2);
-      if (d <= nineSpotRadius) {
-        score = d <= nineSpotRadius / 2 ? 5 : 4;
-      }
-    });
-  } else {
-    // existing outdoor/indoor logic
-    const dx = x - radius;
-    const dy = y - radius;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist <= radius) {
-      score = calculateScore(dist, radius, targetFace);
-    }
-  }
-
-// Update scoreArrow function
-if (!allScores[currentEnd - 1]) allScores[currentEnd - 1] = [];
-if (allScores[currentEnd - 1].length < arrowsPerEnd) {
-    allScores[currentEnd - 1].push(score);
-    currentArrow++;
-
-    // Calculate total for this end
-    const currentEndTotal = allScores[currentEnd - 1].reduce((a, b) => a + b, 0);
-    document.getElementById('endTotal').innerText = `End Total: ${currentEndTotal}`;
-}
-
-
-  updateEndDisplay();
-
-  if (currentArrow >= arrowsPerEnd) {
-    setTimeout(nextEnd, 500);
-  }
-}
-function undoLastArrow() {
-    if (currentArrow === 0 && currentEnd === 1) {
-        alert("No arrows to undo.");
-        return;
-    }
-
-    if (currentArrow === 0) {
-        // Move back to previous end
-        currentEnd--;
-        currentArrow = allScores[currentEnd - 1].length;
-    }
-
-    if (currentArrow > 0) {
-        allScores[currentEnd - 1].pop();
-        currentArrow--;
-        updateEndDisplay();
-    }
-}
-
-
-// UPDATE DISPLAY
-function updateEndDisplay() {
-  document.getElementById('currentEnd').innerText = currentEnd;
-
-  const scores = allScores[currentEnd - 1] || [];
-  document.getElementById('endScores').innerText = `Arrows: ${scores.join(", ")}`;
-
-  const total = scores.reduce((a, b) => a + b, 0);
-  document.getElementById('endTotal').innerText = `End Total: ${total}`;
-}
-
-
-
-// NEXT END
-function nextEnd() {
-  if (currentEnd < endsCount) {
-    currentEnd++;
-    currentArrow = 0;
-    updateEndDisplay();
-  } else {
-    finishSession();
-  }
-}
-
-// FINISH SESSION
-function finishSession() {
-  document.getElementById('scoringArea').style.display = 'none';
-  document.getElementById('results').style.display = 'block';
-
-  const total = allScores.flat().reduce((a, b) => a + b, 0);
-  const arrowsShot = arrowsPerEnd * endsCount;
-  const avg = (total / arrowsShot).toFixed(2);
-  const distance = parseInt(document.getElementById('distance').value); // new
-
-  document.getElementById('resultBow').innerText = bowStyle;
-  document.getElementById('resultTarget').innerText = targetFace;
-  document.getElementById('resultDistance').innerText = distance; // new
-  document.getElementById('totalScore').innerText = total;
-  document.getElementById('avgScore').innerText = avg;
-
-  // UPDATE CHART
-  updateScoreChart();
-  function updateScoreChart() {
-    const ctx = document.getElementById('scoreChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: allScores.map((_, i) => `End ${i + 1}`),
-        datasets: [{
-          label: 'Scores',
-          data: allScores.map(end => end.reduce((a, b) => a + b, 0)),
-          borderColor: '#ff5e62',
-          backgroundColor: 'rgba(255, 94, 98, 0.2)',
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-  }
-
-
-  // CREATE TABLE OF SCORES
-const tableContainer = document.getElementById('scoreTable');
-tableContainer.innerHTML = "";
-
-const table = document.createElement('table');
-table.style.borderCollapse = "collapse";
-table.style.width = "100%";
-
-// HEADER
-const header = document.createElement('tr');
-
-// "End" header
-const endHeader = document.createElement('th');
-endHeader.innerText = "End";
-endHeader.style.border = "1px solid #000";
-header.appendChild(endHeader);
-
-// Arrow headers
-for (let i = 1; i <= arrowsPerEnd; i++) {
-  const th = document.createElement('th');
-  th.innerText = `Arrow ${i}`;
-  th.style.border = "1px solid #000";
-  header.appendChild(th);
-}
-
-// Add "End Total" header
-const totalHeader = document.createElement('th');
-totalHeader.innerText = "End Total";
-totalHeader.style.border = "1px solid #000";
-header.appendChild(totalHeader);
-
-table.appendChild(header);
-
-// ROWS
-allScores.forEach((endScores, index) => {
-  const row = document.createElement('tr');
-
-  // End number
-  const endCell = document.createElement('td');
-  endCell.innerText = index + 1;
-  endCell.style.border = "1px solid #000";
-  row.appendChild(endCell);
-
-  // Individual arrow scores
-  for (let i = 0; i < arrowsPerEnd; i++) {
-    const cell = document.createElement('td');
-    cell.innerText = endScores[i] !== undefined ? endScores[i] : "-";
-    cell.style.border = "1px solid #000";
-    row.appendChild(cell);
-  }
-
-  // End total
-  const endTotalCell = document.createElement('td');
-  const endTotal = endScores.reduce((a, b) => a + b, 0);
-  endTotalCell.innerText = endTotal;
-  endTotalCell.style.border = "1px solid #000";
-  row.appendChild(endTotalCell);
-
-  table.appendChild(row);
+  const x = e.clientX-rect.left;
+  const y = e.clientY-rect.top;
+  const center=canvas.width/2;
+  const dist=Math.sqrt(Math.pow(x-center,2)+Math.pow(y-center,2));
+  let score=0;
+  if(dist<30) score=10;
+  else if(dist<60) score=8;
+  else if(dist<90) score=6;
+  else if(dist<120) score=4;
+  else score=1;
+  arrowScores.push(score);
+  updateEndScores();
 });
 
-tableContainer.appendChild(table);
+function updateEndScores(){
+  document.getElementById("endScores").innerText=arrowScores.join(" | ");
+  const total=arrowScores.reduce((a,b)=>a+b,0);
+  document.getElementById("endTotal").innerText="End Total: "+total;
+}
 
+function undoLastArrow(){
+  arrowScores.pop();
+  updateEndScores();
+}
 
-  // SAVE SESSION HISTORY
-const history = JSON.parse(localStorage.getItem("archeryHistory")) || [];
-  history.push({
-    name: localStorage.getItem("archerName"),
-    date: new Date().toLocaleString(),
-    bow: bowStyle,
-    target: targetFace,
-    distance: distance, // added
-    total,
-    avg,
-    ends: allScores
+// -------------------
+// Next End & Save
+// -------------------
+async function nextEnd(){
+  if(arrowScores.length!==currentSession.arrowsPerEnd){ alert("Shoot all arrows first!"); return; }
+  currentSession.ends.push([...arrowScores]);
+  currentSession.totalScore+=arrowScores.reduce((a,b)=>a+b,0);
+  arrowScores=[];
+  currentEndNumber++;
+  if(currentEndNumber>currentSession.endsCount){
+    await saveSession();
+    showResults();
+  } else{
+    document.getElementById("currentEnd").innerText=currentEndNumber;
+    updateEndScores();
+  }
+}
+
+async function saveSession(){
+  if(!currentUser) return;
+  const uid=currentUser.uid;
+  const userRef=doc(db,"users",uid);
+  const userSnap=await getDoc(userRef);
+  if(!userSnap.exists()) return;
+  await updateDoc(userRef,{
+    sessions: arrayUnion({...currentSession,date:Timestamp.now()})
   });
-  localStorage.setItem("archeryHistory", JSON.stringify(history));
 }
-function viewUserHistory() {
-  const name = localStorage.getItem("archerName");
-  if (!name) return alert("Please login first.");
 
-  const history = JSON.parse(localStorage.getItem("archeryHistory")) || [];
-  const userHistory = history.filter(h => h.name === name);
+// -------------------
+// Show Results
+// -------------------
+function showResults(){
+  showScreen("results");
+  document.getElementById("sessionSummary").innerHTML=`
+    <p>Bow: ${currentSession.bowStyle}</p>
+    <p>Distance: ${currentSession.distance}m</p>
+    <p>Total Score: ${currentSession.totalScore}</p>
+    <p>Ends Count: ${currentSession.endsCount}</p>
+  `;
 
-  const container = document.getElementById("historyContainer");
-  container.innerHTML = "";
-
-  if (userHistory.length === 0) {
-    container.innerHTML = "<p>No history yet.</p>";
-    return;
-  }
-
-  const table = document.createElement("table");
-  table.style.borderCollapse = "collapse";
-  table.style.width = "100%";
-
-const header = document.createElement("tr");
-["Date", "Bow", "Distance", "Target", "Total", "Average", "Details"].forEach(text => {
-  const th = document.createElement("th");
-  th.innerText = text;
-  th.style.border = "1px solid #000";
-  th.style.padding = "5px";
-  header.appendChild(th);
-});
-table.appendChild(header);
-
-userHistory.forEach(h => {
-  const row = document.createElement("tr");
-  [h.date, h.bow, h.distance + "m", h.target, h.total, h.avg].forEach(val => {
-    const td = document.createElement("td");
-    td.innerText = val;
-    td.style.border = "1px solid #000";
-    td.style.padding = "5px";
-    row.appendChild(td);
-  });
-
-  const tdButton = document.createElement("td");
-  const btn = document.createElement("button");
-  btn.innerText = "View Details";
-  btn.onclick = () => viewSessionDetails(h);
-  tdButton.appendChild(btn);
-  row.appendChild(tdButton);
-
-  table.appendChild(row);
-});
-
-
-
-  container.appendChild(table);
-}
-function viewSessionDetails(session) {
-  // Hide setup/history, show results card
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('results').style.display = 'block';
-
-  // Fill basic info
-  document.getElementById('resultBow').innerText = session.bow;
-  document.getElementById('resultTarget').innerText = session.target;
-  document.getElementById('totalScore').innerText = session.total;
-  document.getElementById('avgScore').innerText = session.avg;
-
-  // CREATE TABLE OF SCORES
-  const tableContainer = document.getElementById('scoreTable');
-  tableContainer.innerHTML = "";
-
-  const table = document.createElement('table');
-  table.style.borderCollapse = "collapse";
-  table.style.width = "100%";
-
-  const header = document.createElement('tr');
-  const endHeader = document.createElement('th');
-  endHeader.innerText = "End";
-  endHeader.style.border = "1px solid #000";
-  header.appendChild(endHeader);
-
-  for (let i = 1; i <= session.ends[0].length; i++) {
-    const th = document.createElement('th');
-    th.innerText = `Arrow ${i}`;
-    th.style.border = "1px solid #000";
-    header.appendChild(th);
-  }
-
-  const totalTh = document.createElement('th');
-  totalTh.innerText = "End Total";
-  totalTh.style.border = "1px solid #000";
-  header.appendChild(totalTh);
-
+  const table=document.createElement("table");
+  const header=document.createElement("tr");
+  header.innerHTML="<th>End</th>"+[...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('')+"<th>End Total</th>";
   table.appendChild(header);
-
-  session.ends.forEach((endScores, index) => {
-    const row = document.createElement('tr');
-    const endCell = document.createElement('td');
-    endCell.innerText = index + 1;
-    endCell.style.border = "1px solid #000";
-    row.appendChild(endCell);
-
-    for (let i = 0; i < endScores.length; i++) {
-      const cell = document.createElement('td');
-      cell.innerText = endScores[i] !== undefined ? endScores[i] : "-";
-      cell.style.border = "1px solid #000";
-      row.appendChild(cell);
-    }
-
-    const endTotalCell = document.createElement('td');
-    const endTotal = endScores.reduce((a, b) => a + b, 0);
-    endTotalCell.innerText = endTotal;
-    endTotalCell.style.border = "1px solid #000";
-    row.appendChild(endTotalCell);
-
+  currentSession.ends.forEach((end,i)=>{
+    const row=document.createElement("tr");
+    const endTotal=end.reduce((a,b)=>a+b,0);
+    row.innerHTML=`<td>${i+1}</td>`+end.map(a=>`<td>${a}</td>`).join('')+`<td>${endTotal}</td>`;
     table.appendChild(row);
   });
+  const scoreTableDiv=document.getElementById("scoreTable");
+  scoreTableDiv.innerHTML="";
+  scoreTableDiv.appendChild(table);
 
-  tableContainer.appendChild(table);
-
-  // DRAW CHART
-  const ctx = document.getElementById('scoreChart').getContext('2d');
-  if (window.scoreChartInstance) window.scoreChartInstance.destroy(); // destroy old chart if exists
-
-  window.scoreChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: session.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [{
-        label: 'Scores',
-        data: session.ends.map(end => end.reduce((a, b) => a + b, 0)),
-        borderColor: '#ff5e62',
-        backgroundColor: 'rgba(255, 94, 98, 0.2)',
-        fill: true
-      }]
+  const ctxChart=document.getElementById("scoreChart").getContext("2d");
+  new Chart(ctxChart,{
+    type:'bar',
+    data:{
+      labels:currentSession.ends.map((_,i)=>`End ${i+1}`),
+      datasets:[{label:'End Total',data:currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)),backgroundColor:'rgba(59,130,246,0.7)'}]
     },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
+    options:{responsive:true,maintainAspectRatio:false}
   });
 }
 
-function backToSetup() {
-  document.getElementById('results').style.display = 'none';
-  document.getElementById('setup').style.display = 'block';
+// -------------------
+// Back to Setup
+// -------------------
+function backToSetup(){
+  currentEndNumber=1;
+  arrowScores=[];
+  currentSession={};
+  showScreen("setup");
+  drawTarget();
 }
-function logout() {
-  // Clear current user
-  localStorage.removeItem("archerName");
-
-  // Hide all other screens
-  document.getElementById('mainScreen').style.display = 'none';
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('scoringArea').style.display = 'none';
-  document.getElementById('results').style.display = 'none';
-  
-  // Show login page
-  document.getElementById('loginPage').style.display = 'block';
-}
-
-window.addEventListener('resize', () => {
-  if (canvas && ctx) {
-    resizeCanvas();
-  }
-});
-
