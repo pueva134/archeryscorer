@@ -190,5 +190,11 @@ function showResults(){
 // ------------------------------
 onAuthStateChanged(auth, user => { if(user) currentUser = user; });
 window.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+   document.getElementById("signupBtn")?.addEventListener("click", signup);
+document.getElementById("loginBtn")?.addEventListener("click", login);
+document.getElementById("goToSetupBtn")?.addEventListener("click", () => showScreen("setupScreen"));
+document.getElementById("viewHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
+document.getElementById("logoutBtn")?.addEventListener("click", logout);
+document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("mainScreen"));
+document.getElementById("backToSetupBtn")?.addEventListener("click", () => showScreen("setupScreen"));
 });
