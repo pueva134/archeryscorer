@@ -102,7 +102,11 @@ function attachButtonHandlers() {
   backToMenuBtn?.addEventListener("click", () => showScreen("setup"));
 
   canvas?.addEventListener("click", e => {
-    if(!currentSession.arrowsPerEnd) return;
+  if (!currentSession.arrowsPerEnd) return;
+  if (arrowScores.length >= currentSession.arrowsPerEnd) {
+    alert("All arrows for this end have been scored.");
+    return;
+  }
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -114,9 +118,9 @@ function attachButtonHandlers() {
     else if(dist < 90) score = 6;
     else if(dist < 120) score = 4;
     else score = 1;
-    arrowScores.push(score);
-    updateEndScores();
-  });
+     arrowScores.push(score);
+  updateEndScores();
+});
 }
 
 // ------------------------------
