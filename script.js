@@ -127,35 +127,47 @@ function attachButtonHandlers() {
 // Main Functions
 // ------------------------------
 async function signup(){
+  console.log("Signup triggered");
   const username = document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
-  if(!username||!email||!password){ msgDiv.innerText = "Fill all fields!"; return; }
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
+  if (!username || !email || !password) {
+    msgDiv.innerText = "Fill all fields!";
+    return;
+  }
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
     await setDoc(doc(db,"users",uid), { name: username, role: role, sessions: [] });
     currentUser = userCredential.user;
     msgDiv.innerText = "";
     showScreen("setup");
-  }catch(e){
+    console.log("Signup successful");
+  } catch(e) {
+    console.error("Signup error:", e);
     msgDiv.innerText = e.message;
   }
 }
 
 async function login(){
+  console.log("Login triggered");
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
-  if(!email||!password){ msgDiv.innerText = "Enter email & password!"; return; }
-  try{
+  if (!email || !password) {
+    msgDiv.innerText = "Enter email & password!";
+    return;
+  }
+  try {
     const userCredential = await signInWithEmailAndPassword(auth,email,password);
     currentUser = userCredential.user;
     msgDiv.innerText = "";
     showScreen("setup");
-  }catch(e){
+    console.log("Login successful");
+  } catch (e) {
+    console.error("Login error:", e);
     msgDiv.innerText = e.message;
   }
 }
