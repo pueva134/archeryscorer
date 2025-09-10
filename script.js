@@ -6,8 +6,7 @@ import { getFirestore, setDoc, doc, getDoc, collection, addDoc, query, where, ge
 import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js";
 
 const firebaseConfig = {
-  // Your Firebase config goes here
-  piKey: "YOUR_API_KEY",
+  apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
   storageBucket: "YOUR_STORAGE_BUCKET",
@@ -16,9 +15,10 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
+const auth = getAuth(app);
+const db = getFirestore(app);
 
+// Cached DOM elements
 const welcomePage = document.getElementById("welcomePage");
 const authForm = document.getElementById("authForm");
 const dashboard = document.getElementById("dashboard");
@@ -27,48 +27,47 @@ const sessionSetupContainer = document.getElementById("sessionSetupContainer");
 const sessionInputContainer = document.getElementById("sessionInputContainer");
 const sessionResultsContainer = document.getElementById("sessionResultsContainer");
 
-// Navigation buttons
+// Button event handlers
 document.getElementById("loginWelcomeBtn").onclick = () => showAuthForm("Login");
 document.getElementById("signupWelcomeBtn").onclick = () => showAuthForm("Sign Up");
 document.getElementById("authBackBtn").onclick = () => showPage(welcomePage);
+document.getElementById("dashboardLogoutBtn").onclick = async () => {
+  await signOut(auth);
+  showPage(welcomePage);
+};
+document.getElementById("dashboardStartSessionBtn").onclick = () => prepareSessionSetup();
+document.getElementById("dashboardHistoryBtn").onclick = () => window.location.href = "history.html";
+document.getElementById("dashboardThemeBtn").onclick = () => document.body.classList.toggle("dark-theme");
 
-// Auth form submission
-document.getElementById("authForm").onsubmit = async (e) => {
+// Authentication form submit handler
+authForm.onsubmit = async (e) => {
   e.preventDefault();
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
   const role = document.getElementById("authRole").value;
-  if (document.getElementById("authFormTitle").innerText === "Sign Up") {
-    // Register
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "users", cred.user.uid), { email, role });
-      await updateProfile(cred.user, { displayName: role });
-    } catch (error) {
-      alert("Error during sign up: " + error.message);
-      return;
-    }
-  }
-  // Login
+
   try {
+    if (document.getElementById("authFormTitle").innerText === "Sign Up") {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", userCredential.user.uid), { email, role });
+      await updateProfile(userCredential.user, { displayName: role });
+    }
     await signInWithEmailAndPassword(auth, email, password);
+    const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+    showDashboard(userDoc.data().role);
   } catch (error) {
-    alert("Login failed: " + error.message);
-    return;
+    alert("Error: " + error.message);
   }
-  const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-  showDashboard(userDoc.data().role);
 };
 
-// Auth state changed
+// Listen for auth state changes (auto signin)
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      showDashboard(userDoc.data().role);
-    } else {
-      alert("User data not found!");
-      signOut(auth);
+    if (userDoc.exists()) showDashboard(userDoc.data().role);
+    else {
+      alert("User profile data missing.");
+      await signOut(auth);
       showPage(welcomePage);
     }
   } else {
@@ -76,81 +75,64 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// Logout button
-document.getElementById("dashboardLogoutBtn").onclick = async () => {
-  await signOut(auth);
-  showPage(welcomePage);
-};
-
-// Theme toggle
-document.getElementById("dashboardThemeBtn").onclick = () => {
-  document.body.classList.toggle("dark-theme");
-};
-
-// Dashboard buttons
-document.getElementById("dashboardStartSessionBtn").onclick = () => {
-  prepareSessionSetup();
-};
-
-document.getElementById("dashboardHistoryBtn").onclick = () => {
-  window.location.href = "history.html";
-};
+// Helper functions
 
 function showAuthForm(mode) {
   welcomePage.classList.add("hidden");
   authForm.classList.remove("hidden");
-  document.getElementById("authFormTitle").innerText = mode;
-  document.getElementById("authSubmitBtn").innerText = mode === "Login" ? "Login" : "Sign Up";
+  document.getElementById("authFormTitle").textContent = mode;
+  document.getElementById("authSubmitBtn").textContent = mode === "Login" ? "Login" : "Sign Up";
 }
 
-function showPage(el) {
-  [welcomePage, authForm, dashboard].forEach((e) => e.classList.add("hidden"));
-  el.classList.remove("hidden");
+function showPage(element) {
+  [welcomePage, authForm, dashboard].forEach(el => el.classList.add("hidden"));
+  element.classList.remove("hidden");
 }
 
 function showDashboard(role) {
   authForm.classList.add("hidden");
   welcomePage.classList.add("hidden");
   dashboard.classList.remove("hidden");
-  dashboardTitle.innerText = `${role} Dashboard`;
+  dashboardTitle.textContent = `${role} Dashboard`;
   sessionSetupContainer.classList.add("hidden");
   sessionInputContainer.classList.add("hidden");
   sessionResultsContainer.classList.add("hidden");
 }
 
-// Session setup screen
+// Session setup
 function prepareSessionSetup() {
   sessionSetupContainer.innerHTML = `
-  <h3>Session Setup</h3>
-  <form id="setupForm">
-    <label>Bow Style
-      <select id="bowType" required>
-        <option value="Recurve">Recurve</option>
-        <option value="Compound">Compound</option>
-        <option value="Longbow">Longbow</option>
-      </select>
-    </label>
-    <label>Distance (m)
-      <input id="distance" type="number" min="5" max="100" required />
-    </label>
-    <label>Target Face
-      <select id="targetFace" required>
-        <option value="Indoor">Indoor</option>
-        <option value="Outdoor">Outdoor</option>
-      </select>
-    </label>
-    <label>Arrows per End
-      <input id="arrowsPerEnd" type="number" min="1" max="6" value="3" required />
-    </label>
-    <label>Number of Ends
-      <input id="numberOfEnds" type="number" min="1" max="20" value="3" required />
-    </label>
-    <label>Session Notes
-      <input id="sessionNotes" type="text" />
-    </label>
-    <button type="submit">Next</button>
-  </form>
+    <h3>Session Setup</h3>
+    <form id="setupForm">
+      <label>Bow Style
+        <select id="bowType" required>
+          <option value="Recurve">Recurve</option>
+          <option value="Compound">Compound</option>
+          <option value="Longbow">Longbow</option>
+        </select>
+      </label>
+      <label>Distance (m)
+        <input id="distance" type="number" min="5" max="100" required />
+      </label>
+      <label>Target Face
+        <select id="targetFace" required>
+          <option value="Indoor">Indoor</option>
+          <option value="Outdoor">Outdoor</option>
+        </select>
+      </label>
+      <label>Arrows per End
+        <input id="arrowsPerEnd" type="number" min="1" max="6" value="3" required />
+      </label>
+      <label>Number of Ends
+        <input id="numberOfEnds" type="number" min="1" max="20" value="3" required />
+      </label>
+      <label>Session Notes
+        <input id="sessionNotes" type="text" />
+      </label>
+      <button type="submit">Next</button>
+    </form>
   `;
+
   sessionSetupContainer.classList.remove("hidden");
   sessionInputContainer.classList.add("hidden");
   sessionResultsContainer.classList.add("hidden");
@@ -168,7 +150,6 @@ function prepareSessionSetup() {
   };
 }
 
-// Session Input
 function startSessionInput(setup) {
   const { arrowsPerEnd, numEnds } = setup;
   let scores = Array(numEnds).fill(null).map(() => Array(arrowsPerEnd).fill(null));
@@ -178,9 +159,7 @@ function startSessionInput(setup) {
     sessionInputContainer.innerHTML = `
       <h3>Score Input (End ${currentEnd + 1} of ${numEnds})</h3>
       <form id="scoreForm">
-        ${scores[currentEnd]
-          .map((score, idx) => `<label>Arrow ${idx + 1}<input type="number" min="0" max="10" required></label>`)
-          .join('')}
+        ${scores[currentEnd].map((_, idx) => `<label>Arrow ${idx + 1}<input type="number" min="0" max="10" required /></label>`).join('')}
         <button type="submit">Submit End</button>
         <button type="button" id="undoBtn" ${currentEnd === 0 ? 'disabled' : ''}>Undo Last End</button>
       </form>
@@ -193,11 +172,11 @@ function startSessionInput(setup) {
     const inputs = sessionInputContainer.querySelectorAll("input");
     const totalDisplay = document.getElementById("currentEndTotal");
 
-    inputs.forEach((input) => {
+    inputs.forEach(input => {
       input.addEventListener("input", () => {
         let total = 0;
         inputs.forEach(inp => {
-          const val = parseInt(inp.value);
+          let val = parseInt(inp.value);
           if (!isNaN(val)) total += val;
         });
         totalDisplay.textContent = total;
@@ -229,40 +208,39 @@ function startSessionInput(setup) {
   renderInput();
 }
 
-// Submit session to Firestore
 async function submitSession(setup, scores) {
-  const totalScore = scores.flat().reduce((sum, val) => sum + val, 0);
+  let totalScore = scores.flat().reduce((sum, val) => sum + (val || 0), 0);
   try {
     await addDoc(collection(db, "sessions"), {
       userId: auth.currentUser.uid,
       timestamp: new Date().toISOString(),
       scores,
       totalScore,
-      ...setup
+      ...setup,
     });
     renderResults(scores, totalScore);
-  } catch (err) {
-    alert("Error saving session: " + err.message);
+  } catch (error) {
+    alert("Error saving session: " + error.message);
   }
 }
 
-// Render results and chart
 function renderResults(scores, totalScore) {
   sessionResultsContainer.innerHTML = `
     <h3>Session Results</h3>
     <table>
       <thead><tr><th>End</th>
-      ${scores[0].map((_, i) => `<th>Arrow ${i + 1}</th>`).join('')}
-      <th>Total</th>
+        ${scores[0].map((_, i) => `<th>Arrow ${i + 1}</th>`).join('')}
+        <th>Total</th>
       </tr></thead>
       <tbody>
-      ${scores.map((arr, idx) => `<tr><td>${idx + 1}</td>${arr.map(val => `<td>${val}</td>`).join('')}<td>${arr.reduce((a, b) => a + b)}</td></tr>`).join('')}
-      <tr><th colspan="${scores[0].length + 1}">Grand Total: ${totalScore}</th></tr>
+        ${scores.map((end, idx) => `<tr><td>${idx + 1}</td>${end.map(val => `<td>${val}</td>`).join('')}<td>${end.reduce((a, b) => a + b)}</td></tr>`).join('')}
+        <tr><th colspan="${scores[0].length + 1}">Grand Total: ${totalScore}</th></tr>
       </tbody>
     </table>
     <canvas id="scoreChart" width="400" height="150"></canvas>
     <button id="startNewSessionBtn">New Session</button>
   `;
+
   sessionSetupContainer.classList.add("hidden");
   sessionInputContainer.classList.add("hidden");
   sessionResultsContainer.classList.remove("hidden");
@@ -273,16 +251,13 @@ function renderResults(scores, totalScore) {
     data: {
       labels: scores.map((_, idx) => `End ${idx + 1}`),
       datasets: [{
-        label: 'Score per End',
-        data: scores.map(end => end.reduce((a, b) => a + b)),
-        borderColor: 'blue',
-        fill: false
-      }]
-    }
+        label: "Score per End",
+        data: scores.map((end) => end.reduce((a, b) => a + b)),
+        borderColor: "blue",
+        fill: false,
+      }],
+    },
   });
 
-  document.getElementById("startNewSessionBtn").onclick = () => {
-    sessionResultsContainer.classList.add("hidden");
-    prepareSessionSetup();
-  };
+  document.getElementById("startNewSessionBtn").onclick = () => prepareSessionSetup();
 }

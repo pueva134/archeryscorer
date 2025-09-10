@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <title>MyScorer - Archery Scoring</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
   <script type="module" src="script.js"></script>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="appContainer">
     <!-- Landing Page -->
     <div id="welcomePage">
       <h1>MyScorer</h1>
@@ -17,7 +17,7 @@
       <button id="signupWelcomeBtn">Sign Up</button>
     </div>
 
-    <!-- Auth Form -->
+    <!-- Authentication Form -->
     <form id="authForm" class="hidden card">
       <h2 id="authFormTitle">Login</h2>
       <input type="email" id="authEmail" placeholder="Email" required />
@@ -27,7 +27,7 @@
         <option value="Coach">Coach</option>
       </select>
       <button type="submit" id="authSubmitBtn">Submit</button>
-      <button type="button" id="authBackBtn">Back</button>
+      <button id="authBackBtn" type="button">Back</button>
     </form>
 
     <!-- Dashboard -->
