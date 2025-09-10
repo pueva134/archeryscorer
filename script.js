@@ -193,8 +193,13 @@ async function nextEnd(){
   arrowScores = [];
   currentEndNumber++;
   if(currentEndNumber > currentSession.endsCount){
-    await saveSession();
-    showResults();
+     await saveSession();
+  showResults();
+  // After a short delay or on user action, reset session and show setup
+  setTimeout(() => {
+    backToSetup();
+  }, 3000); // 3 seconds delay to show results before going back, adjust as needed
+  return;
   } else {
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
@@ -282,6 +287,59 @@ function init() {
   attachButtonHandlers();
   drawTarget();
   updateEndScores();
+
+  updateSessionSetupOptions(); // Add this call here
+  function updateSessionSetupOptions() {
+  const bowDistances = {
+    Recurve: [10,12,15,18,20,30,40,50,60,70],
+    Compound: [10,12,15,18,30,50],
+    Barebow: [10,12,15,18,30],
+    Longbow: [10,12,15,18,30]
+  };
+
+  const bowTargetFaces = {
+    Compound: [{value:"40", label:"40cm (Compound Only)"}],
+    default: [
+      {value:"122", label:"122cm (Outdoor)"},
+      {value:"80", label:"80cm (Outdoor)"},
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
+    ]
+  };
+
+  const bowSelect = document.getElementById("bowStyle");
+  const distSelect = document.getElementById("distance");
+  const faceSelect = document.getElementById("targetFace");
+
+  function refreshOptions() {
+    const bow = bowSelect.value;
+
+    // Update distances
+    distSelect.innerHTML = "";
+    bowDistances[bow].forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d + "m";
+      distSelect.appendChild(opt);
+    });
+
+    // Update target faces
+    faceSelect.innerHTML = "";
+    const faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
+    faces.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f.value;
+      opt.textContent = f.label;
+      faceSelect.appendChild(opt);
+    });
+  }
+
+  bowSelect.addEventListener("change", refreshOptions);
+
+  // Initialize on page load
+  refreshOptions();
+}
 }
 
 window.addEventListener("DOMContentLoaded", init);
