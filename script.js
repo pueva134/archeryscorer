@@ -37,7 +37,8 @@ let currentEndNumber = 1;
 // ------------------------------
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const target = document.getElementById(id);
+  if(target) target.classList.add('active');
 }
 // ------------------------------
 // Canvas Target Drawing
@@ -197,20 +198,29 @@ async function nextEnd() {
 // End Session - Save & Reset
 // ------------------------------
 async function endSession() {
-  if(currentUser && currentSession && currentSession.ends.length > 0) {
-    await saveSession();
+  try {
+    if (currentUser && currentSession && currentSession.ends.length > 0) {
+      await saveSession();
+    }
+  } catch(e) {
+    console.error("Failed to save session on end:", e);
+    alert("Could not save session, try again.");
+    return; // abort navigation on failure
   }
+
   currentEndNumber = 1;
   currentSession = {};
   arrowScores = [];
-  if(document.getElementById("endSessionBtn")){
-    document.getElementById("endSessionBtn").style.display = "none";
-  }
-  if(document.getElementById("nextEndBtn")){
-    document.getElementById("nextEndBtn").style.display = "inline-block";
-  }
+
+  const nextEndBtn = document.getElementById("nextEndBtn");
+  const endSessionBtn = document.getElementById("endSessionBtn");
+  if(nextEndBtn) nextEndBtn.style.display = "inline-block";
+  if(endSessionBtn) endSessionBtn.style.display = "none";
+
+  // Navigate user back to session setup page
   showScreen("setup");
 }
+
 // ------------------------------
 // Save Session to Firestore
 // ------------------------------
@@ -351,7 +361,14 @@ function attachButtonHandlers() {
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
   if(document.getElementById("endSessionBtn")){
-    document.getElementById("endSessionBtn").addEventListener("click", endSession);
+  const endSessionBtn = document.getElementById("endSessionBtn");
+  if(endSessionBtn) {
+    console.log("Attaching End Session handler");
+    endSessionBtn.addEventListener("click", () => {
+      console.log("End Session clicked");
+      endSession();
+    });
+  }
   }
   canvas?.addEventListener("click", e => {
     if(!currentSession.arrowsPerEnd) return;
