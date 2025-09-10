@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>MyScorer | Archery Scoring</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>MyScorer - Archery Scoring</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
   <script type="module" src="script.js"></script>
 </head>
 <body>
   <div class="container">
-    <!-- Landing/Welcome Page -->
+    <!-- Landing Page -->
     <div id="welcomePage">
       <h1>MyScorer</h1>
       <p>Modern Archery Scoring & Analytics</p>
       <button id="loginWelcomeBtn">Login</button>
       <button id="signupWelcomeBtn">Sign Up</button>
     </div>
-    <!-- Auth Form Page -->
-    <form id="authForm" class="card hidden">
+
+    <!-- Auth Form -->
+    <form id="authForm" class="hidden card">
       <h2 id="authFormTitle">Login</h2>
-      <input type="email" id="authEmail" placeholder="Email" required>
-      <input type="password" id="authPassword" placeholder="Password" required>
+      <input type="email" id="authEmail" placeholder="Email" required />
+      <input type="password" id="authPassword" placeholder="Password" required />
       <select id="authRole" required>
         <option value="Archer">Archer</option>
         <option value="Coach">Coach</option>
@@ -28,7 +29,8 @@
       <button type="submit" id="authSubmitBtn">Submit</button>
       <button type="button" id="authBackBtn">Back</button>
     </form>
-    <!-- Role-Based Dashboard (shown after auth) -->
+
+    <!-- Dashboard -->
     <div id="dashboard" class="hidden">
       <h2 id="dashboardTitle"></h2>
       <div id="dashboardMenu">
@@ -37,9 +39,9 @@
         <button id="dashboardLogoutBtn">Logout</button>
         <button id="dashboardThemeBtn">Toggle Theme</button>
       </div>
-      <div id="sessionSetupContainer" class="card hidden"></div>
-      <div id="sessionInputContainer" class="card hidden"></div>
-      <div id="sessionResultsContainer" class="card hidden"></div>
+      <div id="sessionSetupContainer" class="hidden card"></div>
+      <div id="sessionInputContainer" class="hidden card"></div>
+      <div id="sessionResultsContainer" class="hidden card"></div>
     </div>
   </div>
 </body>
