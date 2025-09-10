@@ -74,10 +74,23 @@ function updateEndScores(){
 // ------------------------------
 // Auth State Listener
 // ------------------------------
-onAuthStateChanged(auth, user => {
-  if(user) currentUser = user;
-  else currentUser = null;
+onAuthStateChanged(auth, async user => {
+  if(user) {
+    currentUser = user;
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const username = userDoc.exists() ? userDoc.data().name : "";
+      document.querySelector(".container").querySelector("h1").innerHTML = `🏹 My Scorer 🏹<br><span style="font-size:1rem;">Hello, ${username}!</span>`;
+      showScreen("setup");
+    } catch(e) {
+      console.error("Error fetching user profile:", e);
+    }
+  } else {
+    currentUser = null;
+    showScreen("loginPage");
+  }
 });
+
 
 // ------------------------------
 // Signup Function
