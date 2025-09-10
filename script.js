@@ -128,11 +128,9 @@ async function login(){
 
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    currentUser = userCredential.user;
-    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-    const username = userDoc.exists() ? userDoc.data().name : "";
-    document.querySelector(".container").querySelector("h1").innerHTML = `🏹 My Scorer 🏹<br><span style="font-size:1rem;">Hello, ${username}!</span>`;
     msgDiv.innerText = "Login successful!";
+    console.log("User:", userCredential.user);
+    // Redirect or change UI here
     showScreen("setup");
   } catch(e) {
     msgDiv.innerText = e.message;
