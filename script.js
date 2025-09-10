@@ -126,58 +126,39 @@ function attachButtonHandlers() {
 // ------------------------------
 // Main Functions
 // ------------------------------
-async function signup() {
-  console.log("Signup triggered");
+async function signup(){
+  const username = document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const username = document.getElementById("username").value;
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
-  
-  if (!email || !password || !username) {
-    msgDiv.innerText = "All fields are required";
-    return;
-  }
-  
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  if(!username||!email||!password){ msgDiv.innerText = "Fill all fields!"; return; }
+  try{
+    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
     const uid = userCredential.user.uid;
-    await setDoc(doc(db, "users", uid), {
-      name: username,
-      role: role,
-      sessions: []
-    });
-    msgDiv.innerText = "Signup successful";
+    await setDoc(doc(db,"users",uid), { name: username, role: role, sessions: [] });
     currentUser = userCredential.user;
+    msgDiv.innerText = "";
     showScreen("setup");
-  } catch (error) {
-    console.error("Signup failed:", error);
-    msgDiv.innerText = error.message;
+  }catch(e){
+    msgDiv.innerText = e.message;
   }
 }
 
-async function login() {
-  console.log("Login triggered");
+async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
-  
-  if (!email || !password) {
-    msgDiv.innerText = "Enter email and password";
-    return;
-  }
-  
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  if(!email||!password){ msgDiv.innerText = "Enter email & password!"; return; }
+  try{
+    const userCredential = await signInWithEmailAndPassword(auth,email,password);
     currentUser = userCredential.user;
-    msgDiv.innerText = "Login successful";
+    msgDiv.innerText = "";
     showScreen("setup");
-  } catch (error) {
-    console.error("Login failed:", error);
-    msgDiv.innerText = error.message;
+  }catch(e){
+    msgDiv.innerText = e.message;
   }
 }
-
 
 function startSession(){
   currentSession = {
@@ -202,8 +183,7 @@ function undoLastArrow(){
   updateEndScores();
 }
 
-async function nextEnd() {
-  console.log("nextEnd called");
+async function nextEnd(){
   if(arrowScores.length !== currentSession.arrowsPerEnd){
     alert("Shoot all arrows first!");
     return;
@@ -212,54 +192,18 @@ async function nextEnd() {
   currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
   arrowScores = [];
   currentEndNumber++;
-  console.log("Current end:", currentEndNumber, "Ends count:", currentSession.endsCount);
   if(currentEndNumber > currentSession.endsCount){
-    console.log("Completed all ends, saving session and showing results...");
-    await saveSession();
-    showResults();
-    return;
+     await saveSession();
+  showResults();
+  // After a short delay or on user action, reset session and show setup
+  setTimeout(() => {
+    backToSetup();
+  }, 3000); // 3 seconds delay to show results before going back, adjust as needed
+  return;
+  } else {
+    document.getElementById("currentEnd").innerText = currentEndNumber;
+    updateEndScores();
   }
-  document.getElementById("currentEnd").innerText = currentEndNumber;
-  updateEndScores();
-}
-
-function showResults() {
-  console.log("Showing results screen");
-  showScreen("results");
-  const summaryDiv = document.getElementById("sessionSummary");
-  if (!summaryDiv) console.error("No sessionSummary element found");
-  summaryDiv.innerHTML = `
-    <p>Bow: ${currentSession.bowStyle}</p>
-    <p>Distance: ${currentSession.distance}m</p>
-    <p>Total Score: ${currentSession.totalScore}</p>
-    <p>Ends Count: ${currentSession.endsCount}</p>
-  `;
-
-  const scoreTableDiv = document.getElementById("scoreTable");
-  if (!scoreTableDiv) console.error("No scoreTable element found");
-  const table = document.createElement("table");
-  const header = document.createElement("tr");
-  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
-  table.appendChild(header);
-  currentSession.ends.forEach((end,i)=>{
-    const row = document.createElement("tr");
-    const endTotal = end.reduce((a,b)=>a+b,0);
-    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
-    table.appendChild(row);
-  });
-  scoreTableDiv.innerHTML = "";
-  scoreTableDiv.appendChild(table);
-
-  const ctxChart = document.getElementById("scoreChart")?.getContext("2d");
-  if (!ctxChart) console.error("No scoreChart canvas found");
-  else new Chart(ctxChart, {
-    type: 'bar',
-    data: {
-      labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
-      datasets: [{label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)'}]
-    },
-    options: {responsive:true, maintainAspectRatio:false}
-  });
 }
 
 async function saveSession(){
@@ -354,7 +298,7 @@ function init() {
   };
 
   const bowTargetFaces = {
-    Compound: [{value:"60", label:"60cm (Compound Only)"}, 
+    Compound: [{value:"60", label:"60cm (Compound Only)"} 
     {value:"40", label:"40cm (Indoor)"},
     {value:"3spot", label:"40cm 3-Spot (Indoor)"},
     {value:"9spot", label:"40cm 9-Spot (Indoor)"}
