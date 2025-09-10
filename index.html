@@ -1,110 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>My Scorer</title>
-<link rel="stylesheet" href="style.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <title>MyScorer Archery</title>
+  <style>
+    .screen { display: none; }
+    .active { display: block; }
+    button { margin: 5px; padding: 10px; font-size: 1em; }
+  </style>
 </head>
 <body>
-<div class="container">
-
-  <!-- Login / Signup Screen -->
-  <div id="loginPage" class="screen active">
-    <h1>🏹 My Scorer 🏹</h1>
-    <input type="text" id="username" placeholder="Enter your name"/>
-    <input type="email" id="email" placeholder="Email"/>
-    <input type="password" id="password" placeholder="Password"/>
-    <select id="role">
-      <option value="archer">Archer</option>
-      <option value="coach">Coach</option>
-    </select>
-    <button id="signupBtn">Sign Up</button>
+  <!-- Login/Signup Screen -->
+  <div id="loginScreen" class="screen active">
+    <h2>Login / Signup</h2>
+    <input id="email" type="email" placeholder="Email" required /><br />
+    <input id="password" type="password" placeholder="Password" required /><br />
     <button id="loginBtn">Login</button>
-    <div id="loginMessage" class="message"></div>
+    <button id="signupBtn">Signup</button>
+    <div id="loginMessage"></div>
   </div>
 
-  <!-- Archer Main Menu / Session Setup -->
+  <!-- Session Setup Screen -->
   <div id="setup" class="screen">
     <h2>Session Setup</h2>
     <label>Bow Style:
       <select id="bowStyle">
-        <option value="Recurve">Recurve</option>
-        <option value="Compound">Compound</option>
-        <option value="Barebow">Barebow</option>
-        <option value="Longbow">Longbow</option>
+        <option>Recurve</option>
+        <option>Compound</option>
+        <option>Barebow</option>
+        <option>Longbow</option>
       </select>
-    </label>
-    <label>Distance:
-      <select id="distance">
-        <option value="15">15m</option>
-        <option value="18">18m</option>
-        <option value="30">30m</option>
-        <option value="40">40m</option>
-        <option value="50">50m</option>
-        <option value="70">70m</option>
-      </select>
-    </label>
+    </label><br />
+    <label>Distance (m): <input id="distance" type="number" min="5" max="70" value="30" /></label><br />
     <label>Target Face:
       <select id="targetFace">
-        <option value="122">122cm (Outdoor)</option>
-        <option value="80">80cm (Outdoor)</option>
-        <option value="40">40cm (Indoor)</option>
-        <option value="3spot">40cm 3-Spot (Indoor)</option>
-        <option value="9spot">40cm 9-Spot (Indoor)</option>
+        <option>Indoor</option>
+        <option>Outdoor</option>
       </select>
-    </label>
-    <label>Arrows per End:
-      <input type="number" id="arrowsPerEnd" value="6"/>
-    </label>
-    <label>Number of Ends:
-      <input type="number" id="endsCount" value="6"/>
-    </label>
+    </label><br />
+    <label>Arrows per End: <input id="arrowsPerEnd" type="number" min="1" max="6" value="3" /></label><br />
+    <label>Number of Ends: <input id="endsCount" type="number" min="1" max="20" value="3" /></label><br />
     <button id="startSessionBtn">Start Session</button>
-    <button id="viewHistoryBtn">View History</button>
   </div>
 
   <!-- Scoring Screen -->
   <div id="scoringArea" class="screen">
-    <h2>End <span id="currentEnd">1</span></h2>
-    <canvas id="target" width="300" height="300"></canvas>
-    <p>Tap the target to score an arrow</p>
+    <h2>Scoring - End <span id="currentEnd"></span></h2>
     <div id="endScores"></div>
-    <div id="endTotal">End Total: 0</div>
-    <button id="undoBtn">⏪ Undo Last Arrow</button>
+    <div id="endTotal"></div>
+    <button id="undoBtn">Undo Last Arrow</button>
     <button id="nextEndBtn">Next End</button>
+    <button id="endSessionBtn" style="display:none;">End Session</button>
   </div>
 
   <!-- Results Screen -->
   <div id="results" class="screen">
     <h2>Session Results</h2>
     <div id="sessionSummary"></div>
-    <h3>End Scores:</h3>
     <div id="scoreTable"></div>
-    <h3>Performance Graph</h3>
-    <canvas id="scoreChart" width="400" height="200"></canvas>
-    <h3>Badges Earned</h3>
-    <div id="badgesDiv"></div>
-    <button id="backToSetupBtn">🔙 New Session</button>
+    <button id="backToSetupBtn">New Session</button>
   </div>
 
-  <!-- History Screen -->
+  <!-- History Screen (simplified stub) -->
   <div id="historyScreen" class="screen">
-    <h2>Session History</h2>
+    <h2>History</h2>
     <div id="historyTable"></div>
-    <button id="backToMenuBtn">🔙 Back to Menu</button>
   </div>
 
-  <!-- Coach Panel -->
-  <div id="coachPanel" class="screen">
-    <h2>Coach Dashboard</h2>
-    <div id="archersList"></div>
-    <button id="coachLogoutBtn">🔙 Logout</button>
-  </div>
-
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="script.js"></script>
+  <script src="script.js" type="module"></script>
 </body>
 </html>
