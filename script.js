@@ -1,7 +1,3 @@
-// ------------------------------
-// script.js (Module)
-// ------------------------------
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,
@@ -10,12 +6,16 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp
+  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp,
+  enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// ------------------------------
-// Firebase Config and Initialization
-// ------------------------------
+// ---------------------
+// Network Error Handling
+// ---------------------
+window.addEventListener('online', () => alert("Back online."));
+window.addEventListener('offline', () => alert("No internet connection detected."));
+
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -29,25 +29,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ------------------------------
-// Global Variables
-// ------------------------------
+// Enable offline persistence (optional)
+enableIndexedDbPersistence(db).catch(err => {
+  console.error("Persistence error:", err);
+});
+
 let currentUser = null;
 let currentSession = {};
 let arrowScores = [];
 let currentEndNumber = 1;
 
-// ------------------------------
-// Utility Functions
-// ------------------------------
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ------------------------------
-// Canvas Target Drawing
-// ------------------------------
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 
@@ -71,17 +67,29 @@ function updateEndScores(){
   if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
 }
 
-// ------------------------------
-// Auth State Listener
-// ------------------------------
 onAuthStateChanged(auth, user => {
   if(user) currentUser = user;
   else currentUser = null;
 });
 
 // ------------------------------
-// Signup Function
+// Safe Firestore Getter
 // ------------------------------
+async function safeGetDoc(docRef) {
+  try {
+    const docSnap = await getDoc(docRef);
+    return docSnap;
+  } catch (e) {
+    if (e.message && e.message.includes('offline')) {
+      alert("You appear to be offline. Please check your connection and try again.");
+    } else {
+      console.error(e);
+      alert("An unexpected error occurred.");
+    }
+    return null;
+  }
+}
+
 async function signup(){
   const username = document.getElementById("username").value;
   const email = document.getElementById("email").value;
@@ -104,7 +112,6 @@ async function signup(){
       sessions: []
     });
     currentUser = userCredential.user;
-    // Display username in header after signup
     document.querySelector(".container").querySelector("h1").innerHTML = `🏹 My Scorer 🏹<br><span style="font-size:1rem;">Hello, ${username}!</span>`;
     msgDiv.innerText = "Signup successful!";
     showScreen("setup");
@@ -114,9 +121,6 @@ async function signup(){
   }
 }
 
-// ------------------------------
-// Login Function
-// ------------------------------
 async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -131,9 +135,8 @@ async function login(){
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     currentUser = userCredential.user;
-    // Fetch name from Firestore
-    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-    const username = userDoc.exists() ? userDoc.data().name : "";
+    const userDoc = await safeGetDoc(doc(db, "users", currentUser.uid));
+    const username = userDoc && userDoc.exists() ? userDoc.data().name : "";
     document.querySelector(".container").querySelector("h1").innerHTML = `🏹 My Scorer 🏹<br><span style="font-size:1rem;">Hello, ${username}!</span>`;
     msgDiv.innerText = "Login successful!";
     showScreen("setup");
@@ -143,9 +146,6 @@ async function login(){
   }
 }
 
-// ------------------------------
-// Start Session
-// ------------------------------
 function startSession(){
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
@@ -164,17 +164,11 @@ function startSession(){
   updateEndScores();
 }
 
-// ------------------------------
-// Undo Last Arrow
-// ------------------------------
 function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
 }
 
-// ------------------------------
-// Next End Logic
-// ------------------------------
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
@@ -187,16 +181,13 @@ async function nextEnd() {
   arrowScores = [];
 
   if (currentEndNumber === currentSession.endsCount) {
-    // Last end completed: Save session and show results
     await saveSession();
     showResults();
-    // Reset session variables after showing results
     currentEndNumber = 1;
     currentSession = {};
     arrowScores = [];
-    return; // prevents further actions after session end
+    return;
   }
-  // Proceed to next end
   if (currentEndNumber < currentSession.endsCount) {
     currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
@@ -204,9 +195,6 @@ async function nextEnd() {
   }
 }
 
-// ------------------------------
-// Save Session to Firestore
-// ------------------------------
 async function saveSession(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -216,9 +204,6 @@ async function saveSession(){
   });
 }
 
-// ------------------------------
-// Show Session Results
-// ------------------------------
 function showResults(){
   showScreen("results");
   const summaryDiv = document.getElementById("sessionSummary");
@@ -256,9 +241,6 @@ function showResults(){
   });
 }
 
-// ------------------------------
-// Back to Setup (New Session)
-// ------------------------------
 function backToSetup(){
   currentEndNumber = 1;
   arrowScores = [];
@@ -268,19 +250,15 @@ function backToSetup(){
   updateEndScores();
 }
 
-// ------------------------------
-// View History
-// ------------------------------
 async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
-  const userDoc = await getDoc(doc(db,"users",uid));
-  if(userDoc.exists()){
+  const userDoc = await safeGetDoc(doc(db,"users",uid));
+  if(userDoc && userDoc.exists()){
     const sessions = userDoc.data().sessions || [];
     const table = document.createElement("table");
     table.innerHTML = `<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
     sessions.forEach(s=>{
-      // Defensive: handle Firestore Timestamp properly
       const dateObj = typeof s.date === "object" && s.date.seconds ? new Date(s.date.seconds * 1000) : new Date();
       const date = dateObj.toLocaleDateString();
       const ends = Array.isArray(s.ends) ? s.ends.length : 0;
@@ -295,9 +273,6 @@ async function viewHistory(){
   }
 }
 
-// ------------------------------
-// Dynamic Session Setup Option Update
-// ------------------------------
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10,12,15,18,20,30,40,50,60,70],
@@ -329,7 +304,6 @@ function updateSessionSetupOptions() {
   function refreshOptions() {
     const bow = bowSelect.value;
 
-    // Update distances
     distSelect.innerHTML = "";
     bowDistances[bow].forEach(d => {
       const opt = document.createElement("option");
@@ -338,7 +312,6 @@ function updateSessionSetupOptions() {
       distSelect.appendChild(opt);
     });
 
-    // Update target faces
     faceSelect.innerHTML = "";
     const faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
     faces.forEach(f => {
@@ -350,14 +323,9 @@ function updateSessionSetupOptions() {
   }
 
   bowSelect.addEventListener("change", refreshOptions);
-
-  // Initialize on page load
   refreshOptions();
 }
 
-// ------------------------------
-// Event Handlers Attachment
-// ------------------------------
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -390,9 +358,6 @@ function attachButtonHandlers() {
   });
 }
 
-// ------------------------------
-// Initialize App
-// ------------------------------
 function init() {
   attachButtonHandlers();
   drawTarget();
