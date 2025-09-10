@@ -172,20 +172,32 @@ function undoLastArrow(){
 // Next End Logic
 // ------------------------------
 async function nextEnd() {
+  // If not all arrows for this end are scored, prevent action
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
     return;
   }
+
+  // Push score for the current end
   currentSession.ends.push([...arrowScores]);
   currentSession.totalScore += arrowScores.reduce((a, b) => a + b, 0);
   arrowScores = [];
 
+  // If last end
   if (currentEndNumber === currentSession.endsCount) {
-    // Last end completed: show End Session button instead of Next End
+    // Hide Next End, show End Session
     document.getElementById("nextEndBtn").style.display = "none";
     document.getElementById("endSessionBtn").style.display = "inline-block";
+
+    // Optionally update scores/UI, reset arrow area
     updateEndScores();
-  } else if (currentEndNumber < currentSession.endsCount) {
+
+    // Keep the scoring screen shown until End Session is clicked
+    return;
+  }
+
+  // More ends remain, go to next
+  if (currentEndNumber < currentSession.endsCount) {
     currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
@@ -193,36 +205,20 @@ async function nextEnd() {
 }
 
 async function endSession() {
-  if (arrowScores.length !== currentSession.arrowsPerEnd) {
-    alert("Shoot all arrows first!");
-    return;
-  }
-  // Push the last arrows if not already pushed
-  if(currentSession.ends.length < currentEndNumber){
-    currentSession.ends.push([...arrowScores]);
-    currentSession.totalScore += arrowScores.reduce((a,b) => a+b, 0);
-  }
-
+  // Save the session once and reset state
   await saveSession();
-  
-  // Reset session variables
+
+  // Reset variables
   currentEndNumber = 1;
   currentSession = {};
   arrowScores = [];
 
-  // Hide End Session button and show Next End button for next session
+  // Hide End Session, show Next End for future session
   document.getElementById("endSessionBtn").style.display = "none";
   document.getElementById("nextEndBtn").style.display = "inline-block";
 
-  // Show welcome/login screen
-  showScreen("loginPage");
-
-  // Optionally clear inputs or reset UI as needed
-  document.getElementById("username").value = "";
-  document.getElementById("email").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("role").value = "archer";
-  document.getElementById("loginMessage").innerText = "";
+  // Redirect to welcome/login page
+  showScreen("loginPage"); // Or "setup" if you want main menu for logged-in user
 }
 
 // ------------------------------
