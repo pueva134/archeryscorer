@@ -205,21 +205,27 @@ async function nextEnd() {
 }
 
 async function endSession() {
-  // Save the session once and reset state
-  await saveSession();
+  // Save session if last arrows are completed and not saved
+  // (if needed, add verification, but nextEnd should already push final scores)
 
-  // Reset variables
+  // Save session to Firestore
+  if(currentUser && currentSession && currentSession.ends && currentSession.ends.length > 0) {
+    await saveSession();
+  }
+
+  // Reset state
   currentEndNumber = 1;
   currentSession = {};
   arrowScores = [];
 
-  // Hide End Session, show Next End for future session
-  document.getElementById("endSessionBtn").style.display = "none";
+  // Restore button states for future sessions
   document.getElementById("nextEndBtn").style.display = "inline-block";
+  document.getElementById("endSessionBtn").style.display = "none";
 
-  // Redirect to welcome/login page
-  showScreen("loginPage"); // Or "setup" if you want main menu for logged-in user
+  // Go to session setup/menu page
+  showScreen("setup");
 }
+
 
 // ------------------------------
 // Save Session to Firestore
@@ -377,9 +383,9 @@ function attachButtonHandlers() {
   document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
-  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
+  document.getElementById("endSessionBtn").addEventListener("click", endSession);
 
   canvas?.addEventListener("click", e => {
     if(!currentSession.arrowsPerEnd) return;
