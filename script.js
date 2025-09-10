@@ -3,18 +3,18 @@
 // ------------------------------
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  onAuthStateChanged 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { 
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp 
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ------------------------------
-// Firebase Config
+// Firebase Config and Initialization
 // ------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
@@ -26,7 +26,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ------------------------------
@@ -46,7 +46,7 @@ function showScreen(id) {
 }
 
 // ------------------------------
-// Canvas Target
+// Canvas Target Drawing
 // ------------------------------
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
@@ -76,55 +76,11 @@ function updateEndScores(){
 // ------------------------------
 onAuthStateChanged(auth, user => {
   if(user) currentUser = user;
+  else currentUser = null;
 });
 
 // ------------------------------
-// Button Event Handlers
-// ------------------------------
-function attachButtonHandlers() {
-  const signupBtn = document.getElementById("signupBtn");
-  const loginBtn = document.getElementById("loginBtn");
-  const startSessionBtn = document.getElementById("startSessionBtn");
-  const viewHistoryBtn = document.getElementById("viewHistoryBtn");
-  const undoBtn = document.getElementById("undoBtn");
-  const nextEndBtn = document.getElementById("nextEndBtn");
-  const backToSetupBtn = document.getElementById("backToSetupBtn");
-  const backToMenuBtn = document.getElementById("backToMenuBtn");
-  const msgDiv = document.getElementById("loginMessage");
-
-  signupBtn?.addEventListener("click", signup);
-  loginBtn?.addEventListener("click", login);
-  startSessionBtn?.addEventListener("click", startSession);
-  viewHistoryBtn?.addEventListener("click", viewHistory);
-  undoBtn?.addEventListener("click", undoLastArrow);
-  nextEndBtn?.addEventListener("click", nextEnd);
-  backToSetupBtn?.addEventListener("click", backToSetup);
-  backToMenuBtn?.addEventListener("click", () => showScreen("setup"));
-
-  canvas?.addEventListener("click", e => {
-  if (!currentSession.arrowsPerEnd) return;
-  if (arrowScores.length >= currentSession.arrowsPerEnd) {
-    alert("All arrows for this end have been scored.");
-    return;
-  }
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const center = canvas.width / 2;
-    const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
-    let score = 0;
-    if(dist < 30) score = 10;
-    else if(dist < 60) score = 8;
-    else if(dist < 90) score = 6;
-    else if(dist < 120) score = 4;
-    else score = 1;
-     arrowScores.push(score);
-  updateEndScores();
-});
-}
-
-// ------------------------------
-// Main Functions
+// Signup Function
 // ------------------------------
 async function signup(){
   const username = document.getElementById("username").value;
@@ -132,34 +88,58 @@ async function signup(){
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
-  if(!username||!email||!password){ msgDiv.innerText = "Fill all fields!"; return; }
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
+  msgDiv.innerText = "";
+
+  if(!username || !email || !password){
+    msgDiv.innerText = "Please fill all fields!";
+    return;
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
-    await setDoc(doc(db,"users",uid), { name: username, role: role, sessions: [] });
+    await setDoc(doc(db, "users", uid), {
+      name: username,
+      role: role,
+      sessions: []
+    });
     currentUser = userCredential.user;
-    msgDiv.innerText = "";
+    msgDiv.innerText = "Signup successful!";
     showScreen("setup");
-  }catch(e){
+  } catch(e) {
     msgDiv.innerText = e.message;
+    console.error("Signup error:", e);
   }
 }
 
+// ------------------------------
+// Login Function
+// ------------------------------
 async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
-  if(!email||!password){ msgDiv.innerText = "Enter email & password!"; return; }
-  try{
-    const userCredential = await signInWithEmailAndPassword(auth,email,password);
+  msgDiv.innerText = "";
+
+  if(!email || !password){
+    msgDiv.innerText = "Please enter email and password!";
+    return;
+  }
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     currentUser = userCredential.user;
-    msgDiv.innerText = "";
+    msgDiv.innerText = "Login successful!";
     showScreen("setup");
-  }catch(e){
+  } catch(e) {
     msgDiv.innerText = e.message;
+    console.error("Login error:", e);
   }
 }
 
+// ------------------------------
+// Start Session
+// ------------------------------
 function startSession(){
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
@@ -178,11 +158,17 @@ function startSession(){
   updateEndScores();
 }
 
+// ------------------------------
+// Undo Last Arrow
+// ------------------------------
 function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
 }
 
+// ------------------------------
+// Next End Logic
+// ------------------------------
 async function nextEnd(){
   if(arrowScores.length !== currentSession.arrowsPerEnd){
     alert("Shoot all arrows first!");
@@ -191,21 +177,25 @@ async function nextEnd(){
   currentSession.ends.push([...arrowScores]);
   currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
   arrowScores = [];
-  currentEndNumber++;
-  if(currentEndNumber > currentSession.endsCount){
-     await saveSession();
-  showResults();
-  // After a short delay or on user action, reset session and show setup
-  setTimeout(() => {
-    backToSetup();
-  }, 3000); // 3 seconds delay to show results before going back, adjust as needed
-  return;
+
+  if(currentEndNumber >= currentSession.endsCount){
+    await saveSession();
+    showResults();
+    // Reset session variables to be ready for next session
+    currentEndNumber = 1;
+    currentSession = {};
+    arrowScores = [];
+    return;
   } else {
+    currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
   }
 }
 
+// ------------------------------
+// Save Session to Firestore
+// ------------------------------
 async function saveSession(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -215,6 +205,9 @@ async function saveSession(){
   });
 }
 
+// ------------------------------
+// Show Session Results
+// ------------------------------
 function showResults(){
   showScreen("results");
   const summaryDiv = document.getElementById("sessionSummary");
@@ -225,22 +218,22 @@ function showResults(){
     <p>Ends Count: ${currentSession.endsCount}</p>
   `;
 
-  // Table
+  const scoreTableDiv = document.getElementById("scoreTable");
   const table = document.createElement("table");
   const header = document.createElement("tr");
   header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
   table.appendChild(header);
+
   currentSession.ends.forEach((end,i)=>{
     const row = document.createElement("tr");
     const endTotal = end.reduce((a,b)=>a+b,0);
     row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
     table.appendChild(row);
   });
-  const scoreTableDiv = document.getElementById("scoreTable");
+
   scoreTableDiv.innerHTML = "";
   scoreTableDiv.appendChild(table);
 
-  // Chart
   const ctxChart = document.getElementById("scoreChart").getContext("2d");
   new Chart(ctxChart, {
     type: 'bar',
@@ -252,6 +245,9 @@ function showResults(){
   });
 }
 
+// ------------------------------
+// Back to Setup (New Session)
+// ------------------------------
 function backToSetup(){
   currentEndNumber = 1;
   arrowScores = [];
@@ -261,6 +257,9 @@ function backToSetup(){
   updateEndScores();
 }
 
+// ------------------------------
+// View History
+// ------------------------------
 async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -281,15 +280,9 @@ async function viewHistory(){
 }
 
 // ------------------------------
-// Initialize App
+// Dynamic Session Setup Option Update
 // ------------------------------
-function init() {
-  attachButtonHandlers();
-  drawTarget();
-  updateEndScores();
-
-  updateSessionSetupOptions(); // Add this call here
-  function updateSessionSetupOptions() {
+function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10,12,15,18,20,30,40,50,60,70],
     Compound: [10,12,15,18,30,50],
@@ -298,11 +291,12 @@ function init() {
   };
 
   const bowTargetFaces = {
-    Compound: [{value:"60", label:"60cm (Compound Only)"} 
+    Compound: [
+    {value:"60", label:"60cm (Compound Only)"}, 
     {value:"40", label:"40cm (Indoor)"},
     {value:"3spot", label:"40cm 3-Spot (Indoor)"},
     {value:"9spot", label:"40cm 9-Spot (Indoor)"}
-  ],
+    ],
     default: [
       {value:"122", label:"122cm (Outdoor)"},
       {value:"80", label:"80cm (Outdoor)"},
@@ -344,6 +338,51 @@ function init() {
   // Initialize on page load
   refreshOptions();
 }
+
+// ------------------------------
+// Event Handlers Attachment
+// ------------------------------
+function attachButtonHandlers() {
+  document.getElementById("signupBtn")?.addEventListener("click", signup);
+  document.getElementById("loginBtn")?.addEventListener("click", login);
+  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+  document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
+  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
+  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+  document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
+  document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
+
+  canvas?.addEventListener("click", e => {
+    if(!currentSession.arrowsPerEnd) return;
+    if(arrowScores.length >= currentSession.arrowsPerEnd){
+      alert("All arrows for this end have been scored.");
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const center = canvas.width / 2;
+    const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
+    let score = 0;
+    if(dist < 30) score = 10;
+    else if(dist < 60) score = 8;
+    else if(dist < 90) score = 6;
+    else if(dist < 120) score = 4;
+    else score = 1;
+    arrowScores.push(score);
+    updateEndScores();
+  });
+}
+
+// ------------------------------
+// Initialize App
+// ------------------------------
+function init() {
+  attachButtonHandlers();
+  drawTarget();
+  updateEndScores();
+  updateSessionSetupOptions();
 }
 
 window.addEventListener("DOMContentLoaded", init);
+
