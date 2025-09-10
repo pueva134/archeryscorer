@@ -54,7 +54,7 @@ const ctx = canvas?.getContext("2d");
 function drawTarget() {
   if(!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const colors = ['#f00','#f90','#ff0','#0f0','#00f'];
+  const colors = ['rgba(255, 255, 255, 1)','rgba(0, 0, 0, 1)','rgba(0, 140, 255, 1)','rgba(255, 0, 0, 1)','rgba(255, 255, 43, 1)'];
   let radius = canvas.width / 2;
   for (let i=0;i<colors.length;i++){
     ctx.beginPath();
