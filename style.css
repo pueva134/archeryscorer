@@ -2,6 +2,7 @@ html, body, .container {
   height: 100%;
   margin: 0;
   padding: 0;
+  align-items: center;
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #1f2937, #111827);
   color: #fff;
