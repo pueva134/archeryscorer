@@ -2,39 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Archery History</title>
+  <title>Session History | MyScorer Archery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
+  <script type="module" src="history.js"></script>
 </head>
 <body>
-<div class="container">
-  <h1>📜 History</h1>
-  <div id="historyList"></div>
-  <a href="index.html">⬅ Back to Home</a>
-</div>
-
-<script>
-  function loadHistory() {
-    let history = JSON.parse(localStorage.getItem("archeryHistory")) || [];
-    let historyList = document.getElementById("historyList");
-
-    if (history.length === 0) {
-      historyList.innerHTML = "<p>No sessions saved yet.</p>";
-      return;
-    }
-
-    historyList.innerHTML = history.map(session => `
-      <div class="history-item">
-        <p><strong>Date:</strong> ${session.date}</p>
-        <p><strong>Bow:</strong> ${session.bow}</p>
-        <p><strong>Target:</strong> ${session.target}</p>
-        <p><strong>Total Score:</strong> ${session.total}</p>
-        <p><strong>Average:</strong> ${session.avg}</p>
-      </div>
-    `).join("");
-  }
-
-  loadHistory();
-</script>
+  <header>
+    <h1>Session History</h1>
+    <a href="index.html">Back to Dashboard</a>
+  </header>
+  <main>
+    <div id="historyTableContainer"></div>
+    <button id="exportHistoryBtn">Export CSV</button>
+  </main>
 </body>
 </html>
-
