@@ -169,29 +169,32 @@ function undoLastArrow(){
 // ------------------------------
 // Next End Logic
 // ------------------------------
-async function nextEnd(){
-  if(arrowScores.length !== currentSession.arrowsPerEnd){
+async function nextEnd() {
+  if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
     return;
   }
+
   currentSession.ends.push([...arrowScores]);
-  currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
+  currentSession.totalScore += arrowScores.reduce((a, b) => a + b, 0);
   arrowScores = [];
 
-  if(currentEndNumber >= currentSession.endsCount){
+  if (currentEndNumber === currentSession.endsCount) {
+    // Last end completed
     await saveSession();
     showResults();
-    // Reset session variables to be ready for next session
+    // Reset session variables after showing results
     currentEndNumber = 1;
     currentSession = {};
     arrowScores = [];
-    return;
-  } else {
+  } else if (currentEndNumber < currentSession.endsCount) {
+    // More ends remain, go to next
     currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
   }
 }
+
 
 // ------------------------------
 // Save Session to Firestore
