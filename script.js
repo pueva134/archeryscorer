@@ -140,7 +140,7 @@ async function login(){
 // ------------------------------
 // Start Session
 // ------------------------------
-function startSession(setup) {
+function startSession() {
   const { arrowsPerEnd, numEnds } = setup;
   const totalArrows = arrowsPerEnd * numEnds;
   let scores = Array(totalArrows).fill(null);
