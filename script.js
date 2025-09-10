@@ -7,10 +7,16 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  onAuthStateChanged
+  onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ------------------------------
@@ -22,7 +28,7 @@ const firebaseConfig = {
   projectId: "my-scorer",
   storageBucket: "my-scorer.appspot.com",
   messagingSenderId: "243500946215",
-  appId: "1:243500946215:web:bd976f1bd437edce684f02"
+  appId: "1:243500946215:web:bd976f1bd437edce684f02",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -41,8 +47,8 @@ let currentEndNumber = 1;
 // Utility Functions
 // ------------------------------
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
 // ------------------------------
@@ -52,37 +58,43 @@ const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 
 function drawTarget() {
-  if(!ctx) return;
+  if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const colors = ['rgba(255, 255, 255, 1)','rgba(0, 0, 0, 1)','rgba(0, 140, 255, 1)','rgba(255, 0, 0, 1)','rgba(255, 255, 43, 1)'];
+  const colors = [
+    "rgba(255, 255, 255, 1)",
+    "rgba(0, 0, 0, 1)",
+    "rgba(0, 140, 255, 1)",
+    "rgba(255, 0, 0, 1)",
+    "rgba(255, 255, 43, 1)",
+  ];
   let radius = canvas.width / 2;
-  for (let i=0;i<colors.length;i++){
+  for (let i = 0; i < colors.length; i++) {
     ctx.beginPath();
-    ctx.arc(radius, radius, radius - i*30, 0, 2*Math.PI);
+    ctx.arc(radius, radius, radius - i * 30, 0, 2 * Math.PI);
     ctx.fillStyle = colors[i];
     ctx.fill();
   }
 }
 
-function updateEndScores(){
+function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
-  if(endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
-  if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
+  if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
+  if (endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a, b) => a + b, 0);
 }
 
 // ------------------------------
 // Auth State Listener
 // ------------------------------
-onAuthStateChanged(auth, user => {
-  if(user) currentUser = user;
+onAuthStateChanged(auth, (user) => {
+  if (user) currentUser = user;
   else currentUser = null;
 });
 
 // ------------------------------
 // Signup Function
 // ------------------------------
-async function signup(){
+async function signup() {
   const username = document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -90,7 +102,7 @@ async function signup(){
   const msgDiv = document.getElementById("loginMessage");
   msgDiv.innerText = "";
 
-  if(!username || !email || !password){
+  if (!username || !email || !password) {
     msgDiv.innerText = "Please fill all fields!";
     return;
   }
@@ -101,12 +113,12 @@ async function signup(){
     await setDoc(doc(db, "users", uid), {
       name: username,
       role: role,
-      sessions: []
+      sessions: [],
     });
     currentUser = userCredential.user;
     msgDiv.innerText = "Signup successful!";
     showScreen("setup");
-  } catch(e) {
+  } catch (e) {
     msgDiv.innerText = e.message;
     console.error("Signup error:", e);
   }
@@ -115,13 +127,13 @@ async function signup(){
 // ------------------------------
 // Login Function
 // ------------------------------
-async function login(){
+async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
   msgDiv.innerText = "";
 
-  if(!email || !password){
+  if (!email || !password) {
     msgDiv.innerText = "Please enter email and password!";
     return;
   }
@@ -131,7 +143,7 @@ async function login(){
     currentUser = userCredential.user;
     msgDiv.innerText = "Login successful!";
     showScreen("setup");
-  } catch(e) {
+  } catch (e) {
     msgDiv.innerText = e.message;
     console.error("Login error:", e);
   }
@@ -140,7 +152,7 @@ async function login(){
 // ------------------------------
 // Start Session
 // ------------------------------
-function startSession(){
+function startSession() {
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
     distance: parseInt(document.getElementById("distance").value),
@@ -148,7 +160,7 @@ function startSession(){
     arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
     endsCount: parseInt(document.getElementById("endsCount").value),
     ends: [],
-    totalScore: 0
+    totalScore: 0,
   };
   arrowScores = [];
   currentEndNumber = 1;
@@ -161,13 +173,15 @@ function startSession(){
 // ------------------------------
 // Undo Last Arrow
 // ------------------------------
-function undoLastArrow(){
-  arrowScores.pop();
+function undoLastArrow() {
+  if (arrowScores.length > 0) {
+    arrowScores.pop();
+  }
   updateEndScores();
 }
 
 // ------------------------------
-// Next End Logic
+// Next End Logic - Updated to end session immediately after last end
 // ------------------------------
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -180,38 +194,37 @@ async function nextEnd() {
   arrowScores = [];
 
   if (currentEndNumber === currentSession.endsCount) {
-    // Last end completed
+    // Last end completed - end session immediately
     await saveSession();
     showResults();
+
     // Reset session variables after showing results
     currentEndNumber = 1;
     currentSession = {};
     arrowScores = [];
-  } else if (currentEndNumber < currentSession.endsCount) {
-    // More ends remain, go to next
+  } else {
     currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
   }
 }
 
-
 // ------------------------------
 // Save Session to Firestore
 // ------------------------------
-async function saveSession(){
-  if(!currentUser) return;
+async function saveSession() {
+  if (!currentUser) return;
   const uid = currentUser.uid;
-  const userRef = doc(db,"users",uid);
-  await updateDoc(userRef,{
-    sessions: arrayUnion({...currentSession, date: Timestamp.now()})
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, {
+    sessions: arrayUnion({ ...currentSession, date: Timestamp.now() }),
   });
 }
 
 // ------------------------------
 // Show Session Results
 // ------------------------------
-function showResults(){
+function showResults() {
   showScreen("results");
   const summaryDiv = document.getElementById("sessionSummary");
   summaryDiv.innerHTML = `
@@ -224,13 +237,21 @@ function showResults(){
   const scoreTableDiv = document.getElementById("scoreTable");
   const table = document.createElement("table");
   const header = document.createElement("tr");
-  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
+  header.innerHTML =
+    "<th>End</th>" +
+    [...Array(currentSession.arrowsPerEnd)]
+      .map((_, i) => `<th>Arrow ${i + 1}</th>`)
+      .join("") +
+    "<th>End Total</th>";
   table.appendChild(header);
 
-  currentSession.ends.forEach((end,i)=>{
+  currentSession.ends.forEach((end, i) => {
     const row = document.createElement("tr");
-    const endTotal = end.reduce((a,b)=>a+b,0);
-    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    const endTotal = end.reduce((a, b) => a + b, 0);
+    row.innerHTML =
+      `<td>${i + 1}</td>` +
+      end.map((a) => `<td>${a}</td>`).join("") +
+      `<td>${endTotal}</td>`;
     table.appendChild(row);
   });
 
@@ -239,19 +260,25 @@ function showResults(){
 
   const ctxChart = document.getElementById("scoreChart").getContext("2d");
   new Chart(ctxChart, {
-    type: 'bar',
+    type: "bar",
     data: {
-      labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
-      datasets: [{label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)'}]
+      labels: currentSession.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [
+        {
+          label: "End Total",
+          data: currentSession.ends.map((e) => e.reduce((a, b) => a + b, 0)),
+          backgroundColor: "rgba(59,130,246,0.7)",
+        },
+      ],
     },
-    options: {responsive:true, maintainAspectRatio:false}
+    options: { responsive: true, maintainAspectRatio: false },
   });
 }
 
 // ------------------------------
 // Back to Setup (New Session)
 // ------------------------------
-function backToSetup(){
+function backToSetup() {
   currentEndNumber = 1;
   arrowScores = [];
   currentSession = {};
@@ -263,16 +290,16 @@ function backToSetup(){
 // ------------------------------
 // View History
 // ------------------------------
-async function viewHistory(){
-  if(!currentUser) return;
+async function viewHistory() {
+  if (!currentUser) return;
   const uid = currentUser.uid;
-  const userDoc = await getDoc(doc(db,"users",uid));
-  if(userDoc.exists()){
+  const userDoc = await getDoc(doc(db, "users", uid));
+  if (userDoc.exists()) {
     const sessions = userDoc.data().sessions || [];
     const table = document.createElement("table");
     table.innerHTML = `<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
-    sessions.forEach(s=>{
-      const date = new Date(s.date.seconds*1000).toLocaleDateString();
+    sessions.forEach((s) => {
+      const date = new Date(s.date.seconds * 1000).toLocaleDateString();
       table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
     });
     const historyDiv = document.getElementById("historyTable");
@@ -287,26 +314,26 @@ async function viewHistory(){
 // ------------------------------
 function updateSessionSetupOptions() {
   const bowDistances = {
-    Recurve: [10,12,15,18,20,30,40,50,60,70],
-    Compound: [10,12,15,18,30,50],
-    Barebow: [10,12,15,18,30],
-    Longbow: [10,12,15,18,30]
+    Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70],
+    Compound: [10, 12, 15, 18, 30, 50],
+    Barebow: [10, 12, 15, 18, 30],
+    Longbow: [10, 12, 15, 18, 30],
   };
 
   const bowTargetFaces = {
     Compound: [
-    {value:"60", label:"60cm (Compound Only)"}, 
-    {value:"40", label:"40cm (Indoor)"},
-    {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-    {value:"9spot", label:"40cm 9-Spot (Indoor)"}
+      { value: "60", label: "60cm (Compound Only)" },
+      { value: "40", label: "40cm (Indoor)" },
+      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
+      { value: "9spot", label: "40cm 9-Spot (Indoor)" },
     ],
     default: [
-      {value:"122", label:"122cm (Outdoor)"},
-      {value:"80", label:"80cm (Outdoor)"},
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
-    ]
+      { value: "122", label: "122cm (Outdoor)" },
+      { value: "80", label: "80cm (Outdoor)" },
+      { value: "40", label: "40cm (Indoor)" },
+      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
+      { value: "9spot", label: "40cm 9-Spot (Indoor)" },
+    ],
   };
 
   const bowSelect = document.getElementById("bowStyle");
@@ -318,7 +345,7 @@ function updateSessionSetupOptions() {
 
     // Update distances
     distSelect.innerHTML = "";
-    bowDistances[bow].forEach(d => {
+    bowDistances[bow].forEach((d) => {
       const opt = document.createElement("option");
       opt.value = d;
       opt.textContent = d + "m";
@@ -328,7 +355,7 @@ function updateSessionSetupOptions() {
     // Update target faces
     faceSelect.innerHTML = "";
     const faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
-    faces.forEach(f => {
+    faces.forEach((f) => {
       const opt = document.createElement("option");
       opt.value = f.value;
       opt.textContent = f.label;
@@ -355,9 +382,9 @@ function attachButtonHandlers() {
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
 
-  canvas?.addEventListener("click", e => {
-    if(!currentSession.arrowsPerEnd) return;
-    if(arrowScores.length >= currentSession.arrowsPerEnd){
+  canvas?.addEventListener("click", (e) => {
+    if (!currentSession.arrowsPerEnd) return;
+    if (arrowScores.length >= currentSession.arrowsPerEnd) {
       alert("All arrows for this end have been scored.");
       return;
     }
@@ -367,10 +394,10 @@ function attachButtonHandlers() {
     const center = canvas.width / 2;
     const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
     let score = 0;
-    if(dist < 30) score = 10;
-    else if(dist < 60) score = 8;
-    else if(dist < 90) score = 6;
-    else if(dist < 120) score = 4;
+    if (dist < 30) score = 10;
+    else if (dist < 60) score = 8;
+    else if (dist < 90) score = 6;
+    else if (dist < 120) score = 4;
     else score = 1;
     arrowScores.push(score);
     updateEndScores();
@@ -388,4 +415,3 @@ function init() {
 }
 
 window.addEventListener("DOMContentLoaded", init);
-
