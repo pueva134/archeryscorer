@@ -183,24 +183,27 @@ function undoLastArrow(){
   updateEndScores();
 }
 
-async function nextEnd(){
-  if(arrowScores.length !== currentSession.arrowsPerEnd){
+async function nextEnd() {
+  if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
     return;
   }
+  
   currentSession.ends.push([...arrowScores]);
-  currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
+  currentSession.totalScore += arrowScores.reduce((a, b) => a + b, 0);
+  
   arrowScores = [];
-  currentEndNumber++;
-  if(currentEndNumber > currentSession.endsCount){
-     await saveSession();
-  showResults();
-  // After a short delay or on user action, reset session and show setup
-  setTimeout(() => {
-    backToSetup();
-  }, 3000); // 3 seconds delay to show results before going back, adjust as needed
-  return;
+  
+  if (currentEndNumber >= currentSession.endsCount) {
+    // All ends are completed
+    await saveSession();
+    showResults();
+    // Reset state variables for a fresh start after showing results
+    currentEndNumber = 1;
+    currentSession = {};
+    arrowScores = [];
   } else {
+    currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
   }
@@ -298,7 +301,11 @@ function init() {
   };
 
   const bowTargetFaces = {
-    Compound: [{value:"40", label:"40cm (Compound Only)"}],
+    Compound: [{value:"60", label:"60cm (Compound Only)"}, 
+    {value:"40", label:"40cm (Indoor)"},
+    {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+    {value:"9spot", label:"40cm 9-Spot (Indoor)"}
+  ],
     default: [
       {value:"122", label:"122cm (Outdoor)"},
       {value:"80", label:"80cm (Outdoor)"},
