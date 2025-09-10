@@ -140,23 +140,55 @@ async function login(){
 // ------------------------------
 // Start Session
 // ------------------------------
-function startSession(){
-  currentSession = {
-    bowStyle: document.getElementById("bowStyle").value,
-    distance: parseInt(document.getElementById("distance").value),
-    targetFace: document.getElementById("targetFace").value,
-    arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
-    endsCount: parseInt(document.getElementById("endsCount").value),
-    ends: [],
-    totalScore: 0
-  };
-  arrowScores = [];
-  currentEndNumber = 1;
-  document.getElementById("currentEnd").innerText = currentEndNumber;
-  showScreen("scoringArea");
-  drawTarget();
-  updateEndScores();
+function startSession(setup) {
+  const { arrowsPerEnd, numEnds } = setup;
+  const totalArrows = arrowsPerEnd * numEnds;
+  let scores = Array(totalArrows).fill(null);
+  let currentArrow = 0;
+
+  function renderInput() {
+    sessionInputContainer.innerHTML = `
+      <h3>Arrow ${currentArrow + 1} of ${totalArrows}</h3>
+      <form id="arrowForm">
+        <label>
+          Score for Arrow ${currentArrow + 1}:
+          <input id="arrowScore" type="number" min="0" max="10" required autofocus />
+        </label>
+        <button type="submit">Submit</button>
+        <button type="button" id="undoBtn" ${currentArrow === 0 ? 'disabled' : ''}>Undo</button>
+      </form>
+      <p>Total Score So Far: ${scores.filter(s => s !== null).reduce((a, b) => a + b, 0)}</p>
+    `;
+
+    document.getElementById("arrowForm").onsubmit = function(e) {
+      e.preventDefault();
+      let val = parseInt(document.getElementById("arrowScore").value);
+      if (isNaN(val) || val < 0 || val > 10) {
+        alert("Please enter a score between 0 and 10");
+        return;
+      }
+      scores[currentArrow] = val;
+      currentArrow++;
+      if (currentArrow < totalArrows) {
+        renderInput();
+      } else {
+        // All arrows scored, submit session
+        submitSession(setup, scores);
+      }
+    };
+
+    document.getElementById("undoBtn").onclick = function() {
+      if (currentArrow > 0) {
+        currentArrow--;
+        scores[currentArrow] = null;
+        renderInput();
+      }
+    };
+  }
+
+  renderInput();
 }
+
 
 // ------------------------------
 // Undo Last Arrow
