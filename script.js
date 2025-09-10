@@ -290,7 +290,7 @@ function updateSessionSetupOptions() {
     Recurve: [10,12,15,18,20,30,40,50,60,70],
     Compound: [10,12,15,18,30,50],
     Barebow: [10,12,15,18,30],
-    Longbow: [10,12,15,18,30]
+    Longbow: [10,12,15,18,30,50]
   };
 
   const bowTargetFaces = {
