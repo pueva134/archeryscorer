@@ -83,6 +83,17 @@ function updateEndScores() {
   if (endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a, b) => a + b, 0);
 }
 
+function updateEndSessionButton() {
+  const endSessionBtn = document.getElementById("endSessionBtn");
+  if (!endSessionBtn) return;
+
+  if (currentEndNumber === currentSession.endsCount) {
+    endSessionBtn.style.display = "inline-block";
+  } else {
+    endSessionBtn.style.display = "none";
+  }
+}
+
 // ------------------------------
 // Auth State Listener
 // ------------------------------
@@ -164,10 +175,16 @@ function startSession() {
   };
   arrowScores = [];
   currentEndNumber = 1;
-  document.getElementById("currentEnd").innerText = currentEndNumber;
+  updateEndUI();
   showScreen("scoringArea");
   drawTarget();
   updateEndScores();
+}
+
+function updateEndUI() {
+  document.getElementById("currentEnd").innerText = currentEndNumber;
+  updateEndScores();
+  updateEndSessionButton();
 }
 
 // ------------------------------
@@ -181,7 +198,7 @@ function undoLastArrow() {
 }
 
 // ------------------------------
-// Next End Logic - Updated to end session immediately after last end
+// Next End Logic
 // ------------------------------
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -194,19 +211,33 @@ async function nextEnd() {
   arrowScores = [];
 
   if (currentEndNumber === currentSession.endsCount) {
-    // Last end completed - end session immediately
     await saveSession();
     showResults();
 
-    // Reset session variables after showing results
     currentEndNumber = 1;
     currentSession = {};
     arrowScores = [];
   } else {
     currentEndNumber++;
-    document.getElementById("currentEnd").innerText = currentEndNumber;
-    updateEndScores();
+    updateEndUI();
   }
+}
+
+// ------------------------------
+// End Session Button Logic
+// ------------------------------
+async function endSession() {
+  if (arrowScores.length > 0) {
+    currentSession.ends.push([...arrowScores]);
+    currentSession.totalScore += arrowScores.reduce((a, b) => a + b, 0);
+    arrowScores = [];
+  }
+  await saveSession();
+  showResults();
+
+  currentEndNumber = 1;
+  currentSession = {};
+  arrowScores = [];
 }
 
 // ------------------------------
@@ -343,7 +374,6 @@ function updateSessionSetupOptions() {
   function refreshOptions() {
     const bow = bowSelect.value;
 
-    // Update distances
     distSelect.innerHTML = "";
     bowDistances[bow].forEach((d) => {
       const opt = document.createElement("option");
@@ -352,7 +382,6 @@ function updateSessionSetupOptions() {
       distSelect.appendChild(opt);
     });
 
-    // Update target faces
     faceSelect.innerHTML = "";
     const faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
     faces.forEach((f) => {
@@ -365,7 +394,6 @@ function updateSessionSetupOptions() {
 
   bowSelect.addEventListener("change", refreshOptions);
 
-  // Initialize on page load
   refreshOptions();
 }
 
@@ -379,6 +407,7 @@ function attachButtonHandlers() {
   document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
 
