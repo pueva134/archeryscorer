@@ -2,43 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>MyScorer Archery | Dashboard</title>
+  <title>MyScorer | Archery Scoring</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="script.js"></script>
 </head>
 <body>
-  <header>
-    <h1>MyScorer Archery</h1>
-  </header>
-  <main>
-    <section id="auth-section">
-      <form id="loginForm">
-        <input type="email" id="loginEmail" placeholder="Email" required>
-        <input type="password" id="loginPassword" placeholder="Password" required>
-        <button type="submit">Login</button>
-        <select id="roleSelect">
-          <option value="Archer">Archer</option>
-          <option value="Coach">Coach</option>
-        </select>
-        <button type="button" id="registerBtn">Register</button>
-      </form>
-    </section>
-    <section id="dashboard" style="display:none;">
-      <div id="archerDash" style="display:none;">
-        <h2>Archer Dashboard</h2>
-        <button id="startSessionBtn">Start Session</button>
-        <button id="viewHistoryBtn">Session History</button>
-        <div id="sessionFormContainer"></div>
-        <div id="sessionResultsContainer"></div>
+  <div class="container">
+    <!-- Landing/Welcome Page -->
+    <div id="welcomePage">
+      <h1>MyScorer</h1>
+      <p>Modern Archery Scoring & Analytics</p>
+      <button id="loginWelcomeBtn">Login</button>
+      <button id="signupWelcomeBtn">Sign Up</button>
+    </div>
+    <!-- Auth Form Page -->
+    <form id="authForm" class="card hidden">
+      <h2 id="authFormTitle">Login</h2>
+      <input type="email" id="authEmail" placeholder="Email" required>
+      <input type="password" id="authPassword" placeholder="Password" required>
+      <select id="authRole" required>
+        <option value="Archer">Archer</option>
+        <option value="Coach">Coach</option>
+      </select>
+      <button type="submit" id="authSubmitBtn">Submit</button>
+      <button type="button" id="authBackBtn">Back</button>
+    </form>
+    <!-- Role-Based Dashboard (shown after auth) -->
+    <div id="dashboard" class="hidden">
+      <h2 id="dashboardTitle"></h2>
+      <div id="dashboardMenu">
+        <button id="dashboardStartSessionBtn">Start Session</button>
+        <button id="dashboardHistoryBtn">Session History</button>
+        <button id="dashboardLogoutBtn">Logout</button>
+        <button id="dashboardThemeBtn">Toggle Theme</button>
       </div>
-      <div id="coachDash" style="display:none;">
-        <h2>Coach Dashboard</h2>
-        <button id="viewAllSessionsBtn">View All Sessions</button>
-        <div id="allSessionsContainer"></div>
-      </div>
-      <button id="logoutBtn">Logout</button>
-    </section>
-  </main>
+      <div id="sessionSetupContainer" class="card hidden"></div>
+      <div id="sessionInputContainer" class="card hidden"></div>
+      <div id="sessionResultsContainer" class="card hidden"></div>
+    </div>
+  </div>
 </body>
 </html>

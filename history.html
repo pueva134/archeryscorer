@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Session History | MyScorer Archery</title>
+  <title>MyScorer | Session History</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="history.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Session History</h1>
-    <a href="index.html">Back to Dashboard</a>
-  </header>
-  <main>
-    <div id="historyTableContainer"></div>
-    <button id="exportHistoryBtn">Export CSV</button>
-  </main>
+  <div class="container">
+    <header>
+      <h2>Session History</h2>
+      <a href="index.html"><button>Back</button></a>
+    </header>
+    <div id="historyTable" class="card"></div>
+    <button id="exportHistoryBtn">Export to CSV</button>
+  </div>
 </body>
 </html>
