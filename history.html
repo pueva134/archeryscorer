@@ -1,20 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>MyScorer - Session History</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
-  <script type="module" src="history.js"></script>
+  <meta charset="UTF-8">
+  <title>Archery History</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h2>Session History</h2>
-      <a href="index.html"><button>Back</button></a>
-    </header>
-    <div id="historyTable" class="card"></div>
-    <button id="exportHistoryBtn">Export to CSV</button>
-  </div>
+<div class="container">
+  <h1>📜 History</h1>
+  <div id="historyList"></div>
+  <a href="index.html">⬅ Back to Home</a>
+</div>
+
+<script>
+  function loadHistory() {
+    let history = JSON.parse(localStorage.getItem("archeryHistory")) || [];
+    let historyList = document.getElementById("historyList");
+
+    if (history.length === 0) {
+      historyList.innerHTML = "<p>No sessions saved yet.</p>";
+      return;
+    }
+
+    historyList.innerHTML = history.map(session => `
+      <div class="history-item">
+        <p><strong>Date:</strong> ${session.date}</p>
+        <p><strong>Bow:</strong> ${session.bow}</p>
+        <p><strong>Target:</strong> ${session.target}</p>
+        <p><strong>Total Score:</strong> ${session.total}</p>
+        <p><strong>Average:</strong> ${session.avg}</p>
+      </div>
+    `).join("");
+  }
+
+  loadHistory();
+</script>
 </body>
 </html>
+

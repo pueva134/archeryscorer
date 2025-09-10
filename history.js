@@ -1,95 +1,44 @@
 // history.js
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { db, auth, query, collection, where, getDocs } from "./firebase.js";
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+// History renderer
+window.onload = async function () {
+  const tableDiv = document.getElementById("historyTableContainer");
+  // Only fetch own sessions (Archer) otherwise all (Coach)
+  const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+  const role = userDoc.data().role;
+  let q;
+  if (role === "Coach") q = query(collection(db, "sessions"));
+  else q = query(collection(db, "sessions"), where("userId", "==", auth.currentUser.uid));
+  const snap = await getDocs(q);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const historyTable = document.getElementById("historyTable");
-const exportButton = document.getElementById("exportHistoryBtn");
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-  // Get user role
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  let sessionsQuery;
-  if (userDoc.data().role === "Coach") {
-    sessionsQuery = query(collection(db, "sessions"));
-  } else {
-    sessionsQuery = query(collection(db, "sessions"), where("userId", "==", user.uid));
-  }
-
-  const querySnapshot = await getDocs(sessionsQuery);
-  let sessions = [];
-  querySnapshot.forEach(doc => {
-    sessions.push({ id: doc.id, ...doc.data() });
-  });
-
-  // Build table HTML
-  let html = `<table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Bow Style</th>
-        <th>Target Face</th>
-        <th>Total Score</th>
-        <th>Notes</th>
-      </tr>
-    </thead>
-    <tbody>`;
-
-  sessions.forEach(session => {
+  let html = "<table><thead><tr><th>Date</th><th>Score</th><th>Bow</th><th>Target Face</th></tr></thead><tbody>";
+  snap.forEach(doc => {
+    const data = doc.data();
     html += `<tr>
-      <td>${new Date(session.timestamp).toLocaleString()}</td>
-      <td>${session.bowType || "-"}</td>
-      <td>${session.targetFace || "-"}</td>
-      <td>${session.totalScore || "-"}</td>
-      <td>${session.notes || ""}</td>
+      <td>${data.timestamp}</td>
+      <td>${data.totalScore}</td>
+      <td>${data.bowType}</td>
+      <td>${data.targetFace}</td>
     </tr>`;
   });
-
   html += "</tbody></table>";
-  historyTable.innerHTML = html;
-});
+  tableDiv.innerHTML = html;
+};
 
-exportButton.onclick = async () => {
-  const user = auth.currentUser;
-  if (!user) return;
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  let sessionsQuery;
-  if (userDoc.data().role === "Coach") {
-    sessionsQuery = query(collection(db, "sessions"));
-  } else {
-    sessionsQuery = query(collection(db, "sessions"), where("userId", "==", user.uid));
-  }
-
-  const querySnapshot = await getDocs(sessionsQuery);
-  let csvContent = "Date,Bow Style,Target Face,Total Score,Notes\n";
-
-  querySnapshot.forEach(doc => {
-    const s = doc.data();
-    csvContent += `"${new Date(s.timestamp).toLocaleString()}","${s.bowType || ""}","${s.targetFace || ""}",${s.totalScore || ""},"${s.notes || ""}"\n`;
+// Export
+document.getElementById("exportHistoryBtn").onclick = async function() {
+  const snap = await getDocs(query(collection(db, "sessions"), where("userId", "==", auth.currentUser.uid)));
+  let csv = "Date,Score,Bow,Target Face\n";
+  snap.forEach(doc => {
+    const d = doc.data();
+    csv += `${d.timestamp},${d.totalScore},${d.bowType},${d.targetFace}\n`;
   });
-
-  const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+  const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csv);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "session_history.csv");
+  link.setAttribute("download", `session_history.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
