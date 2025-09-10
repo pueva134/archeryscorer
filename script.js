@@ -154,6 +154,8 @@ function startSession(){
   currentEndNumber = 1;
   document.getElementById("currentEnd").innerText = currentEndNumber;
   showScreen("scoringArea");
+  document.getElementById("nextEndBtn").style.display = "inline-block";
+  document.getElementById("endSessionBtn").style.display = "none";
   drawTarget();
   updateEndScores();
 }
@@ -174,27 +176,54 @@ async function nextEnd() {
     alert("Shoot all arrows first!");
     return;
   }
-
   currentSession.ends.push([...arrowScores]);
   currentSession.totalScore += arrowScores.reduce((a, b) => a + b, 0);
   arrowScores = [];
 
   if (currentEndNumber === currentSession.endsCount) {
-    // Last end completed
-    await saveSession();
-    showResults();
-    // Reset session variables after showing results
-    currentEndNumber = 1;
-    currentSession = {};
-    arrowScores = [];
+    // Last end completed: show End Session button instead of Next End
+    document.getElementById("nextEndBtn").style.display = "none";
+    document.getElementById("endSessionBtn").style.display = "inline-block";
+    updateEndScores();
   } else if (currentEndNumber < currentSession.endsCount) {
-    // More ends remain, go to next
     currentEndNumber++;
     document.getElementById("currentEnd").innerText = currentEndNumber;
     updateEndScores();
   }
 }
 
+async function endSession() {
+  if (arrowScores.length !== currentSession.arrowsPerEnd) {
+    alert("Shoot all arrows first!");
+    return;
+  }
+  // Push the last arrows if not already pushed
+  if(currentSession.ends.length < currentEndNumber){
+    currentSession.ends.push([...arrowScores]);
+    currentSession.totalScore += arrowScores.reduce((a,b) => a+b, 0);
+  }
+
+  await saveSession();
+  
+  // Reset session variables
+  currentEndNumber = 1;
+  currentSession = {};
+  arrowScores = [];
+
+  // Hide End Session button and show Next End button for next session
+  document.getElementById("endSessionBtn").style.display = "none";
+  document.getElementById("nextEndBtn").style.display = "inline-block";
+
+  // Show welcome/login screen
+  showScreen("loginPage");
+
+  // Optionally clear inputs or reset UI as needed
+  document.getElementById("username").value = "";
+  document.getElementById("email").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("role").value = "archer";
+  document.getElementById("loginMessage").innerText = "";
+}
 
 // ------------------------------
 // Save Session to Firestore
@@ -352,6 +381,7 @@ function attachButtonHandlers() {
   document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
 
