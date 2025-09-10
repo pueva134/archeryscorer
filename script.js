@@ -184,29 +184,63 @@ function undoLastArrow(){
 }
 
 async function nextEnd() {
-  if (arrowScores.length !== currentSession.arrowsPerEnd) {
+  console.log("nextEnd called");
+  if(arrowScores.length !== currentSession.arrowsPerEnd){
     alert("Shoot all arrows first!");
     return;
   }
-  
   currentSession.ends.push([...arrowScores]);
-  currentSession.totalScore += arrowScores.reduce((a, b) => a + b, 0);
-  
+  currentSession.totalScore += arrowScores.reduce((a,b)=>a+b,0);
   arrowScores = [];
-  
-  if (currentEndNumber >= currentSession.endsCount) {
-    // All ends are completed
+  currentEndNumber++;
+  console.log("Current end:", currentEndNumber, "Ends count:", currentSession.endsCount);
+  if(currentEndNumber > currentSession.endsCount){
+    console.log("Completed all ends, saving session and showing results...");
     await saveSession();
     showResults();
-    // Reset state variables for a fresh start after showing results
-    currentEndNumber = 1;
-    currentSession = {};
-    arrowScores = [];
-  } else {
-    currentEndNumber++;
-    document.getElementById("currentEnd").innerText = currentEndNumber;
-    updateEndScores();
+    return;
   }
+  document.getElementById("currentEnd").innerText = currentEndNumber;
+  updateEndScores();
+}
+
+function showResults() {
+  console.log("Showing results screen");
+  showScreen("results");
+  const summaryDiv = document.getElementById("sessionSummary");
+  if (!summaryDiv) console.error("No sessionSummary element found");
+  summaryDiv.innerHTML = `
+    <p>Bow: ${currentSession.bowStyle}</p>
+    <p>Distance: ${currentSession.distance}m</p>
+    <p>Total Score: ${currentSession.totalScore}</p>
+    <p>Ends Count: ${currentSession.endsCount}</p>
+  `;
+
+  const scoreTableDiv = document.getElementById("scoreTable");
+  if (!scoreTableDiv) console.error("No scoreTable element found");
+  const table = document.createElement("table");
+  const header = document.createElement("tr");
+  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
+  table.appendChild(header);
+  currentSession.ends.forEach((end,i)=>{
+    const row = document.createElement("tr");
+    const endTotal = end.reduce((a,b)=>a+b,0);
+    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    table.appendChild(row);
+  });
+  scoreTableDiv.innerHTML = "";
+  scoreTableDiv.appendChild(table);
+
+  const ctxChart = document.getElementById("scoreChart")?.getContext("2d");
+  if (!ctxChart) console.error("No scoreChart canvas found");
+  else new Chart(ctxChart, {
+    type: 'bar',
+    data: {
+      labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
+      datasets: [{label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)'}]
+    },
+    options: {responsive:true, maintainAspectRatio:false}
+  });
 }
 
 async function saveSession(){
