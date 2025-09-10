@@ -6,10 +6,8 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp,
-  enableIndexedDbPersistence
+  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import Chart from "https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
@@ -23,6 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 
 // Enable offline persistence (optional)
 enableIndexedDbPersistence(db).catch(err => {
@@ -130,8 +129,8 @@ async function login(){
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     currentUser = userCredential.user;
-    const userDoc = await safeGetDoc(doc(db, "users", currentUser.uid));
-    const username = userDoc && userDoc.exists() ? userDoc.data().name : "";
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    const username = userDoc.exists() ? userDoc.data().name : "";
     document.querySelector(".container").querySelector("h1").innerHTML = `🏹 My Scorer 🏹<br><span style="font-size:1rem;">Hello, ${username}!</span>`;
     msgDiv.innerText = "Login successful!";
     showScreen("setup");
@@ -140,6 +139,7 @@ async function login(){
     console.error("Login error:", e);
   }
 }
+
 
 function startSession(){
   currentSession = {
