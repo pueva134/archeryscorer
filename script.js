@@ -9,12 +9,7 @@ import {
   getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp,
   enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-// ---------------------
-// Network Error Handling
-// ---------------------
-window.addEventListener('online', () => alert("Back online."));
-window.addEventListener('offline', () => alert("No internet connection detected."));
+import Chart from "https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
