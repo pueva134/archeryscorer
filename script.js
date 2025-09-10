@@ -136,6 +136,9 @@ async function login(){
     msgDiv.innerText = "Login successful!";
     showScreen("setup");
   } catch(e) {
+  if(e.message && e.message.includes("offline")) {
+    alert("Network is offline or Firestore cannot connect. Check your connection.");
+  }
     msgDiv.innerText = e.message;
     console.error("Login error:", e);
   }
