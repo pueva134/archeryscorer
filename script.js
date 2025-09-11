@@ -9,7 +9,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp
+  getFirestore, doc, setDoc, getDoc, updateDoc, Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 // ------------------------------
 // Firebase Config and Initialization
@@ -35,10 +35,11 @@ let currentEndNumber = 1;
 // Utility Functions
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const target = document.getElementById(id);
+  if(target) target.classList.add('active');
 }
 // ------------------------------
-// Canvas Target Drawing
+// Canvas and scoring utilities remain unchanged
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 function drawTarget() {
@@ -60,7 +61,7 @@ function updateEndScores(){
   if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
 }
 // ------------------------------
-// Auth State Listener
+// Auth Listener with UI updates
 onAuthStateChanged(auth, async user => {
   currentUser = user;
   if (user) {
@@ -78,7 +79,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 // ------------------------------
-// Signup Function
+// Signup logic remains the same but creates user document on sign up
 async function signup(){
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -96,7 +97,7 @@ async function signup(){
     await setDoc(doc(db, "users", uid), {
       name: username,
       role: role,
-      sessions: []
+      sessions: {}
     });
     currentUser = userCredential.user;
     msgDiv.innerText = "Signup successful! Please login.";
@@ -107,7 +108,7 @@ async function signup(){
   }
 }
 // ------------------------------
-// Login Function
+// Login remains unchanged
 async function login(){
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -125,7 +126,7 @@ async function login(){
   }
 }
 // ------------------------------
-// Start Session
+// Session control functions remain mostly unchanged
 function startSession(){
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
@@ -142,20 +143,16 @@ function startSession(){
   showScreen("scoringArea");
   drawTarget();
   updateEndScores();
-  const nextBtn = document.getElementById("nextEndBtn");
-  const endBtn = document.getElementById("endSessionBtn");
-  if(nextBtn) nextBtn.style.display = "inline-block";
-  if(endBtn) endBtn.style.display = "none";
+  document.getElementById("nextEndBtn").style.display = "inline-block";
+  if(document.getElementById("endSessionBtn")) {
+    document.getElementById("endSessionBtn").style.display = "none";
+  }
 }
-// ------------------------------
-// Undo Last Arrow
 function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
   updateEndSessionButtons();
 }
-// ------------------------------
-// Show/Hide End Session button
 function updateEndSessionButtons() {
   const nextEndBtn = document.getElementById("nextEndBtn");
   const endSessionBtn = document.getElementById("endSessionBtn");
@@ -169,8 +166,6 @@ function updateEndSessionButtons() {
     if(endSessionBtn) endSessionBtn.style.display = "none";
   }
 }
-// ------------------------------
-// Next End Logic
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
@@ -190,12 +185,12 @@ async function nextEnd() {
   updateEndSessionButtons();
 }
 // ------------------------------
-// Save Session to Firestore
+// Updated saveSession to save sessions as a map instead of array
 async function saveSession() {
-  if(!currentUser) return;
+  if (!currentUser) return;
   const uid = currentUser.uid;
   const userRef = doc(db, "users", uid);
-  const sessionKey = Date.now().toString(); // Use timestamp as unique key
+  const sessionKey = Date.now().toString();
   try {
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: {
@@ -203,36 +198,67 @@ async function saveSession() {
         date: Timestamp.now()
       }
     });
-  } catch(e) {
+  } catch (e) {
     console.error("Error saving session:", e);
     throw e;
   }
 }
-
 // ------------------------------
-// End Session Function
-
+// End session with try/catch and UI reset
 async function endSession() {
   try {
-    if(currentUser && currentSession && currentSession.ends.length > 0) {
+    if (currentUser && currentSession && currentSession.ends.length > 0) {
       await saveSession();
     }
-  } catch(e) {
-    console.error("Failed to save session on end:", e);
+  } catch (e) {
     alert("Could not save session, try again.");
     return;
   }
   currentEndNumber = 1;
   currentSession = {};
   arrowScores = [];
-  const nextBtn = document.getElementById("nextEndBtn");
-  const endBtn = document.getElementById("endSessionBtn");
-  if(nextBtn) nextBtn.style.display = "inline-block";
-  if(endBtn) endBtn.style.display = "none";
+  const nextEndBtn = document.getElementById("nextEndBtn");
+  const endSessionBtn = document.getElementById("endSessionBtn");
+  if(nextEndBtn) nextEndBtn.style.display = "inline-block";
+  if(endSessionBtn) endSessionBtn.style.display = "none";
   showScreen("setup");
 }
 // ------------------------------
-// Back to Setup (New Session)
+// Show results unchanged
+function showResults(){
+  showScreen("results");
+  const summaryDiv = document.getElementById("sessionSummary");
+  summaryDiv.innerHTML = `
+    <p>Bow: ${currentSession.bowStyle}</p>
+    <p>Distance: ${currentSession.distance}m</p>
+    <p>Total Score: ${currentSession.totalScore}</p>
+    <p>Ends Count: ${currentSession.endsCount}</p>
+  `;
+  const scoreTableDiv = document.getElementById("scoreTable");
+  const table = document.createElement("table");
+  const header = document.createElement("tr");
+  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
+  table.appendChild(header);
+  currentSession.ends.forEach((end,i)=>{
+    const row = document.createElement("tr");
+    const endTotal = end.reduce((a,b)=>a+b,0);
+    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    table.appendChild(row);
+  });
+  scoreTableDiv.innerHTML = "";
+  scoreTableDiv.appendChild(table);
+  const ctxChart = document.getElementById("scoreChart").getContext("2d");
+  new Chart(ctxChart, {
+    type: 'bar',
+    data: {
+      labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
+      datasets: [{label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)'}]
+    },
+    options: {responsive:true, maintainAspectRatio:false}
+  });
+}
+// ------------------------------
+// Back to setup unchanged
 function backToSetup(){
   currentEndNumber = 1;
   arrowScores = [];
@@ -242,17 +268,18 @@ function backToSetup(){
   updateEndScores();
 }
 // ------------------------------
-// View History
+// Updated viewHistory to read sessions from map object instead of array
 async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
   const userDoc = await getDoc(doc(db,"users",uid));
   if(userDoc.exists()){
-    const sessions = userDoc.data().sessions || [];
+    const sessionsMap = userDoc.data().sessions || {};
+    const sessions = Object.values(sessionsMap);
     const table = document.createElement("table");
     table.innerHTML = `<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
     sessions.forEach(s=>{
-      const date = new Date(s.date.seconds*1000).toLocaleDateString();
+      const date = s.date ? new Date(s.date.seconds*1000).toLocaleDateString() : "N/A";
       table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
     });
     const historyDiv = document.getElementById("historyTable");
@@ -262,7 +289,7 @@ async function viewHistory(){
   }
 }
 // ------------------------------
-// Dynamic Session Setup Option Update
+// Dynamic session setup options unchanged
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10,12,15,18,20,30,40,50,60,70],
@@ -272,7 +299,7 @@ function updateSessionSetupOptions() {
   };
   const bowTargetFaces = {
     Compound: [
-    {value:"60", label:"60cm (Compound Only)"}, 
+    {value:"60", label:"60cm (Compound Only)"},
     {value:"40", label:"40cm (Indoor)"},
     {value:"3spot", label:"40cm 3-Spot (Indoor)"},
     {value:"9spot", label:"40cm 9-Spot (Indoor)"}
@@ -310,7 +337,7 @@ function updateSessionSetupOptions() {
   refreshOptions();
 }
 // ------------------------------
-// Event Handlers Attachment
+// Attach handlers unchanged except confirmed endSession & logout
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -321,10 +348,7 @@ function attachButtonHandlers() {
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
   if(document.getElementById("endSessionBtn")){
-    const endSessionBtn = document.getElementById("endSessionBtn");
-    if(endSessionBtn){
-      endSessionBtn.addEventListener("click", endSession);
-    }
+    document.getElementById("endSessionBtn").addEventListener("click", endSession);
   }
   document.getElementById("logoutBtn")?.addEventListener("click", () => {
     auth.signOut().then(() => {
@@ -354,7 +378,7 @@ function attachButtonHandlers() {
   });
 }
 // ------------------------------
-// Initialize App
+// Initialize App unchanged
 function init() {
   attachButtonHandlers();
   drawTarget();
