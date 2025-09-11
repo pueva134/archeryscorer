@@ -24,44 +24,46 @@
     <div id="loginMessage" class="message"></div>
   </div>
   <!-- Archer Main Menu / Session Setup -->
-  <div id="setup" class="screen">
-    <h2>Session Setup</h2>
-    <label>Bow Style:
-      <select id="bowStyle">
-        <option value="Recurve">Recurve</option>
-        <option value="Compound">Compound</option>
-        <option value="Barebow">Barebow</option>
-        <option value="Longbow">Longbow</option>
-      </select>
-    </label>
-    <label>Distance:
-      <select id="distance">
-        <option value="15">15m</option>
-        <option value="18">18m</option>
-        <option value="30">30m</option>
-        <option value="40">40m</option>
-        <option value="50">50m</option>
-        <option value="70">70m</option>
-      </select>
-    </label>
-    <label>Target Face:
-      <select id="targetFace">
-        <option value="122">122cm (Outdoor)</option>
-        <option value="80">80cm (Outdoor)</option>
-        <option value="40">40cm (Indoor)</option>
-        <option value="3spot">40cm 3-Spot (Indoor)</option>
-        <option value="9spot">40cm 9-Spot (Indoor)</option>
-      </select>
-    </label>
-    <label>Arrows per End:
-      <input type="number" id="arrowsPerEnd" value="6"/>
-    </label>
-    <label>Number of Ends:
-      <input type="number" id="endsCount" value="6"/>
-    </label>
-    <button id="startSessionBtn">Start Session</button>
-    <button id="viewHistoryBtn">View History</button>
-  </div>
+  <!-- Archer Main Menu / Session Setup -->
+<div id="setup" class="screen">
+  <h2>Session Setup</h2>
+  <label>Bow Style:
+    <select id="bowStyle">
+      <option value="Recurve">Recurve</option>
+      <option value="Compound">Compound</option>
+      <option value="Barebow">Barebow</option>
+      <option value="Longbow">Longbow</option>
+    </select>
+  </label>
+  <label>Distance:
+    <select id="distance">
+      <option value="15">15m</option>
+      <option value="18">18m</option>
+      <option value="30">30m</option>
+      <option value="40">40m</option>
+      <option value="50">50m</option>
+      <option value="70">70m</option>
+    </select>
+  </label>
+  <label>Target Face:
+    <select id="targetFace">
+      <option value="122">122cm (Outdoor)</option>
+      <option value="80">80cm (Outdoor)</option>
+      <option value="40">40cm (Indoor)</option>
+      <option value="3spot">40cm 3-Spot (Indoor)</option>
+      <option value="9spot">40cm 9-Spot (Indoor)</option>
+    </select>
+  </label>
+  <label>Arrows per End:
+    <input type="number" id="arrowsPerEnd" value="6"/>
+  </label>
+  <label>Number of Ends:
+    <input type="number" id="endsCount" value="6"/>
+  </label>
+  <button id="startSessionBtn">Start Session</button>
+  <button id="viewHistoryBtn">View History</button>
+  <button id="logoutBtn">Logout</button>
+</div>
   <!-- Scoring Screen -->
   <div id="scoringArea" class="screen">
     <h2>End <span id="currentEnd">1</span></h2>
