@@ -233,6 +233,72 @@ async function endSession() {
 // Show results function remains unchanged
 function showResults(){
   // ... your existing showResults code ...
+  function showResults() {
+  showScreen("results");
+
+  // Display session summary
+  const summaryDiv = document.getElementById("sessionSummary");
+  summaryDiv.innerHTML = `
+    <p><strong>Bow Style:</strong> ${currentSession.bowStyle}</p>
+    <p><strong>Distance:</strong> ${currentSession.distance} m</p>
+    <p><strong>Target Face:</strong> ${currentSession.targetFace}</p>
+    <p><strong>Arrows per End:</strong> ${currentSession.arrowsPerEnd}</p>
+    <p><strong>Number of Ends:</strong> ${currentSession.endsCount}</p>
+    <p><strong>Total Score:</strong> ${currentSession.totalScore}</p>
+  `;
+
+  // Create scores table
+  const scoreTableDiv = document.getElementById("scoreTable");
+  scoreTableDiv.innerHTML = ""; // Clear previous
+
+  const table = document.createElement("table");
+  const headerRow = document.createElement("tr");
+
+  // Header: End label + Arrow numbers + End total
+  headerRow.innerHTML = "<th>End</th>" +
+    [...Array(currentSession.arrowsPerEnd).keys()].map(i => `<th>Arrow ${i+1}</th>`).join('') +
+    "<th>End Total</th>";
+  table.appendChild(headerRow);
+
+  // Iterate each end's scores
+  currentSession.ends.forEach((endScores, index) => {
+    const row = document.createElement("tr");
+    const endTotal = endScores.reduce((a,b) => a + b, 0);
+    row.innerHTML = `<td>${index + 1}</td>` +
+      endScores.map(score => `<td>${score}</td>`).join('') +
+      `<td><strong>${endTotal}</strong></td>`;
+    table.appendChild(row);
+  });
+
+  scoreTableDiv.appendChild(table);
+
+  // Draw Chart.js bar chart of end totals
+  const ctx = document.getElementById("scoreChart").getContext("2d");
+
+  // If previous chart instance exists, destroy it (avoid overlay)
+  if(window.scoreChartInstance) {
+    window.scoreChartInstance.destroy();
+  }
+
+  window.scoreChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: currentSession.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [{
+        label: 'End Score',
+        data: currentSession.ends.map(end => end.reduce((a,b) => a + b, 0)),
+        backgroundColor: 'rgba(59, 130, 246, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: currentSession.arrowsPerEnd * 10 }
+      }
+    }
+  });
+}
 }
 // ------------------------------
 // Back to setup function remains unchanged
@@ -266,13 +332,13 @@ async function viewHistory(){
   }
 }
 // ------------------------------
-// Update options for session setup dropdowns with requested dynamic adjustment
+// Update options for session setup dropdowns with requested adjustments
 function updateSessionSetupOptions() {
   const bowDistances = {
-    Recurve: [10,12,15,18,20,30,40,50,60,70],
-    Compound: [10,12,15,18,30,50],
-    Barebow: [10,12,15,18,30],
-    Longbow: [10,12,15,18,30]
+    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
+    Compound: [10,12,15,18,20,30,40,50],
+    Barebow: [10,12,15,18,20,30],
+    Longbow: [10,12,15,18,20,30]
   };
   const bowTargetFaces = {
     Compound: [
@@ -286,12 +352,9 @@ function updateSessionSetupOptions() {
       {value:"3spot", label:"40cm 3-Spot (Indoor)"},
       {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
-    default: [
+    outdoorOnly: [
       {value:"122", label:"122cm (Outdoor)"},
-      {value:"80", label:"80cm (Outdoor)"},
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
+      {value:"80", label:"80cm (Outdoor)"}
     ]
   };
   const bowSelect = document.getElementById("bowStyle");
@@ -300,7 +363,6 @@ function updateSessionSetupOptions() {
   function refreshOptions() {
     const bow = bowSelect.value;
     const distance = parseInt(distSelect.value);
-    // Populate distances based on bow
     distSelect.innerHTML = "";
     bowDistances[bow].forEach(d => {
       const opt = document.createElement("option");
@@ -308,15 +370,14 @@ function updateSessionSetupOptions() {
       opt.textContent = d + "m";
       distSelect.appendChild(opt);
     });
-    // Adjust target faces if distance is 18m or less
     faceSelect.innerHTML = "";
     let faces = null;
     if(distance <= 18) {
-      // Use indoor only options for 18m or less distance
-      faces = bow === "Compound" ? bowTargetFaces.compoundIndoorOnly || bowTargetFaces.indoorOnly : bowTargetFaces.indoorOnly;
+      // Indoor faces only for ≤18m
+      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
     } else {
-      // Use default target faces otherwise
-      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
+      // Outdoor+Indoor for 20m and above
+      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
     }
     faces.forEach(f => {
       const opt = document.createElement("option");

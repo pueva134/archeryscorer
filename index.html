@@ -8,97 +8,93 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<div class="container">
-  <!-- Login Screen -->
-  <div id="loginPage" class="screen active">
-    <h1>🏹 My Scorer 🏹</h1>
-    <input type="text" id="username" placeholder="Enter your name" />
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <select id="role">
-      <option value="archer">Archer</option>
-      <option value="coach">Coach</option>
-    </select>
-    <button id="signupBtn">Sign Up</button>
-    <button id="loginBtn">Login</button>
-    <div id="loginMessage" class="message"></div>
-  </div>
-
-  <!-- Menu Screen -->
-  <div id="menuScreen" class="screen">
-    <h1>🏹 My Scorer 🏹</h1>
-    <p id="greeting"></p>
-    <button id="menuStartBtn">Start Session</button>
-    <button id="menuHistoryBtn">📜 My History</button>
-    <button id="menuLogoutBtn">Logout</button>
-    <button id="menuToggleBtn">🐯 / 🌙 Toggle Theme</button>
-  </div>
-
-  <!-- Setup Screen -->
-  <div id="setup" class="screen">
-    <h2>Session Setup</h2>
-    <label>Bow Style:
-      <select id="bowStyle">
-        <option value="Recurve">Recurve</option>
-        <option value="Compound">Compound</option>
-        <option value="Barebow">Barebow</option>
-        <option value="Longbow">Longbow</option>
+  <div class="container">
+    <!-- Login Screen -->
+    <div id="loginPage" class="screen active">
+      <h1>🏹 My Scorer 🏹</h1>
+      <input id="username" type="text" placeholder="Enter your name" />
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <select id="role">
+        <option value="archer">Archer</option>
+        <option value="coach">Coach</option>
       </select>
-    </label>
-    <label>Distance:
-      <select id="distance"></select>
-    </label>
-    <label>Target Face:
-      <select id="targetFace"></select>
-    </label>
-    <label>Arrows per End:
-      <input id="arrowsPerEnd" type="number" value="6" />
-    </label>
-    <label>Number of Ends:
-      <input id="endsCount" type="number" value="6" />
-    </label>
-    <button id="startBtn">Start Session</button>
-    <button id="historyBtn">View History</button>
-    <button id="logoutBtn">Logout</button>
+      <button id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Login</button>
+      <div id="loginMessage"></div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="menuScreen" class="screen">
+      <h1>🏹 My Scorer 🏹</h1>
+      <p id="greeting"></p>
+      <button id="menuStartBtn">Start Session</button>
+      <button id="menuHistoryBtn">My History</button>
+      <button id="menuLogoutBtn">Logout</button>
+      <button id="menuToggleBtn">Toggle Theme</button>
+    </div>
+
+    <!-- Session Setup -->
+    <div id="setup" class="screen">
+      <h2>Session Setup</h2>
+      <label>Bow Style:
+        <select id="bowStyle"></select>
+      </label>
+      <label>Distance:
+        <select id="distance"></select>
+      </label>
+      <label>Target Face:
+        <select id="targetFace"></select>
+      </label>
+      <label>Arrows per End:
+        <input id="arrowsPerEnd" type="number" value="6" />
+      </label>
+      <label>Number of Ends:
+        <input id="endsCount" type="number" value="6" />
+      </label>
+      <button id="startBtn">Start Session</button>
+      <button id="historyBtn">View History</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <!-- Scoring Screen -->
+    <div id="scoringArea" class="screen">
+      <h2>End <span id="currentEnd">1</span></h2>
+      <canvas id="target" width="300" height="300"></canvas>
+      <p>Tap target to score</p>
+      <div id="endScores"></div>
+      <div id="endTotal">Total: 0</div>
+      <button id="undoBtn">Undo Last Arrow</button>
+      <button id="nextBtn">Next</button>
+      <button id="endBtn" style="display:none;">End Session</button>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="screen">
+      <h2>Session Results</h2>
+      <div id="sessionSummary"></div>
+      <div id="scoreTable"></div>
+      <canvas id="scoreChart" width="400" height="200"></canvas>
+      <div id="badgesDiv"></div>
+      <button id="newSessionBtn">New Session</button>
+    </div>
+
+    <!-- History -->
+    <div id="history" class="screen">
+      <h2>History</h2>
+      <div id="historyTable"></div>
+      <button id="backToMenuBtn">Back</button>
+    </div>
+
+    <!-- Coach Panel -->
+    <div id="coachPanel" class="screen">
+      <h2>Coach Dashboard</h2>
+      <div id="archersList"></div>
+      <button id="coachLogoutBtn">Logout</button>
+    </div>
   </div>
 
-  <!-- Scoring Screen -->
-  <div id="scoringArea" class="screen">
-    <h2>End <span id="currentEnd">1</span></h2>
-    <canvas id="target" width="300" height="300"></canvas>
-    <p>Tap the target to score</p>
-    <div id="endScores"></div>
-    <div id="endTotal">Total: 0</div>
-    <button id="undoBtn">Undo Last Arrow</button>
-    <button id="nextBtn">Next</button>
-    <button id="endBtn" style="display:none;">End Session</button>
-  </div>
-
-  <!-- Results Screen -->
-  <div id="results" class="screen">
-    <h2>Session Results</h2>
-    <div id="sessionSummary"></div>
-    <div id="scoreTable"></div>
-    <canvas id="scoreChart" width="400" height="200"></canvas>
-    <div id="badges"></div>
-    <button id="newSessionBtn">New Session</button>
-  </div>
-
-  <!-- History Screen -->
-  <div id="historyScreen" class="screen">
-    <h2>Session History</h2>
-    <div id="historyTable"></div>
-    <button id="backMenuBtn">Back to Menu</button>
-  </div>
-  
-  <!-- Coach Panel (optional) -->
-  <div id="coachPanel" class="screen">
-    <h2>Coach Dashboard</h2>
-    <div id="archersList"></div>
-    <button id="coachLogoutBtn">Logout</button>
-  </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
