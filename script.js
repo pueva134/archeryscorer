@@ -275,7 +275,7 @@ async function viewHistory(){
   const userDoc = await getDoc(doc(db,"users",uid));
   if(userDoc.exists()){
     const sessionsMap = userDoc.data().sessions || {};
-    const sessions = Object.values(sessionsMap);
+    const sessions = Object.values(sessionsMap); // convert map to array for display
     const table = document.createElement("table");
     table.innerHTML = `<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
     sessions.forEach(s=>{
