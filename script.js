@@ -191,27 +191,34 @@ async function nextEnd() {
 }
 // ------------------------------
 // Save Session to Firestore
-async function saveSession(){
+async function saveSession() {
   if(!currentUser) return;
   const uid = currentUser.uid;
-  const userRef = doc(db,"users",uid);
+  const userRef = doc(db, "users", uid);
+  const sessionKey = Date.now().toString(); // Use timestamp as unique key
   try {
-    await updateDoc(userRef,{
-      sessions: arrayUnion({...currentSession, date: Timestamp.now()})
+    await updateDoc(userRef, {
+      [`sessions.${sessionKey}`]: {
+        ...currentSession,
+        date: Timestamp.now()
+      }
     });
   } catch(e) {
     console.error("Error saving session:", e);
     throw e;
   }
 }
+
 // ------------------------------
 // End Session Function
+
 async function endSession() {
   try {
     if(currentUser && currentSession && currentSession.ends.length > 0) {
       await saveSession();
     }
   } catch(e) {
+    console.error("Failed to save session on end:", e);
     alert("Could not save session, try again.");
     return;
   }
