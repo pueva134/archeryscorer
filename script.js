@@ -1,162 +1,201 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
-  getAuth,
-  createUserWithEmailAndPassword,
+  getAuth, createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, Timestamp
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase config & init (same as your setup)
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "myapp.firebaseapp.com",
-  projectId: "myapp",
-  storageBucket: "myapp.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSy...",
+  authDomain: "myapp.firebaseapp.com",
+  projectId: "myapp",
+  storageBucket: "myapp.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = getFirestore();
 
-// Globals
-let currentUser = null;
-let currentSession = {};
-let arrowScores = [];
-let currentEndNumber = 1;
+let currentUser = null, currentSession = {}, arrowScores = [], currentEndNumber = 1;
+const canvas = document.getElementById("target");
+const ctx = canvas?.getContext("2d");
 
-// Utility
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  const screen = document.getElementById(id);
-  if(screen) screen.classList.add('active');
+// UI helpers
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  const el = document.getElementById(id);
+  if(el) el.classList.add("active");
 }
 
-// Canvas setup and scoring calculations kept same...
+function drawTarget(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const colors = ["#fff","#000","#008cff","#f00","#ffeb43"];
+  let r = canvas.width/2;
+  for(let i=0; i<colors.length; i++){
+    ctx.beginPath();
+    ctx.arc(r,r,r-30*i,0,2*Math.PI);
+    ctx.fillStyle=colors[i];
+    ctx.fill();
+  }
+}
 
-// Auth listener shows menu screen at login with greeting
-onAuthStateChanged(auth, async user => {
+function updateEndScores(){
+  const div = document.getElementById("endScores");
+  if(div) div.textContent = arrowScores.join(" | ");
+  const totalDiv = document.getElementById("endTotal");
+  if(totalDiv) totalDiv.textContent = "Total: " + arrowScores.reduce((a,b)=>a+b,0);
+}
+
+// Firebase auth state
+onAuthStateChanged(auth,user=>{
   currentUser = user;
   if(user){
-    try {
-      const docSnap = await getDoc(doc(db, "users", user.uid));
-      if(docSnap.exists()){
-        document.getElementById("greeting").innerText = "Hello, " + docSnap.data().name + "!";
-      }
-    } catch {
-      document.getElementById("greeting").innerText = "Hello!";
-    }
+    getDoc(doc(db,"users",user.uid)).then(docSnap=>{
+      if(docSnap.exists())
+        document.getElementById("greeting").textContent = "Hello, " + docSnap.data().name + "!";
+      else
+        document.getElementById("greeting").textContent = "Hello!";
+    });
     showScreen("menuScreen");
   } else {
-    document.querySelector(".container h1").innerText = "🏹 My Scorer 🏹";
+    document.getElementById("greeting").textContent = "";
     showScreen("loginPage");
   }
 });
 
-// Signup, login functions kept same but updated to show login page after signup.
+// Signup/login
+async function signup(){
+  const username=document.getElementById("username").value.trim(),
+        email=document.getElementById("email").value.trim(),
+        password=document.getElementById("password").value,
+        role=document.getElementById("role").value,
+        msg=document.getElementById("loginMessage");
+  msg.textContent="";
+  if(!username || !email || !password){ msg.textContent="Please fill all fields!"; return; }
+  try{
+    const userCred = await createUserWithEmailAndPassword(auth,email,password);
+    await setDoc(doc(db,"users",userCred.user.uid),{name:username,role,sessions:{}});
+    msg.textContent="Signup successful! Please login.";
+  }catch(e){ msg.textContent=e.message; }
+}
 
-// Session setup with dynamic target face options function:
+async function login(){
+  const email=document.getElementById("email").value.trim(),
+        password=document.getElementById("password").value,
+        msg=document.getElementById("loginMessage");
+  msg.textContent="";
+  if(!email || !password){ msg.textContent="Please fill fields!"; return; }
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+  }catch(e){ msg.textContent=e.message; }
+}
 
-function updateSessionOptions() {
-  const bowDistances = {
-    Recurve: [10,12,15,18,20,30,40,50,60,70],
-    Compound: [10,12,15,18,30,50],
-    Barebow: [10,12,15,18],
-    Longbow: [10,12,15,18]
-  };
-  const bowFaces = {
-    compoundSpecial: [
-      {value:"60", label:"60cm (Compound Only)"},
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
-    ],
-    indoorOnly: [
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
-    ],
-    default: [
-      {value:"122", label:"122cm (Outdoor)"},
-      {value:"80", label:"80cm (Outdoor)"},
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
-    ]
-  };
+// Setup UI with dynamic distance and target adjustment
+const bowDistances = {
+  Recurve: [10,12,15,18,20,30,40,50,60,70],
+  Compound: [10,12,15,18,30,50],
+  Barebow: [10,12,15,18],
+  Longbow: [10,12,15,18]
+};
+  
+const bowTargetFaces = {
+  compoundSpecial: [
+    {value:"60",label:"60cm (Compound Only)"},
+    {value:"40",label:"40cm (Indoor)"},
+    {value:"3spot",label:"40cm 3-Spot (Indoor)"},
+    {value:"9spot",label:"40cm 9-Spot (Indoor)"}
+  ],
+  indoorOnly: [
+    {value:"40",label:"40cm (Indoor)"},
+    {value:"3spot",label:"40cm 3-Spot (Indoor)"},
+    {value:"9spot",label:"40cm 9-Spot (Indoor)"}
+  ],
+  default: [
+    {value:"122",label:"122cm (Outdoor)"},
+    {value:"80",label:"80cm (Outdoor)"},
+    {value:"40",label:"40cm (Indoor)"},
+    {value:"3spot",label:"40cm 3-Spot (Indoor)"},
+    {value:"9spot",label:"40cm 9-Spot (Indoor)"}
+  ]
+};
 
-  const bowSelect = document.getElementById("bowStyle");
-  const distSelect = document.getElementById("distance");
-  const faceSelect = document.getElementById("targetFace");
-
-  function refresh() {
-    const bow = bowSelect.value;
-    const dist = parseInt(distSelect.value);
-
-    // fill distances
-    distSelect.innerHTML = "";
-    bowDistances[bow].forEach(d => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = d + "m";
-      distSelect.appendChild(opt);
+function updateSetupOptions(){
+  const bowSel=document.getElementById("bowStyle");
+  const distSel=document.getElementById("distance");
+  const faceSel=document.getElementById("targetFace");
+  bowSel.innerHTML="";
+  for(let b in bowDistances){
+    const opt=document.createElement("option");
+    opt.value=b; opt.textContent=b;
+    bowSel.appendChild(opt);
+  }
+  function refresh(){
+    const bow=bowSel.value;
+    distSel.innerHTML="";
+    bowDistances[bow].forEach(d=>{
+      const opt=document.createElement("option");
+      opt.value=d; opt.textContent=d+"m";
+      distSel.appendChild(opt);
     });
-
-    // fill faces according to distance
-    faceSelect.innerHTML = "";
-    let faces = [];
-
-    if(dist <= 18){
-      faces = bow === "Compound" ? bowFaces.compoundSpecial : bowFaces.indoorOnly;
-    } else {
-      faces = bow === "Compound" ? bowFaces.compoundSpecial : bowFaces.default;
-    }
-
-    faces.forEach(f => {
-      const opt = document.createElement("option");
-      opt.value = f.value;
-      opt.textContent = f.label;
-      faceSelect.appendChild(opt);
+    faceSel.innerHTML="";
+    const dist=parseInt(distSel.value);
+    let faces = (dist<=18)
+      ? (bow==="Compound"?bowTargetFaces.compoundSpecial:bowTargetFaces.indoorOnly)
+      : (bow==="Compound"?bowTargetFaces.compoundSpecial:bowTargetFaces.default);
+    faces.forEach(f=>{
+      const opt=document.createElement("option");
+      opt.value=f.value; opt.textContent=f.label;
+      faceSel.appendChild(opt);
     });
   }
-
-  bowSelect.addEventListener("change", refresh);
-  distSelect.addEventListener("change", refresh);
+  bowSel.addEventListener("change",refresh);
+  distSel.addEventListener("change",refresh);
+  bowSel.value="Recurve"; // default
   refresh();
 }
 
-// Other core functions (startSession, undoLastArrow, next, save, end, etc.) behave exactly as before, utilizing the new saveSession logic to store sessions under a unique timestamp key in a map.
-// Event handlers for buttons bind to unique IDs on the menu screen and setup screen respectively, ensuring no conflicts.
-
-// Example button bindings
 function attachHandlers(){
-  document.getElementById("signupBtn").addEventListener("click", signup);
-  document.getElementById("loginBtn").addEventListener("click", login);
-  document.getElementById("menuStartSessionBtn").addEventListener("click", () => showScreen('setup'));
-  document.getElementById("menuViewHistoryBtn").addEventListener("click", viewHistory);
-  document.getElementById("menuLogoutBtn").addEventListener("click", () => auth.signOut().then(() => showScreen('loginPage')));
-  document.getElementById("menuToggleThemeBtn").addEventListener("click", toggleTheme);
-  document.getElementById("startSessionBtn").addEventListener("click", startSession);
-  document.getElementById("viewHistoryBtn").addEventListener("click", viewHistory);
-  document.getElementById("undoBtn").addEventListener("click", undoLastArrow);
-  document.getElementById("nextBtn").addEventListener("click", next);
-  document.getElementById("endSessionBtn").addEventListener("click", endSession);
-  document.getElementById("backToSetupBtn").addEventListener("click", backToSetup);
-  document.getElementById("backToMenuBtn").addEventListener("click", () => showScreen("menuScreen"));
-  document.getElementById("logoutBtnSetup").addEventListener("click", () => auth.signOut().then(() => showScreen('loginPage')));
+  // Auth
+  document.getElementById("signupBtn").addEventListener("click",signup);
+  document.getElementById("loginBtn").addEventListener("click",login);
 
+  // Menu buttons
+  document.getElementById("menuStartBtn").addEventListener("click",()=>showScreen("setup"));
+  document.getElementById("menuHistoryBtn").addEventListener("click",viewHistory);
+  document.getElementById("menuLogoutBtn").addEventListener("click",()=>auth.signOut().then(()=>showScreen("loginPage")));
+  document.getElementById("menuToggleBtn").addEventListener("click",toggleTheme);
+
+  // Setup buttons
+  document.getElementById("startBtn").addEventListener("click",startSession);
+  document.getElementById("historyBtn").addEventListener("click",viewHistory);
+  document.getElementById("logoutBtn").addEventListener("click",()=>auth.signOut().then(()=>showScreen("loginPage")));
+
+  // Scoring buttons
+  document.getElementById("undoBtn").addEventListener("click",undoArrow);
+  document.getElementById("nextBtn").addEventListener("click",nextEnd);
+  document.getElementById("endBtn").addEventListener("click",endSession);
+
+  // Results button
+  document.getElementById("newSessionBtn").addEventListener("click",backToSetup);
+
+  // History button
+  document.getElementById("backMenuBtn").addEventListener("click",()=>showScreen("menuScreen"));
+
+  // Canvas
   if(canvas){
-    canvas.addEventListener("click", /* your score handler logic as before */);
+    canvas.addEventListener("click",scoreClick);
   }
 }
 
+// Your existing session, scoring, saving, load history, etc. logic goes here unchanged but linked to these new IDs
+
 // Initialization
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded",()=>{
   attachHandlers();
-  draw();
-  updateSessionOptions();
-  updateScoresPlaceholder();
+  updateSetupOptions();
+  drawTarget();
+  updateEndScores();
 });
