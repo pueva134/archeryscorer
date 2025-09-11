@@ -292,7 +292,6 @@ async function viewHistory(){
     showScreen("historyScreen");
   }
 }
-
 // ------------------------------
 // Dynamic session setup options unchanged
 function updateSessionSetupOptions() {
