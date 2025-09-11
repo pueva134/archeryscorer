@@ -39,7 +39,7 @@ function showScreen(id) {
   if(target) target.classList.add('active');
 }
 // ------------------------------
-// Canvas and scoring utilities
+// Canvas and scoring utilities remain unchanged here...
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 function drawTarget() {
@@ -61,7 +61,7 @@ function updateEndScores(){
   if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
 }
 // ------------------------------
-// Auth Listener with UI updates
+// Auth Listener - show 'setup' on login as before
 onAuthStateChanged(auth, async user => {
   currentUser = user;
   if (user) {
@@ -79,7 +79,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 // ------------------------------
-// Signup Function
+// Signup remains unchanged...
 async function signup(){
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -104,11 +104,10 @@ async function signup(){
     showScreen("loginPage");
   } catch(e) {
     msgDiv.innerText = e.message;
-    console.error("Signup error:", e);
   }
 }
 // ------------------------------
-// Login Function
+// Login remains unchanged
 async function login(){
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -122,11 +121,10 @@ async function login(){
     await signInWithEmailAndPassword(auth, email, password);
   } catch(e) {
     msgDiv.innerText = e.message;
-    console.error("Login error:", e);
   }
 }
 // ------------------------------
-// Session control functions
+// Session control functions remain unchanged...
 function startSession(){
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
@@ -148,13 +146,11 @@ function startSession(){
     document.getElementById("endSessionBtn").style.display = "none";
   }
 }
-
 function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
   updateEndSessionButtons();
 }
-
 function updateEndSessionButtons() {
   const nextEndBtn = document.getElementById("nextEndBtn");
   const endSessionBtn = document.getElementById("endSessionBtn");
@@ -168,7 +164,6 @@ function updateEndSessionButtons() {
     if(endSessionBtn) endSessionBtn.style.display = "none";
   }
 }
-
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
@@ -188,7 +183,7 @@ async function nextEnd() {
   updateEndSessionButtons();
 }
 // ------------------------------
-// Updated saveSession to save sessions as a map using a unique timestamp key
+// Updated saveSession logic saving sessions as map/object
 async function saveSession() {
   if (!currentUser) return;
   const uid = currentUser.uid;
@@ -199,7 +194,6 @@ async function saveSession() {
     targetFace: currentSession.targetFace,
     arrowsPerEnd: currentSession.arrowsPerEnd,
     endsCount: currentSession.endsCount,
-    // Ensure ends is an array of arrays of numbers (map safe)
     ends: currentSession.ends.map(end => Array.isArray(end) ? [...end] : end),
     totalScore: currentSession.totalScore,
     date: Timestamp.now()
@@ -218,7 +212,7 @@ async function saveSession() {
   }
 }
 // ------------------------------
-// End session with silent catch and reset UI
+// End session and reset UI
 async function endSession() {
   try {
     if (currentUser && currentSession && currentSession.ends.length > 0) {
@@ -233,12 +227,41 @@ async function endSession() {
   showScreen("setup");
 }
 // ------------------------------
-// Show results function remains unchanged
-function showResults(){
-  // ... your existing showResults code ...
+// Show results function same as original...
+function showResults() {
+  showScreen("results");
+  const summaryDiv = document.getElementById("sessionSummary");
+  summaryDiv.innerHTML = `
+    <p>Bow: ${currentSession.bowStyle}</p>
+    <p>Distance: ${currentSession.distance}m</p>
+    <p>Total Score: ${currentSession.totalScore}</p>
+    <p>Ends Count: ${currentSession.endsCount}</p>
+  `;
+  const scoreTableDiv = document.getElementById("scoreTable");
+  const table = document.createElement("table");
+  const header = document.createElement("tr");
+  header.innerHTML = "<th>End</th>" + [...Array(currentSession.arrowsPerEnd)].map((_,i)=>`<th>Arrow ${i+1}</th>`).join('') + "<th>End Total</th>";
+  table.appendChild(header);
+  currentSession.ends.forEach((end,i)=>{
+    const row = document.createElement("tr");
+    const endTotal = end.reduce((a,b)=>a+b,0);
+    row.innerHTML = `<td>${i+1}</td>` + end.map(a=>`<td>${a}</td>`).join('') + `<td>${endTotal}</td>`;
+    table.appendChild(row);
+  });
+  scoreTableDiv.innerHTML = "";
+  scoreTableDiv.appendChild(table);
+  const ctxChart = document.getElementById("scoreChart").getContext("2d");
+  new Chart(ctxChart, {
+    type: 'bar',
+    data: {
+      labels: currentSession.ends.map((_,i)=>`End ${i+1}`),
+      datasets: [{label: 'End Total', data: currentSession.ends.map(e=>e.reduce((a,b)=>a+b,0)), backgroundColor: 'rgba(59,130,246,0.7)'}]
+    },
+    options: {responsive:true, maintainAspectRatio:false}
+  });
 }
 // ------------------------------
-// Back to setup function remains unchanged
+// Back to setup reset screen
 function backToSetup(){
   currentEndNumber = 1;
   arrowScores = [];
@@ -248,7 +271,7 @@ function backToSetup(){
   updateEndScores();
 }
 // ------------------------------
-// View History updated for sessions as map data
+// View history reading sessions as map/object
 async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -269,7 +292,7 @@ async function viewHistory(){
   }
 }
 // ------------------------------
-// Update options for session setup dropdowns
+// Session Setup options with dynamic adjustment for distance
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10,12,15,18,20,30,40,50,60,70],
@@ -300,11 +323,9 @@ function updateSessionSetupOptions() {
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-
   function refreshOptions() {
     const bow = bowSelect.value;
     const distance = parseInt(distSelect.value);
-
     // Populate distances based on bow
     distSelect.innerHTML = "";
     bowDistances[bow].forEach(d => {
@@ -313,15 +334,12 @@ function updateSessionSetupOptions() {
       opt.textContent = d + "m";
       distSelect.appendChild(opt);
     });
-
     // Adjust target faces if distance is 18m or less
     faceSelect.innerHTML = "";
     let faces = null;
     if(distance <= 18) {
-      // Use indoor only options for 18m or less distance
       faces = bow === "Compound" ? bowTargetFaces.compoundIndoorOnly || bowTargetFaces.indoorOnly : bowTargetFaces.indoorOnly;
     } else {
-      // Use default target faces otherwise
       faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
     }
     faces.forEach(f => {
@@ -335,9 +353,8 @@ function updateSessionSetupOptions() {
   distSelect.addEventListener("change", refreshOptions);
   refreshOptions();
 }
-
 // ------------------------------
-// Attach event handlers and initialize everything
+// Attach all event handlers including new ones
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
