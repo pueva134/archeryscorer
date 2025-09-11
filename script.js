@@ -187,28 +187,35 @@ async function nextEnd() {
 // ------------------------------
 // Updated saveSession to save sessions as a map instead of array
 async function saveSession() {
-  if (!currentUser) {
-    console.error("No user signed in.");
-    return;
-  }
+  if (!currentUser) return;
   const uid = currentUser.uid;
   const userRef = doc(db, "users", uid);
+
+  // Remove sessions from the user document if it was created as an array previously
+  // (do this manually or with code once if needed)
+
+  // Flatten ends: convert each end to just its total (or a simple array of scores if needed)
+  const safeEnds = currentSession.ends.map(endArr => Array.isArray(endArr) ? [...endArr] : endArr);
+
   const sessionKey = Date.now().toString();
-  console.log("Attempting to save session under key:", sessionKey);
-  console.log("Session data:", {...currentSession, date: Timestamp.now()});
   try {
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: {
-        ...currentSession,
+        bowStyle: currentSession.bowStyle,
+        distance: currentSession.distance,
+        targetFace: currentSession.targetFace,
+        arrowsPerEnd: currentSession.arrowsPerEnd,
+        endsCount: currentSession.endsCount,
+        ends: safeEnds, // each end just an array of numbers
+        totalScore: currentSession.totalScore,
         date: Timestamp.now()
       }
     });
-    console.log("Session saved successfully!");
+    console.log("Session saved!");
   } catch (e) {
     console.error("Error saving session:", e);
   }
 }
-
 // ------------------------------
 // End session with try/catch and UI reset
 async function endSession() {
