@@ -187,10 +187,15 @@ async function nextEnd() {
 // ------------------------------
 // Updated saveSession to save sessions as a map instead of array
 async function saveSession() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    console.error("No user signed in.");
+    return;
+  }
   const uid = currentUser.uid;
   const userRef = doc(db, "users", uid);
   const sessionKey = Date.now().toString();
+  console.log("Attempting to save session under key:", sessionKey);
+  console.log("Session data:", {...currentSession, date: Timestamp.now()});
   try {
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: {
@@ -198,11 +203,12 @@ async function saveSession() {
         date: Timestamp.now()
       }
     });
+    console.log("Session saved successfully!");
   } catch (e) {
     console.error("Error saving session:", e);
-    throw e;
   }
 }
+
 // ------------------------------
 // End session with try/catch and UI reset
 async function endSession() {
@@ -211,11 +217,9 @@ async function endSession() {
       await saveSession();
     }
   } catch (e) {
-    console.error("Failed to save session on end:", e);
-    // Do NOT alert or block UI flow
-    // Optionally, you can show a non-blocking UI message instead
+    console.error("Failed to save session:", e);
+    // No popup
   }
-  // Reset states and navigate regardless of save success
   currentEndNumber = 1;
   currentSession = {};
   arrowScores = [];
