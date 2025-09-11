@@ -48,23 +48,27 @@ function showScreen(id) {
 }
 
 // Canvas Drawing
-function drawTarget() {
+function draw() {
   if (!ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const colors = [
-    "rgba(255,255,255,1)",
-    "rgba(0,0,0,1)",
-    "rgba(0,140,255,1)",
-    "rgba(255,0,0,1)",
-    "rgba(255,255,43,1)",
+  const radius = canvas.width / 2;
+
+  // Define rings from outer to inner
+  const rings = [
+    { color: "#FFFFFF", radius: radius },             // White (2 & 1)
+    { color: "#000000", radius: radius * 4 / 5 },     // Black (4 & 3)
+    { color: "#0000FF", radius: radius * 3 / 5 },     // Blue (6 & 5)
+    { color: "#FF0000", radius: radius * 2 / 5 },     // Red (8 & 7)
+    { color: "#FFFF00", radius: radius * 1 / 5 },     // Yellow (10 & 9)
   ];
-  let radius = canvas.width / 2;
-  for (let i = 0; i < colors.length; i++) {
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  rings.forEach((ring) => {
     ctx.beginPath();
-    ctx.arc(radius, radius, radius - 30 * i, 0, 2 * Math.PI);
-    ctx.fillStyle = colors[i];
+    ctx.arc(radius, radius, ring.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = ring.color;
     ctx.fill();
-  }
+  });
 }
 
 // Update end scores display
@@ -443,16 +447,17 @@ function attachButtonHandlers() {
   canvas.addEventListener("click", (e) => {
     if (!currentSession.arrowsPerEnd) return;
     if (arrowScores.length >= currentSession.arrowsPerEnd) {
-      alert("All arrows for this end have been scored.");
+      alert("All arrows for this end are scored.");
       return;
     }
+
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const center = canvas.width / 2;
     const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
+
     let score = 0;
-    // Assign score based on dist (your logic)
     if (dist < 10) score = 10;
     else if (dist < 20) score = 9;
     else if (dist < 30) score = 8;
@@ -464,9 +469,10 @@ function attachButtonHandlers() {
     else if (dist < 90) score = 2;
     else if (dist < 120) score = 1;
     else score = 0;
+
     arrowScores.push(score);
-    updateEndScores();
-    updateEndSessionButtons();
+    updateScores();
+    updateButtons();
   });
 }
 }
