@@ -211,26 +211,23 @@ async function saveSession() {
 
 // ------------------------------
 // End session with try/catch and UI reset
-async function saveSession() {
-  if (!currentUser) {
-    console.error("No user signed in!");
-    return;
-  }
-  const uid = currentUser.uid;
-  const userRef = doc(db, "users", uid);
-  const sessionKey = Date.now().toString();
-  const sessionData = { ...currentSession, date: Timestamp.now() };
-  console.log("Will save session for uid:", uid);
-  console.log("Session key:", sessionKey);
-  console.log("Session data:", sessionData);
+async function endSession() {
   try {
-    await updateDoc(userRef, {
-      [`sessions.${sessionKey}`]: sessionData
-    });
-    console.log("Session saved successfully!");
+    if (currentUser && currentSession && currentSession.ends.length > 0) {
+      await saveSession();
+    }
   } catch (e) {
-    console.error("Error saving session:", e);
+    console.error("Failed to save session:", e);
+    // No popup
   }
+  currentEndNumber = 1;
+  currentSession = {};
+  arrowScores = [];
+  const nextEndBtn = document.getElementById("nextEndBtn");
+  const endSessionBtn = document.getElementById("endSessionBtn");
+  if(nextEndBtn) nextEndBtn.style.display = "inline-block";
+  if(endSessionBtn) endSessionBtn.style.display = "none";
+  showScreen("setup");
 }
 // ------------------------------
 // Show results unchanged
