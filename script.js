@@ -440,34 +440,35 @@ function attachButtonHandlers() {
   document.getElementById("backToMenuBtn").addEventListener("click", () => showScreen("menuScreen"));
 
   if (canvas) {
-    canvas.addEventListener("click", (e) => {
-      if (!currentSession.arrowsPerEnd) return;
-      if (arrowScores.length >= currentSession.arrowsPerEnd) {
-        alert("All arrows for this end have been scored.");
-        return;
-      }
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const center = canvas.width / 2;
-      const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
-      let score = 0;
-      if (dist < 10) score = X;
-      else if (dist < 20) score = 10;
-      else if (dist < 30) score = 9;
-      else if (dist < 40) score = 8;
-      else if (dist < 50) score = 7;
-      else if (dist < 60) score = 6;
-      else if (dist < 90) score = 4;
-      else if (dist < 100) score = 3;
-      else if (dist < 110) score = 2;
-      else if (dist < 120) score = 1;
-      else score = 0;
-      arrowScores.push(score);
-      updateEndScores();
-      updateEndSessionButtons();
-    });
-  }
+  canvas.addEventListener("click", (e) => {
+    if (!currentSession.arrowsPerEnd) return;
+    if (arrowScores.length >= currentSession.arrowsPerEnd) {
+      alert("All arrows for this end have been scored.");
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const center = canvas.width / 2;
+    const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
+    let score = 0;
+    // Assign score based on dist (your logic)
+    if (dist < 10) score = 10;
+    else if (dist < 20) score = 9;
+    else if (dist < 30) score = 8;
+    else if (dist < 40) score = 7;
+    else if (dist < 50) score = 6;
+    else if (dist < 60) score = 5;
+    else if (dist < 70) score = 4;
+    else if (dist < 80) score = 3;
+    else if (dist < 90) score = 2;
+    else if (dist < 120) score = 1;
+    else score = 0;
+    arrowScores.push(score);
+    updateEndScores();
+    updateEndSessionButtons();
+  });
+}
 }
 
 function init() {
