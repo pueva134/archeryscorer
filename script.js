@@ -268,62 +268,98 @@ async function viewHistory(){
 // ------------------------------
 // Update options for session setup dropdowns with requested adjustments
 function updateSessionSetupOptions() {
+  // Define bow styles and distances.
+  const bowStyles = ["Recurve", "Compound", "Barebow", "Longbow"];
   const bowDistances = {
-    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
-    Compound: [10,12,15,18,20,30,40,50],
-    Barebow: [10,12,15,18,20,30],
-    Longbow: [10,12,15,18,20,30]
+    "Recurve":    [10,12,15,18,20,30,40,50,60,70,80],
+    "Compound":   [10,12,15,18,20,30,40,50],
+    "Barebow":    [10,12,15,18,20,30],
+    "Longbow":    [10,12,15,18,20,30]
   };
   const bowTargetFaces = {
-    Compound: [
+    "Compound": [
       {value:"60", label:"60cm (Compound Only)"},
       {value:"40", label:"40cm (Indoor)"},
       {value:"3spot", label:"40cm 3-Spot (Indoor)"},
       {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
-    indoorOnly: [
+    "indoorOnly": [
       {value:"40", label:"40cm (Indoor)"},
       {value:"3spot", label:"40cm 3-Spot (Indoor)"},
       {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
-    outdoorOnly: [
+    "outdoorOnly": [
       {value:"122", label:"122cm (Outdoor)"},
       {value:"80", label:"80cm (Outdoor)"}
     ]
   };
+
+  // Get elements
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-  function refreshOptions() {
-    const bow = bowSelect.value;
-    const distance = parseInt(distSelect.value);
-    distSelect.innerHTML = "";
-    bowDistances[bow].forEach(d => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = d + "m";
-      distSelect.appendChild(opt);
-    });
-    faceSelect.innerHTML = "";
-    let faces = null;
-    if(distance <= 18) {
-      // Indoor faces only for ≤18m
-      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
-    } else {
-      // Outdoor+Indoor for 20m and above
-      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
-    }
-    faces.forEach(f => {
-      const opt = document.createElement("option");
-      opt.value = f.value;
-      opt.textContent = f.label;
-      faceSelect.appendChild(opt);
+
+  // Populate bow styles if not present
+  if(!bowSelect.options.length) {
+    bowStyles.forEach(bs => {
+      let option = document.createElement("option");
+      option.value = bs;
+      option.textContent = bs;
+      bowSelect.appendChild(option);
     });
   }
-  bowSelect.addEventListener("change", refreshOptions);
-  distSelect.addEventListener("change", refreshOptions);
-  refreshOptions();
+
+  // Helper to update distances
+  function updateDistances() {
+    distSelect.innerHTML = "";
+    let selectedBow = bowSelect.value;
+    bowDistances[selectedBow].forEach(d => {
+      let option = document.createElement("option");
+      option.value = d;
+      option.textContent = d + "m";
+      distSelect.appendChild(option);
+    });
+    updateFaces();
+  }
+
+  // Helper to update target faces (based on distance/bow)
+  function updateFaces() {
+    faceSelect.innerHTML = "";
+    let selectedBow = bowSelect.value;
+    let distance = parseInt(distSelect.value);
+    let faces = [];
+    if(distance <= 18) {
+      // Indoor faces only
+      faces = selectedBow === "Compound" ? bowTargetFaces["Compound"] : bowTargetFaces["indoorOnly"];
+    } else {
+      // Outdoor + Indoor faces
+      faces = selectedBow === "Compound"
+        ? bowTargetFaces["Compound"]
+        : bowTargetFaces["outdoorOnly"].concat(bowTargetFaces["indoorOnly"]);
+    }
+    faces.forEach(f => {
+      let option = document.createElement("option");
+      option.value = f.value;
+      option.textContent = f.label;
+      faceSelect.appendChild(option);
+    });
+  }
+
+  // Listeners for cascaded updates
+  bowSelect.onchange = updateDistances;
+  distSelect.onchange = updateFaces;
+
+  // Initial population
+  updateDistances();
 }
+
+// Call this function to initialize setup screen (after DOMContentLoaded and whenever setup is shown)
+window.addEventListener("DOMContentLoaded", () => {
+  updateSessionSetupOptions();
+});
+
+// OR if you have a showScreen('setup') function, call updateSessionSetupOptions() there as well.
+
 // ------------------------------
 // Attach event handlers and initialize everything
 function attachButtonHandlers() {
