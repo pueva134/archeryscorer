@@ -148,13 +148,11 @@ function startSession(){
     document.getElementById("endSessionBtn").style.display = "none";
   }
 }
-
 function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
   updateEndSessionButtons();
 }
-
 function updateEndSessionButtons() {
   const nextEndBtn = document.getElementById("nextEndBtn");
   const endSessionBtn = document.getElementById("endSessionBtn");
@@ -168,7 +166,6 @@ function updateEndSessionButtons() {
     if(endSessionBtn) endSessionBtn.style.display = "none";
   }
 }
-
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
@@ -269,13 +266,13 @@ async function viewHistory(){
   }
 }
 // ------------------------------
-// Update options for session setup dropdowns
+// Update options for session setup dropdowns with requested adjustments
 function updateSessionSetupOptions() {
   const bowDistances = {
-    Recurve: [10,12,15,18,20,30,40,50,60,70],
-    Compound: [10,12,15,18,30,50],
-    Barebow: [10,12,15,18,30],
-    Longbow: [10,12,15,18,30]
+    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
+    Compound: [10,12,15,18,20,30,40,50],
+    Barebow: [10,12,15,18,20,30],
+    Longbow: [10,12,15,18,20,30]
   };
   const bowTargetFaces = {
     Compound: [
@@ -289,23 +286,17 @@ function updateSessionSetupOptions() {
       {value:"3spot", label:"40cm 3-Spot (Indoor)"},
       {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
-    default: [
+    outdoorOnly: [
       {value:"122", label:"122cm (Outdoor)"},
-      {value:"80", label:"80cm (Outdoor)"},
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
+      {value:"80", label:"80cm (Outdoor)"}
     ]
   };
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-
   function refreshOptions() {
     const bow = bowSelect.value;
     const distance = parseInt(distSelect.value);
-
-    // Populate distances based on bow
     distSelect.innerHTML = "";
     bowDistances[bow].forEach(d => {
       const opt = document.createElement("option");
@@ -313,16 +304,14 @@ function updateSessionSetupOptions() {
       opt.textContent = d + "m";
       distSelect.appendChild(opt);
     });
-
-    // Adjust target faces if distance is 18m or less
     faceSelect.innerHTML = "";
     let faces = null;
     if(distance <= 18) {
-      // Use indoor only options for 18m or less distance
-      faces = bow === "Compound" ? bowTargetFaces.compoundIndoorOnly || bowTargetFaces.indoorOnly : bowTargetFaces.indoorOnly;
+      // Indoor faces only for ≤18m
+      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
     } else {
-      // Use default target faces otherwise
-      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
+      // Outdoor+Indoor for 20m and above
+      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
     }
     faces.forEach(f => {
       const opt = document.createElement("option");
@@ -335,7 +324,6 @@ function updateSessionSetupOptions() {
   distSelect.addEventListener("change", refreshOptions);
   refreshOptions();
 }
-
 // ------------------------------
 // Attach event handlers and initialize everything
 function attachButtonHandlers() {
