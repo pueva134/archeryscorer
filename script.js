@@ -276,20 +276,23 @@ async function viewHistory(){
   const uid = currentUser.uid;
   const userDoc = await getDoc(doc(db,"users",uid));
   if(userDoc.exists()){
-    const sessionsMap = userDoc.data().sessions || {};
-    const sessions = Object.values(sessionsMap); // convert map to array for display
+    const sessionsObj = userDoc.data().sessions || {};
+    const sessionsArr = Object.values(sessionsObj);
+
     const table = document.createElement("table");
     table.innerHTML = `<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>`;
-    sessions.forEach(s=>{
+    sessionsArr.forEach(s=>{
       const date = s.date ? new Date(s.date.seconds*1000).toLocaleDateString() : "N/A";
       table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
     });
+
     const historyDiv = document.getElementById("historyTable");
     historyDiv.innerHTML = "";
     historyDiv.appendChild(table);
     showScreen("historyScreen");
   }
 }
+
 // ------------------------------
 // Dynamic session setup options unchanged
 function updateSessionSetupOptions() {
