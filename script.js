@@ -284,6 +284,11 @@ function updateSessionSetupOptions() {
       {value:"3spot", label:"40cm 3-Spot (Indoor)"},
       {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
+    indoorOnly: [
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
+    ],
     default: [
       {value:"122", label:"122cm (Outdoor)"},
       {value:"80", label:"80cm (Outdoor)"},
@@ -295,18 +300,31 @@ function updateSessionSetupOptions() {
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-  function refreshOptions(){
+
+  function refreshOptions() {
     const bow = bowSelect.value;
+    const distance = parseInt(distSelect.value);
+
+    // Populate distances based on bow
     distSelect.innerHTML = "";
-    bowDistances[bow].forEach(d=>{
+    bowDistances[bow].forEach(d => {
       const opt = document.createElement("option");
       opt.value = d;
       opt.textContent = d + "m";
       distSelect.appendChild(opt);
     });
+
+    // Adjust target faces if distance is 18m or less
     faceSelect.innerHTML = "";
-    const faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
-    faces.forEach(f=>{
+    let faces = null;
+    if(distance <= 18) {
+      // Use indoor only options for 18m or less distance
+      faces = bow === "Compound" ? bowTargetFaces.compoundIndoorOnly || bowTargetFaces.indoorOnly : bowTargetFaces.indoorOnly;
+    } else {
+      // Use default target faces otherwise
+      faces = bow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.default;
+    }
+    faces.forEach(f => {
       const opt = document.createElement("option");
       opt.value = f.value;
       opt.textContent = f.label;
@@ -314,8 +332,10 @@ function updateSessionSetupOptions() {
     });
   }
   bowSelect.addEventListener("change", refreshOptions);
+  distSelect.addEventListener("change", refreshOptions);
   refreshOptions();
 }
+
 // ------------------------------
 // Attach event handlers and initialize everything
 function attachButtonHandlers() {
