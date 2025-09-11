@@ -1,115 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>My Scorer</title>
-<link rel="stylesheet" href="style.css"/>
+<link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<div class="container">
-  <!-- Login / Signup Screen -->
-  <div id="loginPage" class="screen active">
-    <h1>🏹 My Scorer 🏹</h1>
-    <input type="text" id="username" placeholder="Enter your name"/>
-    <input type="email" id="email" placeholder="Email"/>
-    <input type="password" id="password" placeholder="Password"/>
-    <select id="role">
-      <option value="archer">Archer</option>
-      <option value="coach">Coach</option>
-    </select>
-    <button id="signupBtn">Sign Up</button>
-    <button id="loginBtn">Login</button>
-    <div id="loginMessage" class="message"></div>
-  </div>
-  <!-- Archer Main Menu / Session Setup -->
-  <div id="menuScreen" class="screen">
   <div class="container">
-    <h1>🏹 My Scorer 🏹<br><span style="font-size:1rem;" id="greeting"></span></h1>
-    <button id="startSessionBtn">Start Session</button>
-    <button id="viewHistoryBtn">📜 My History</button>
-    <button id="logoutBtn">Logout</button>
-    <button id="toggleThemeBtn">🐯 / 🌙 Toggle Theme</button>
+    <!-- Login Page -->
+    <div id="loginPage" class="screen active">
+      <h1>🏹 My Scorer 🏹</h1>
+      <input id="username" type="text" placeholder="Enter your name" />
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <select id="role">
+        <option value="archer">Archer</option>
+        <option value="coach">Coach</option>
+      </select>
+      <button id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Login</button>
+      <div id="loginMessage" class="message"></div>
+    </div>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="screen">
+      <h1>🏹 My Scorer 🏹</h1>
+      <p id="greeting"></p>
+      <button id="menuStartSessionBtn">Start Session</button>
+      <button id="menuViewHistoryBtn">📜 My History</button>
+      <button id="menuLogoutBtn">Logout</button>
+      <button id="menuToggleThemeBtn">🐯 / 🌙 Toggle Theme</button>
+    </div>
+
+    <!-- Setup Screen -->
+    <div id="setup" class="screen">
+      <h2>Session Setup</h2>
+      <label>Bow Style:
+        <select id="bowStyle">
+          <option value="Recurve">Recurve</option>
+          <option value="Compound">Compound</option>
+          <option value="Barebow">Barebow</option>
+          <option value="Longbow">Longbow</option>
+        </select>
+      </label>
+      <label>Distance:
+        <select id="distance">
+          <option value="15">15m</option>
+          <option value="18">18m</option>
+          <option value="30">30m</option>
+          <option value="40">40m</option>
+          <option value="50">50m</option>
+          <option value="70">70m</option>
+        </select>
+      </label>
+      <label>Target Face:
+        <select id="targetFace"></select>
+      </label>
+      <label>Arrows per End:
+        <input id="arrowsPerEnd" type="number" value="6" />
+      </label>
+      <label>Number of Ends:
+        <input id="endsCount" type="number" value="6" />
+      </label>
+      <button id="startSessionBtn">Start Session</button>
+      <button id="viewHistoryBtn">View History</button>
+      <button id="logoutBtnSetup">Logout</button>
+    </div>
+
+    <!-- Scoring Screen -->
+    <div id="scoringArea" class="screen">
+      <h2>End <span id="currentEnd">1</span></h2>
+      <canvas id="target" width="300" height="300"></canvas>
+      <p>Tap the target to score an arrow</p>
+      <div id="endScores"></div>
+      <div id="endTotal">End Total</div>
+      <button id="undoBtn">⏪ Undo Last Arrow</button>
+      <button id="nextBtn">Next</button>
+      <button id="endSessionBtn" style="display:none;">End Session</button>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results" class="screen">
+      <h2>Session Results</h2>
+      <div id="sessionSummary"></div>
+      <div id="scoreTable"></div>
+      <canvas id="scoreChart" width="400" height="200"></canvas>
+      <div id="badgesDiv"></div>
+      <button id="backToSetupBtn">New Session</button>
+    </div>
+
+    <!-- History Screen -->
+    <div id="historyScreen" class="screen">
+      <h2>Session History</h2>
+      <div id="historyTable"></div>
+      <button id="backToMenuBtn">Back to Menu</button>
+    </div>
+
+    <!-- Coach Panel -->
+    <div id="coachPanel" class="screen">
+      <h2>Coach Dashboard</h2>
+      <div id="archersList"></div>
+      <button id="coachLogoutBtn">Logout</button>
+    </div>
   </div>
-  </div>
-  <!-- Archer Main Menu / Session Setup -->
-<div id="setup" class="screen">
-  <h2>Session Setup</h2>
-  <label>Bow Style:
-    <select id="bowStyle">
-      <option value="Recurve">Recurve</option>
-      <option value="Compound">Compound</option>
-      <option value="Barebow">Barebow</option>
-      <option value="Longbow">Longbow</option>
-    </select>
-  </label>
-  <label>Distance:
-    <select id="distance">
-      <option value="15">15m</option>
-      <option value="18">18m</option>
-      <option value="30">30m</option>
-      <option value="40">40m</option>
-      <option value="50">50m</option>
-      <option value="70">70m</option>
-    </select>
-  </label>
-  <label>Target Face:
-    <select id="targetFace">
-      <option value="122">122cm (Outdoor)</option>
-      <option value="80">80cm (Outdoor)</option>
-      <option value="40">40cm (Indoor)</option>
-      <option value="3spot">40cm 3-Spot (Indoor)</option>
-      <option value="9spot">40cm 9-Spot (Indoor)</option>
-    </select>
-  </label>
-  <label>Arrows per End:
-    <input type="number" id="arrowsPerEnd" value="6"/>
-  </label>
-  <label>Number of Ends:
-    <input type="number" id="endsCount" value="6"/>
-  </label>
-  <button id="startSessionBtn">Start Session</button>
-  <button id="viewHistoryBtn">View History</button>
-  <button id="logoutBtn">Logout</button>
-</div>
-  <!-- Scoring Screen -->
-  <div id="scoringArea" class="screen">
-    <h2>End <span id="currentEnd">1</span></h2>
-    <canvas id="target" width="300" height="300"></canvas>
-    <p>Tap the target to score an arrow</p>
-    <div id="endScores"></div>
-    <div id="endTotal">End Total: 0</div>
-    <button id="undoBtn">⏪ Undo Last Arrow</button>
-    <button id="nextEndBtn">Next End</button>
-    <button id="endSessionBtn" style="display:none;">End Session</button>
-  </div>
-  <!-- Results Screen -->
-  <div id="results" class="screen">
-    <h2>Session Results</h2>
-    <div id="sessionSummary"></div>
-    <h3>End Scores:</h3>
-    <div id="scoreTable"></div>
-    <h3>Performance Graph</h3>
-    <canvas id="scoreChart" width="400" height="200"></canvas>
-    <h3>Badges Earned</h3>
-    <div id="badgesDiv"></div>
-    <button id="backToSetupBtn">🔙 New Session</button>
-  </div>
-  <!-- History Screen -->
-  <div id="historyScreen" class="screen">
-    <h2>Session History</h2>
-    <div id="historyTable"></div>
-    <button id="backToMenuBtn">🔙 Back to Menu</button>
-  </div>
-  <!-- Coach Panel -->
-  <div id="coachPanel" class="screen">
-    <h2>Coach Dashboard</h2>
-    <div id="archersList"></div>
-    <button id="coachLogoutBtn">🔙 Logout</button>  
-  </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="script.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
