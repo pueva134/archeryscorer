@@ -228,10 +228,16 @@ async function saveSession(){
   if(!currentUser) return;
   const uid = currentUser.uid;
   const userRef = doc(db,"users",uid);
-  await updateDoc(userRef,{
-    sessions: arrayUnion({...currentSession, date: Timestamp.now()})
-  });
+  try {
+    await updateDoc(userRef,{
+      sessions: arrayUnion({...currentSession, date: Timestamp.now()})
+    });
+  } catch(e) {
+    console.error("Saving session failed:", e);
+    throw e;
+  }
 }
+
 // ------------------------------
 // Show Session Results (optional)
 // ------------------------------
