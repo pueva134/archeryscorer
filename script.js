@@ -314,8 +314,16 @@ function attachButtonHandlers() {
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
   if(document.getElementById("endSessionBtn")){
-    document.getElementById("endSessionBtn").addEventListener("click", endSession);
+    const endSessionBtn = document.getElementById("endSessionBtn");
+    if(endSessionBtn){
+      endSessionBtn.addEventListener("click", endSession);
+    }
   }
+  document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    auth.signOut().then(() => {
+      showScreen("loginPage");
+    });
+  });
   canvas?.addEventListener("click", e => {
     if(!currentSession.arrowsPerEnd) return;
     if(arrowScores.length >= currentSession.arrowsPerEnd){
