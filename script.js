@@ -233,72 +233,7 @@ async function endSession() {
 // Show results function remains unchanged
 function showResults(){
   // ... your existing showResults code ...
-  function showResults() {
-  showScreen("results");
-
-  // Display session summary
-  const summaryDiv = document.getElementById("sessionSummary");
-  summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${currentSession.bowStyle}</p>
-    <p><strong>Distance:</strong> ${currentSession.distance} m</p>
-    <p><strong>Target Face:</strong> ${currentSession.targetFace}</p>
-    <p><strong>Arrows per End:</strong> ${currentSession.arrowsPerEnd}</p>
-    <p><strong>Number of Ends:</strong> ${currentSession.endsCount}</p>
-    <p><strong>Total Score:</strong> ${currentSession.totalScore}</p>
-  `;
-
-  // Create scores table
-  const scoreTableDiv = document.getElementById("scoreTable");
-  scoreTableDiv.innerHTML = ""; // Clear previous
-
-  const table = document.createElement("table");
-  const headerRow = document.createElement("tr");
-
-  // Header: End label + Arrow numbers + End total
-  headerRow.innerHTML = "<th>End</th>" +
-    [...Array(currentSession.arrowsPerEnd).keys()].map(i => `<th>Arrow ${i+1}</th>`).join('') +
-    "<th>End Total</th>";
-  table.appendChild(headerRow);
-
-  // Iterate each end's scores
-  currentSession.ends.forEach((endScores, index) => {
-    const row = document.createElement("tr");
-    const endTotal = endScores.reduce((a,b) => a + b, 0);
-    row.innerHTML = `<td>${index + 1}</td>` +
-      endScores.map(score => `<td>${score}</td>`).join('') +
-      `<td><strong>${endTotal}</strong></td>`;
-    table.appendChild(row);
-  });
-
-  scoreTableDiv.appendChild(table);
-
-  // Draw Chart.js bar chart of end totals
-  const ctx = document.getElementById("scoreChart").getContext("2d");
-
-  // If previous chart instance exists, destroy it (avoid overlay)
-  if(window.scoreChartInstance) {
-    window.scoreChartInstance.destroy();
-  }
-
-  window.scoreChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: currentSession.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [{
-        label: 'End Score',
-        data: currentSession.ends.map(end => end.reduce((a,b) => a + b, 0)),
-        backgroundColor: 'rgba(59, 130, 246, 0.7)'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, max: currentSession.arrowsPerEnd * 10 }
-      }
-    }
-  });
-}
+  showScreen("resultsScreen");
 }
 // ------------------------------
 // Back to setup function remains unchanged
