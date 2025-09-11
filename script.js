@@ -211,9 +211,11 @@ async function endSession() {
       await saveSession();
     }
   } catch (e) {
-    alert("Could not save session, try again.");
-    return;
+    console.error("Failed to save session on end:", e);
+    // Do NOT alert or block UI flow
+    // Optionally, you can show a non-blocking UI message instead
   }
+  // Reset states and navigate regardless of save success
   currentEndNumber = 1;
   currentSession = {};
   arrowScores = [];
