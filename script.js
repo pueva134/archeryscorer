@@ -233,7 +233,6 @@ async function endSession() {
 // Show results function remains unchanged
 function showResults(){
   // ... your existing showResults code ...
-  showScreen("resultsScreen");
 }
 // ------------------------------
 // Back to setup function remains unchanged
