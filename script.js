@@ -7,12 +7,12 @@ import {
 import { getFirestore, doc, setDoc, getDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "myapp.firebaseapp.com",
-  projectId: "myapp",
-  storageBucket: "myapp.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
+  authDomain: "my-scorer.firebaseapp.com",
+  projectId: "my-scorer",
+  storageBucket: "my-scorer.appspot.com",
+  messagingSenderId: "243500946215",
+  appId: "1:243500946215:web:bd976f1bd437edce684f02"
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
