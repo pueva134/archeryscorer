@@ -11,6 +11,7 @@ import {
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
 // ------------------------------
 // Firebase Config and Initialization
 // ------------------------------
@@ -25,24 +26,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 // ------------------------------
 // Global Variables
-// ------------------------------
 let currentUser = null;
 let currentSession = {};
 let arrowScores = [];
 let currentEndNumber = 1;
+
 // ------------------------------
 // Utility Functions
-// ------------------------------
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const target = document.getElementById(id);
-  if(target) target.classList.add('active');
+  document.getElementById(id).classList.add('active');
 }
+
 // ------------------------------
 // Canvas Target Drawing
-// ------------------------------
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 function drawTarget() {
@@ -63,23 +63,37 @@ function updateEndScores(){
   if(endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
   if(endTotalDiv) endTotalDiv.innerText = "End Total: " + arrowScores.reduce((a,b)=>a+b,0);
 }
+
 // ------------------------------
 // Auth State Listener
-// ------------------------------
-onAuthStateChanged(auth, user => {
-  if(user) currentUser = user;
-  else currentUser = null;
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  if (user) {
+    // Fetch username from Firestore if logging in, else nothing.
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const username = userDoc.data().name;
+        document.querySelector(".container").querySelector("h1").innerHTML = `🏹 My Scorer 🏹<br><span style="font-size:1rem;">Hello, ${username}!</span>`;
+      }
+    } catch(e) {}
+    showScreen("setup");
+  } else {
+    document.querySelector(".container").querySelector("h1").innerHTML = "🏹 My Scorer 🏹";
+    showScreen("loginPage");
+  }
 });
+
 // ------------------------------
-// Signup Function
-// ------------------------------
+// Signup Function (always creates user doc)
 async function signup(){
-  const username = document.getElementById("username").value;
-  const email = document.getElementById("email").value;
+  const username = document.getElementById("username").value.trim();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
   msgDiv.innerText = "";
+
   if(!username || !email || !password){
     msgDiv.innerText = "Please fill all fields!";
     return;
@@ -87,24 +101,25 @@ async function signup(){
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
+    // Always create user document so updateDoc will never error
     await setDoc(doc(db, "users", uid), {
       name: username,
       role: role,
       sessions: []
     });
     currentUser = userCredential.user;
-    msgDiv.innerText = "Signup successful!";
-    showScreen("setup");
+    msgDiv.innerText = "Signup successful! Please login.";
+    showScreen("loginPage");
   } catch(e) {
     msgDiv.innerText = e.message;
     console.error("Signup error:", e);
   }
 }
+
 // ------------------------------
 // Login Function
-// ------------------------------
 async function login(){
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const msgDiv = document.getElementById("loginMessage");
   msgDiv.innerText = "";
@@ -113,18 +128,16 @@ async function login(){
     return;
   }
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    currentUser = userCredential.user;
-    msgDiv.innerText = "Login successful!";
-    showScreen("setup");
+    await signInWithEmailAndPassword(auth, email, password);
+    // Auth listener will switch screen
   } catch(e) {
     msgDiv.innerText = e.message;
     console.error("Login error:", e);
   }
 }
+
 // ------------------------------
 // Start Session
-// ------------------------------
 function startSession(){
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
@@ -141,40 +154,39 @@ function startSession(){
   showScreen("scoringArea");
   drawTarget();
   updateEndScores();
-
-  // Reset buttons visibility for scoring screen
-  document.getElementById("nextEndBtn").style.display = "inline-block";
-  if(document.getElementById("endSessionBtn")) {
-    document.getElementById("endSessionBtn").style.display = "none";
-  }
+  // Reset scoring buttons
+  const nextBtn = document.getElementById("nextEndBtn");
+  const endBtn = document.getElementById("endSessionBtn");
+  if(nextBtn) nextBtn.style.display = "inline-block";
+  if(endBtn) endBtn.style.display = "none";
 }
+
 // ------------------------------
 // Undo Last Arrow
-// ------------------------------
 function undoLastArrow(){
   arrowScores.pop();
   updateEndScores();
   updateEndSessionButtons();
 }
+
 // ------------------------------
-// Show/Hide End Session button based on end and arrows
-// ------------------------------
+// Show/Hide End Session button after last end scoring
 function updateEndSessionButtons() {
   const nextEndBtn = document.getElementById("nextEndBtn");
   const endSessionBtn = document.getElementById("endSessionBtn");
   const lastEnd = currentEndNumber === currentSession.endsCount;
   const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
   if(lastEnd && arrowsComplete) {
-    if(nextEndBtn){ nextEndBtn.style.display = "none"; }
-    if(endSessionBtn){ endSessionBtn.style.display = "inline-block"; }
+    if(nextEndBtn) nextEndBtn.style.display = "none";
+    if(endSessionBtn) endSessionBtn.style.display = "inline-block";
   } else {
-    if(nextEndBtn){ nextEndBtn.style.display = "inline-block"; }
-    if(endSessionBtn){ endSessionBtn.style.display = "none"; }
+    if(nextEndBtn) nextEndBtn.style.display = "inline-block";
+    if(endSessionBtn) endSessionBtn.style.display = "none";
   }
 }
+
 // ------------------------------
 // Next End Logic
-// ------------------------------
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Shoot all arrows first!");
@@ -185,7 +197,6 @@ async function nextEnd() {
   arrowScores = [];
   updateEndScores();
   if (currentEndNumber === currentSession.endsCount) {
-    // Last end completed - show End Session button
     updateEndSessionButtons();
     return;
   }
@@ -194,36 +205,9 @@ async function nextEnd() {
   updateEndScores();
   updateEndSessionButtons();
 }
-// ------------------------------
-// End Session - Save & Reset
-// ------------------------------
-async function endSession() {
-  try {
-    if (currentUser && currentSession && currentSession.ends.length > 0) {
-      await saveSession();
-    }
-  } catch(e) {
-    console.error("Failed to save session on end:", e);
-    alert("Could not save session, try again.");
-    return; // abort navigation on failure
-  }
-
-  currentEndNumber = 1;
-  currentSession = {};
-  arrowScores = [];
-
-  const nextEndBtn = document.getElementById("nextEndBtn");
-  const endSessionBtn = document.getElementById("endSessionBtn");
-  if(nextEndBtn) nextEndBtn.style.display = "inline-block";
-  if(endSessionBtn) endSessionBtn.style.display = "none";
-
-  // Navigate user back to session setup page
-  showScreen("setup");
-}
 
 // ------------------------------
-// Save Session to Firestore
-// ------------------------------
+// Save Session to Firestore (user doc always exists)
 async function saveSession(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -233,14 +217,36 @@ async function saveSession(){
       sessions: arrayUnion({...currentSession, date: Timestamp.now()})
     });
   } catch(e) {
-    console.error("Saving session failed:", e);
+    console.error("Error saving session:", e);
     throw e;
   }
 }
 
 // ------------------------------
-// Show Session Results (optional)
+// End Session - Save & Reset
+async function endSession() {
+  try {
+    if(currentUser && currentSession && currentSession.ends.length > 0) {
+      await saveSession();
+    }
+  } catch(e) {
+    alert("Could not save session, try again.");
+    return;
+  }
+  currentEndNumber = 1;
+  currentSession = {};
+  arrowScores = [];
+
+  const nextBtn = document.getElementById("nextEndBtn");
+  const endBtn = document.getElementById("endSessionBtn");
+  if(nextBtn) nextBtn.style.display = "inline-block";
+  if(endBtn) endBtn.style.display = "none";
+
+  showScreen("setup");
+}
+
 // ------------------------------
+// Show Session Results (optional)
 function showResults(){
   showScreen("results");
   const summaryDiv = document.getElementById("sessionSummary");
@@ -273,9 +279,9 @@ function showResults(){
     options: {responsive:true, maintainAspectRatio:false}
   });
 }
+
 // ------------------------------
 // Back to Setup (New Session)
-// ------------------------------
 function backToSetup(){
   currentEndNumber = 1;
   arrowScores = [];
@@ -284,9 +290,9 @@ function backToSetup(){
   drawTarget();
   updateEndScores();
 }
+
 // ------------------------------
 // View History
-// ------------------------------
 async function viewHistory(){
   if(!currentUser) return;
   const uid = currentUser.uid;
@@ -305,9 +311,9 @@ async function viewHistory(){
     showScreen("historyScreen");
   }
 }
+
 // ------------------------------
 // Dynamic Session Setup Option Update
-// ------------------------------
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10,12,15,18,20,30,40,50,60,70],
@@ -354,9 +360,9 @@ function updateSessionSetupOptions() {
   bowSelect.addEventListener("change", refreshOptions);
   refreshOptions();
 }
+
 // ------------------------------
 // Event Handlers Attachment
-// ------------------------------
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -366,15 +372,9 @@ function attachButtonHandlers() {
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("backToSetupBtn")?.addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("setup"));
+  // Attach End Session handler
   if(document.getElementById("endSessionBtn")){
-  const endSessionBtn = document.getElementById("endSessionBtn");
-  if(endSessionBtn) {
-    console.log("Attaching End Session handler");
-    endSessionBtn.addEventListener("click", () => {
-      console.log("End Session clicked");
-      endSession();
-    });
-  }
+    document.getElementById("endSessionBtn").addEventListener("click", endSession);
   }
   canvas?.addEventListener("click", e => {
     if(!currentSession.arrowsPerEnd) return;
@@ -398,9 +398,9 @@ function attachButtonHandlers() {
     updateEndSessionButtons();
   });
 }
+
 // ------------------------------
 // Initialize App
-// ------------------------------
 function init() {
   attachButtonHandlers();
   drawTarget();
