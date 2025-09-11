@@ -249,6 +249,7 @@ function updateSessionSetupOptions() {
 // Session and scoring control functions
 
 function startSession() {
+  console.log("Start Session clicked!");
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
     distance: parseInt(document.getElementById("distance").value),
