@@ -604,59 +604,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-async function loadArchersList() {
-  const archerList = document.getElementById("archerList");
-  archerList.innerHTML = "";
-  const q = query(collection(db, "users"), where("role", "==", "archer"));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) {
-    archerList.innerHTML = "<li>No archers found.</li>";
-    return;
-  }
-  snapshot.forEach((docSnap) => {
-    const archer = docSnap.data();
-    const li = document.createElement("li");
-    li.textContent = archer.name;
-    li.style.cursor = "pointer";
-    li.onclick = () => loadArcherSessions(docSnap.id, archer.name);
-    archerList.appendChild(li);
-  });
-}
-
-async function loadArcherSessions(archerUID, archerName) {
-  const sessionListDiv = document.getElementById("archerSessionList");
-  sessionListDiv.innerHTML = "Loading sessions...";
-  const userDoc = await getDoc(doc(db, "users", archerUID));
-  if (!userDoc.exists()) {
-    sessionListDiv.innerHTML = "Archer not found.";
-    return;
-  }
-  const sessions = userDoc.data().sessions || {};
-  const sessionEntries = Object.entries(sessions);
-  if (sessionEntries.length === 0) {
-    sessionListDiv.innerHTML = "No sessions found.";
-    return;
-  }
-  const ul = document.createElement("ul");
-  ul.style.listStyle = "none";
-  ul.style.paddingLeft = "0";
-  sessionEntries.forEach(([sessionId, sessionData]) => {
-    const li = document.createElement("li");
-    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : "No date";
-    const total = sessionData.totalScore || 0;
-    li.textContent = `Date: ${date} - Total Score: ${total}`;
-    li.style.cursor = "pointer";
-    li.style.padding = "5px";
-    li.style.borderBottom = "1px solid #555";
-    li.onclick = () => {
-      displaySessionResult(sessionData);
-    };
-    ul.appendChild(li);
-  });
-  sessionListDiv.innerHTML = "";
-  sessionListDiv.appendChild(ul);
-}
-
 async function displaySessionResult(sessionData) {
   document.getElementById("sessionResultContainer").style.display = "block";
   const summaryDiv = document.getElementById("sessionResultSummary");
