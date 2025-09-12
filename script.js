@@ -19,21 +19,14 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase Config & Init
 const firebaseConfig = {
-  apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
-  authDomain: "my-scorer.firebaseapp.com",
-  projectId: "my-scorer",
-  storageBucket: "my-scorer.appspot.com",
-  messagingSenderId: "243500946215",
-  appId: "1:243500946215:web:bd976f1bd437edce684f02"
+  // Your config here
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Globals
 let currentUser = null;
 let currentUserRole = null;
 let currentSession = {};
@@ -56,12 +49,13 @@ function drawTarget() {
   if (!ctx) return;
   const radius = canvas.width / 2;
   const rings = [
-    { color: "#FFFFFF", radius: radius },
+    { color: "#FFFFFF", radius },
     { color: "#000000", radius: radius * 0.8 },
     { color: "#0000FF", radius: radius * 0.6 },
     { color: "#FF0000", radius: radius * 0.4 },
     { color: "#FFFF00", radius: radius * 0.2 }
   ];
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   rings.forEach(ring => {
     ctx.beginPath();
@@ -72,33 +66,26 @@ function drawTarget() {
 }
 
 function updateEndScores() {
-  const endScoresDiv = document.getElementById("endScores");
-  const endTotalDiv = document.getElementById("endTotal");
-  if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
-  if (endTotalDiv) {
-    const numeric = arrowScores.filter(s => typeof s === "number").reduce((a,b) => a + b, 0);
-    endTotalDiv.innerText = "End Total: " + numeric;
+  const scoreDiv = document.getElementById("endScores");
+  if (scoreDiv) scoreDiv.innerText = arrowScores.join(" | ");
+  const totalDiv = document.getElementById("endTotal");
+  if (totalDiv) {
+    const total = arrowScores.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
+    totalDiv.innerText = "Total: " + total;
   }
 }
 
-function updateEndSessionButtons() {
+function updateButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
-  const lastEnd = currentEndNumber === currentSession.endsCount;
-  const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
-  if (!lastEnd && arrowsComplete) {
-    nextBtn.style.display = "inline-block";
-    endBtn.style.display = "none";
-  } else if (lastEnd && arrowsComplete) {
-    nextBtn.style.display = "none";
-    endBtn.style.display = "inline-block";
-  } else {
-    nextBtn.style.display = "none";
-    endBtn.style.display = "none";
-  }
+  const last = currentEndNumber === currentSession.endsCount;
+  const complete = arrowScores.length === currentSession.arrowsPerEnd;
+
+  nextBtn.style.display = (!last && complete) ? "inline-block" : "none";
+  endBtn.style.display = (last && complete) ? "inline-block" : "none";
 }
 
-function handleCanvasScoreClick(e) {
+function handleCanvasClick(e) {
   if (!currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
     alert("All arrows scored");
@@ -110,9 +97,9 @@ function handleCanvasScoreClick(e) {
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
   const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-  const maxRadius = canvas.width / 2;
-  const ringWidth = maxRadius / 10;
+  const ringWidth = (canvas.width / 2) / 10;
   let score = "M";
+
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
   else if (dist <= ringWidth * 3) score = 8;
@@ -123,9 +110,10 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 8) score = 3;
   else if (dist <= ringWidth * 9) score = 2;
   else if (dist <= ringWidth * 10) score = 1;
+
   arrowScores.push(score);
   updateEndScores();
-  updateEndSessionButtons();
+  updateButtons();
 }
 
 async function signup() {
@@ -133,262 +121,223 @@ async function signup() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
-  const msgDiv = document.getElementById("loginMessage");
-  msgDiv.innerText = "";
-  if (!username || !email || !password) {
-    msgDiv.innerText = "Please fill all fields!";
-    return;
-  }
+  const msg = document.getElementById("loginMessage");
+  msg.textContent = "";
+
+  if (!username || !email || !password) return msg.textContent = "Please fill all fields!";
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
-    await setDoc(doc(db, "users", uid), {
-      name: username,
-      role: role,
-      sessions: {},
-    });
-    currentUser = userCredential.user;
-    msgDiv.innerText = "Signup successful! Please login.";
+    await setDoc(doc(db, "users", uid), { name: username, role, sessions: {} });
+    msg.textContent = "Signup successful! Please login.";
     showScreen("loginPage");
   } catch (e) {
-    msgDiv.innerText = e.message;
+    msg.textContent = e.message;
   }
 }
 
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  const msgDiv = document.getElementById("loginMessage");
-  msgDiv.innerText = "";
-  if (!email || !password) {
-    msgDiv.innerText = "Please enter email and password!";
-    return;
-  }
+  const msg = document.getElementById("loginMessage");
+  msg.textContent = "";
+
+  if (!email || !password) return msg.textContent = "Please enter email and password!";
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (e) {
-    msgDiv.innerText = e.message;
+    msg.textContent = e.message;
   }
 }
 
 function updateSessionSetupOptions() {
   const bowDistances = {
-    Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70, 80],
-    Compound: [10, 12, 15, 18, 20, 30, 40, 50],
-    Barebow: [10, 12, 15, 18, 20, 30],
-    Longbow: [10, 12, 15, 18, 20, 30],
+    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
+    Compound: [10,12,15,18,20,30,40,50],
+    Barebow: [10,12,15,18,20,30],
+    Longbow: [10,12,15,18,20,30]
   };
-  const bowTargetFaces = {
+  const bowFaces = {
     Compound: [
-      { value: "60", label: "60cm (Compound Only)" },
-      { value: "40", label: "40cm (Indoor)" },
-      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", label: "40cm 9-Spot (Indoor)" },
+      { value:"60", label:"60cm (Compound Only)" },
+      { value:"40", label:"40cm (Indoor)" },
+      { value:"3spot", label:"40cm 3-Spot" },
+      { value:"9spot", label:"40cm 9-Spot" }
     ],
     indoorOnly: [
-      { value: "40", label: "40cm (Indoor)" },
-      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", label: "40cm 9-Spot (Indoor)" },
+      { value:"40", label:"40cm (Indoor)" },
+      { value:"3spot", label:"40cm 3-Spot" },
+      { value:"9spot", label:"40cm 9-Spot" }
     ],
     outdoorOnly: [
-      { value: "122", label: "122cm (Outdoor)" },
-      { value: "80", label: "80cm (Outdoor)" },
-    ],
+      { value:"122", label:"122cm (Outdoor)" },
+      { value:"80", label:"80cm (Outdoor)" }
+    ]
   };
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-  if (bowSelect.options.length === 0) {
-    Object.keys(bowDistances).forEach((bow) => {
-      const opt = document.createElement("option");
-      opt.value = bow;
-      opt.textContent = bow;
-      bowSelect.appendChild(opt);
+  if(bowSelect.options.length === 0){
+    Object.keys(bowDistances).forEach(bow => {
+      bowSelect.appendChild(new Option(bow, bow));
     });
   }
-  function updateDistances() {
-    distSelect.innerHTML = "";
-    const selectedBow = bowSelect.value;
-    bowDistances[selectedBow].forEach((d) => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = `${d}m`;
-      distSelect.appendChild(opt);
-    });
-    updateTargetFaces();
+  function updateDistances(){
+    distSelect.innerHTML = '';
+    const selBow = bowSelect.value;
+    bowDistances[selBow].forEach(d => distSelect.appendChild(new Option(d + "m", d)));
+    updateFaces();
   }
-  function updateTargetFaces() {
-    faceSelect.innerHTML = "";
-    const selectedBow = bowSelect.value;
-    const distance = parseInt(distSelect.value);
-    let faces = [];
-    if (distance <= 18) {
-      faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
+  function updateFaces(){
+    faceSelect.innerHTML = '';
+    const selBow = bowSelect.value;
+    const dist = parseInt(distSelect.value);
+    let facesList;
+    if (dist <= 18){
+      facesList = selBow === 'Compound' ? bowFaces.Compound : bowFaces.indoorOnly;
     } else {
-      faces =
-        selectedBow === "Compound"
-          ? bowTargetFaces.Compound
-          : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
+      facesList = selBow === 'Compound' ? bowFaces.Compound : bowFaces.outdoorOnly.concat(bowFaces.indoorOnly);
     }
-    faces.forEach((f) => {
-      const opt = document.createElement("option");
-      opt.value = f.value;
-      opt.textContent = f.label;
-      faceSelect.appendChild(opt);
-    });
+    facesList.forEach(fa => faceSelect.appendChild(new Option(fa.label, fa.value)));
   }
   bowSelect.onchange = updateDistances;
-  distSelect.onchange = updateTargetFaces;
+  distSelect.onchange = updateFaces;
   updateDistances();
 }
 
 function startSession() {
-  if (currentUserRole !== "archer") {
-    alert("Only Archers can start a scoring session.");
+  if(currentUserRole !== 'archer'){
+    alert('Only archers can start a session.');
     return;
   }
   currentSession = {
-    bowStyle: document.getElementById("bowStyle").value,
-    distance: parseInt(document.getElementById("distance").value),
-    targetFace: document.getElementById("targetFace").value,
-    arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
-    endsCount: parseInt(document.getElementById("endsCount").value),
+    bowStyle: document.getElementById('bowStyle').value,
+    distance: parseInt(document.getElementById('distance').value),
+    targetFace: document.getElementById('targetFace').value,
+    arrowsPerEnd: parseInt(document.getElementById('arrowsPerEnd').value),
+    endsCount: parseInt(document.getElementById('endsCount').value),
     ends: [],
-    totalScore: 0,
+    totalScore: 0
   };
   arrowScores = [];
   currentEndNumber = 1;
-  document.getElementById("currentEnd").innerText = currentEndNumber;
-  showScreen("scoringArea");
+  document.getElementById('currentEnd').innerText = currentEndNumber;
+  showScreen('scoringArea');
   drawTarget();
   updateEndScores();
-  updateEndSessionButtons();
+  updateButtons();
 }
 
-function undoLastArrow() {
-  arrowScores.pop();
-  updateEndScores();
-  updateEndSessionButtons();
+function undoArrow() {
+  if(arrowScores.length > 0){
+    arrowScores.pop();
+    updateEndScores();
+    updateButtons();
+  }
 }
 
 async function nextEnd() {
-  if (arrowScores.length !== currentSession.arrowsPerEnd) {
-    alert("Please score all arrows!");
+  if(arrowScores.length !== currentSession.arrowsPerEnd){
+    alert('Complete scoring this end.');
     return;
   }
   currentSession.ends.push([...arrowScores]);
-  currentSession.totalScore += arrowScores
-    .filter((s) => typeof s == "number")
-    .reduce((a, b) => a + b, 0);
+  currentSession.totalScore += arrowScores.filter(a => typeof a === 'number').reduce((a,b) => a + b,0);
   arrowScores = [];
   updateEndScores();
-  updateEndSessionButtons();
-  if (currentEndNumber === currentSession.endsCount) {
+  updateButtons();
+  if(currentEndNumber === currentSession.endsCount){
+    alert('All ends complete. Please finish the session.');
     return;
   }
   currentEndNumber++;
-  document.getElementById("currentEnd").innerText = currentEndNumber;
+  document.getElementById('currentEnd').innerText = currentEndNumber;
 }
 
-async function saveSession() {
-  if (!currentUser) return;
-  const endsObjects = currentSession.ends.map((endArr) => ({ arrows: endArr }));
-  const sessionKey = Date.now().toString();
-  const newSession = {
+async function saveSession(){
+  if(!currentUser) return;
+  const dataToSave = {
     bowStyle: currentSession.bowStyle,
     distance: currentSession.distance,
     targetFace: currentSession.targetFace,
     arrowsPerEnd: currentSession.arrowsPerEnd,
     endsCount: currentSession.endsCount,
-    ends: endsObjects,
+    ends: currentSession.ends.map(e => ({ arrows: e })),
     totalScore: currentSession.totalScore,
-    date: Timestamp.now(),
+    date: Timestamp.now()
   };
+  const key = Date.now().toString();
   try {
-    const userRef = doc(db, "users", currentUser.uid);
-    await updateDoc(userRef, { [`sessions.${sessionKey}`]: newSession });
-    sessionDataForResults = newSession;
-  } catch (e) {
-    console.error("Failed to save session:", e);
+    await updateDoc(doc(db, 'users', currentUser.uid), { [`sessions.${key}`]: dataToSave });
+    sessionDataForResults = dataToSave;
+  } catch(e) {
+    console.error('Session save failed', e);
   }
 }
 
-async function endSession() {
-  if (arrowScores.length > 0 && arrowScores.length !== currentSession.arrowsPerEnd) {
-    alert(`Please score all arrows in End ${currentEndNumber} before ending session.`);
+async function endSession(){
+  if(arrowScores.length !== 0 && arrowScores.length !== currentSession.arrowsPerEnd){
+    alert(`Complete scoring this end.`);
     return;
   }
-  if (arrowScores.length === currentSession.arrowsPerEnd) {
+  if(arrowScores.length === currentSession.arrowsPerEnd){
     currentSession.ends.push([...arrowScores]);
-    currentSession.totalScore += arrowScores
-      .filter((s) => typeof s === "number")
-      .reduce((a, b) => a + b, 0);
+    currentSession.totalScore += arrowScores.filter(a => typeof a === 'number').reduce((a,b) => a + b,0);
     arrowScores = [];
   }
-  if (currentSession.ends.length > 0) {
-    await saveSession();
-    showSessionResults(sessionDataForResults);
-    return;
-  }
-  currentSession = {};
-  arrowScores = [];
-  currentEndNumber = 1;
-  showScreen("menuScreen");
+  await saveSession();
+  showSessionResults(sessionDataForResults);
 }
 
-function showSessionResults(sessionData) {
-  showScreen("results");
-  const summaryDiv = document.getElementById("sessionSummary");
-  const tableDiv = document.getElementById("scoreTable");
-  const chartCanvas = document.getElementById("scoreChart");
+function showSessionResults(session){
+  showScreen('results');
+  const summary = document.getElementById('sessionSummary');
+  const tableContainer = document.getElementById('scoreTable');
+  const canvasElem = document.getElementById('scoreChart');
 
-  // Update summary
-  summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
-    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
-    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
-    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
-    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
-  `;
+  summary.innerHTML = `
+    <p><b>Bow Style:</b> ${session.bowStyle}</p>
+    <p><b>Distance:</b> ${session.distance}</p>
+    <p><b>Target Face:</b> ${session.targetFace}</p>
+    <p><b>Total Score:</b> ${session.totalScore}</p>
+    <p><b>Ends:</b> ${session.ends.length}</p>`;
 
-  // Build table of scores
-  let tableHtml = "<table style='width:100%; border-collapse: collapse;'><tr><th>End</th>";
-  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) {
+  let tableHtml = '<table style="width:100%; border-collapse: collapse;"><tr><th>End</th>';
+  for(let i=1; i <= session.arrowsPerEnd; i++){
     tableHtml += `<th>Arrow ${i}</th>`;
   }
-  tableHtml += "<th>End Total</th></tr>";
-  sessionData.ends.forEach((end, idx) => {
+  tableHtml += '<th>End Total</th></tr>';
+
+  session.ends.forEach((end, idx) => {
     const arrows = end.arrows || [];
-    const endTotal = arrows.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
-    tableHtml += `<tr><td>${idx + 1}</td>`;
-    for (let i = 0; i < arrowsCount; i++) {
-      tableHtml += `<td>${arrows[i] ?? ""}</td>`;
+    const total = arrows.filter(a => typeof a === 'number').reduce((a,b) => a + b, 0);
+    tableHtml += `<tr><td>${idx+1}</td>`;
+    for(let i=0; i < session.arrowsPerEnd; i++){
+      tableHtml += `<td>${arrows[i] ?? ''}</td>`;
     }
-    tableHtml += `<td>${endTotal}</td></tr>`;
+    tableHtml += `<td>${total}</td></tr>`;
   });
-  tableHtml += "</table>";
-  tableDiv.innerHTML = tableHtml;
 
-  // Prepare data for chart
-  const endTotals = sessionData.ends.map(end => 
-    (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
-  );
+  tableHtml += '</table>';
+  tableContainer.innerHTML = tableHtml;
 
-  // Destroy existing chart to prevent stacking
-  if (window.sessionChartInstance) {
+  if(window.sessionChartInstance){
     window.sessionChartInstance.destroy();
   }
 
-  // Create new chart instance
-  window.sessionChartInstance = new Chart(chartCanvas.getContext("2d"), {
-    type: "bar",
+  const totals = session.ends.map(e => e.arrows.filter(a => typeof a === 'number').reduce((a,b)=> a + b, 0));
+  const maxVal = Math.max(...totals, 60); // ensures minimum max of 60
+
+  window.sessionChartInstance = new Chart(canvasElem.getContext('2d'), {
+    type: 'bar',
     data: {
-      labels: sessionData.ends.map((_, index) => `End ${index + 1}`),
+      labels: session.ends.map((_,i) => `End ${i+1}`),
       datasets: [{
-        label: "End Total",
-        data: endTotals,
-        backgroundColor: "rgba(59, 130, 246, 0.7)"
+        label: 'End Total',
+        data: totals,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)',
       }]
     },
     options: {
@@ -396,33 +345,44 @@ function showSessionResults(sessionData) {
       maintainAspectRatio: false,
       animation: {
         duration: 1000,
-        easing: "easeOutQuart",
-        loop: false,  // disable looping animation
+        easing: 'easeOutQuart',
+        loop: false
       },
       scales: {
         y: {
           beginAtZero: true,
-          suggestedMax: Math.max(...endTotals) + 10  // Optional padding on Y axis max
+          max: maxVal + 5
         }
       }
     }
   });
 }
 
-function exportCsv() {
-  if (!sessionDataForResults) {
-    alert("No session data available to export.");
+function exportCsv(){
+  if(!sessionDataForResults){
+    alert('No session to export');
     return;
   }
-  const arrowsCount = sessionDataForResults.arrowsPerEnd || (sessionDataForResults.ends[0]?.arrows.length || 0);
-  let csv = "End," + Array.from({ length: arrowsCount }, (_, i) => `Arrow ${i + 1}`).join(",") + "\n";
+  let csv = 'End,';
+  for(let i=1; i <= sessionDataForResults.arrowsPerEnd; i++){
+    csv += `Arrow ${i},`;
+  }
+  csv += 'Total\n';
+
   sessionDataForResults.ends.forEach((end, idx) => {
-    const row = [idx + 1, ...end.arrows.map((s) => (typeof s === "number" ? s : "M"))];
-    csv += row.join(",") + "\n";
+    let row = `${idx+1},`;
+    let total = 0;
+    end.arrows.forEach(score => {
+      row += score + ',';
+      total += typeof score === 'number' ? score : 0;
+    });
+    row += total;
+    csv += row + '\n';
   });
-  const blob = new Blob([csv], { type: "text/csv" });
+
+  const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
   a.download = `archery-session-${Date.now()}.csv`;
   document.body.appendChild(a);
@@ -430,226 +390,105 @@ function exportCsv() {
   document.body.removeChild(a);
 }
 
-async function viewHistory() {
-  if (!currentUser) return;
-  const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-  if (!userDoc.exists()) return;
-  const sessionsObject = userDoc.data().sessions || {};
-  const sessionsArr = Object.values(sessionsObject);
-  const container = document.getElementById("historyTable");
-  container.innerHTML = "";
-  let table = document.createElement("table");
-  table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
-  sessionsArr.forEach((s) => {
-    const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
-    table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
-  });
-  container.appendChild(table);
-  showScreen("historyScreen");
-}
+async function viewHistory(){
+  if(!currentUser) return;
+  const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+  if(!userDoc.exists()) return;
 
-function showCoachDashboard() {
-  showScreen("coachDashboard");
-  loadArchersList();
-}
-
-async function loadArchersList() {
-  const archerList = document.getElementById("archerList");
-  archerList.innerHTML = "";
-  const q = query(collection(db, "users"), where("role", "==", "archer"));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) {
-    archerList.innerHTML = "<li>No archers found.</li>";
-    return;
-  }
-  snapshot.forEach((docSnap) => {
-    const archer = docSnap.data();
-    const li = document.createElement("li");
-    li.textContent = archer.name;
-    li.style.cursor = "pointer";
-    li.onclick = () => loadArcherSessions(docSnap.id, archer.name);
-    archerList.appendChild(li);
-  });
-}
-
-async function loadArcherSessions(archerUID, archerName) {
-  const sessionListDiv = document.getElementById("archerSessionList");
-  sessionListDiv.innerHTML = "Loading sessions...";
-  const userDoc = await getDoc(doc(db, "users", archerUID));
-  if (!userDoc.exists()) {
-    sessionListDiv.innerHTML = "Archer not found.";
-    return;
-  }
   const sessions = userDoc.data().sessions || {};
-  const sessionEntries = Object.entries(sessions);
-  if (sessionEntries.length === 0) {
-    sessionListDiv.innerHTML = "No sessions found.";
-    return;
-  }
-  const ul = document.createElement("ul");
-  ul.style.listStyle = "none";
-  ul.style.paddingLeft = "0";
-  sessionEntries.forEach(([sessionId, sessionData]) => {
-    const li = document.createElement("li");
-    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : "No date";
-    const total = sessionData.totalScore || 0;
-    li.textContent = `Date: ${date} - Total Score: ${total}`;
-    li.style.cursor = "pointer";
-    li.style.padding = "5px";
-    li.style.borderBottom = "1px solid #555";
-    li.onclick = () => {
-      displaySessionResult(sessionData);
-    };
-    ul.appendChild(li);
-  });
-  sessionListDiv.innerHTML = "";
-  sessionListDiv.appendChild(ul);
-}
+  const container = document.getElementById('historyTable');
+  container.innerHTML = '';
 
-async function displaySessionResult(sessionData) {
-  document.getElementById("sessionResultContainer").style.display = "block";
-  const summaryDiv = document.getElementById("sessionResultSummary");
-  const tableDiv = document.getElementById("sessionResultTable");
-  const chartCanvas = document.getElementById("sessionResultChart");
-  summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
-    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
-    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
-    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
-    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
-  `;
-  const table = document.createElement("table");
-  table.style.width = "100%";
-  table.style.borderCollapse = "collapse";
-  let headerRow = "<tr><th>End</th>";
-  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) {
-    headerRow += `<th>Arrow ${i}</th>`;
-  }
-  headerRow += "<th>End Total</th></tr>";
-  table.innerHTML = headerRow;
-  sessionData.ends.forEach((endObj, idx) => {
-    const endArr = endObj.arrows || [];
-    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
-    let row = `<tr><td>${idx + 1}</td>`;
-    endArr.forEach((score) => {
-      row += `<td>${score}</td>`;
-    });
-    row += `<td>${endTotal}</td></tr>`;
-    table.innerHTML += row;
-  });
-  tableDiv.innerHTML = "";
-  tableDiv.appendChild(table);
-  if (window.sessionChartInstance) {
-    window.sessionChartInstance.destroy();
-  }
-  const ctx = chartCanvas.getContext("2d");
-  const endTotals = sessionData.ends.map((end) => 
-    (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
-  );
+  let table = document.createElement('table');
+  table.innerHTML = '<tr><th>Date</th><th>Score</th><th>Ends</th></tr>';
 
-  window.sessionChartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [{
-        label: "End Total",
-        data: endTotals,
-        backgroundColor: "rgba(59, 130, 246, 0.7)"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 1000, // animation duration in ms
-        easing: 'easeOutQuart' // easing effect
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: Math.max(...endTotals) + 10  // optional: set a fixed max for y-axis
-        }
-      }
-    }
+  Object.values(sessions).forEach(session => {
+    const date = session.date ? new Date(session.date.seconds * 1000).toLocaleDateString() : 'N/A';
+    const score = session.totalScore ?? 0;
+    const ends = (session.ends?.length) ?? 0;
+    table.innerHTML += `<tr><td>${date}</td><td>${score}</td><td>${ends}</td></tr>`;
   });
+
+  container.appendChild(table);
+  showScreen('historyScreen');
 }
 
 function attachButtonHandlers() {
-  document.getElementById("signupBtn")?.addEventListener("click", signup);
-  document.getElementById("loginBtn")?.addEventListener("click", login);
-  document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
-  document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
-  document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-  document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
-  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
-  document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
-  document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
-  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
-  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
-  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
-  document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
+  document.getElementById('signupBtn').addEventListener('click', signup);
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('menuToggle').addEventListener('click', () => alert('Not implemented'));
+  document.getElementById('menuLogoutBtn').addEventListener('click', () => signOut(auth).then(() => showScreen('loginPage')));
+  document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => showScreen('loginPage')));
+  document.getElementById('menuHistoryBtn').addEventListener('click', viewHistory);
+  document.getElementById('viewHistoryBtn').addEventListener('click', viewHistory);
+  document.getElementById('menuStartBtn').addEventListener('click', () => showScreen('setup'));
+  document.getElementById('startSessionBtn').addEventListener('click', startSession);
+  document.getElementById('undoBtn').addEventListener('click', undoArrow);
+  document.getElementById('nextEndBtn').addEventListener('click', nextEnd);
+  document.getElementById('endSessionBtn').addEventListener('click', endSession);
+  document.getElementById('backToMenuBtn').addEventListener('click', () => showScreen('menu'));
+  document.getElementById('backToSetupBtn').addEventListener('click', () => {
     arrowScores = [];
     currentSession = {};
     currentEndNumber = 1;
-    showScreen("setup");
+    showScreen('setup');
     drawTarget();
     updateEndScores();
-    updateEndSessionButtons();
+    updateButtons();
   });
-  document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-  document.getElementById("newSessionBtn")?.addEventListener("click", () => {
-    currentSession = {};
+  document.getElementById('newSessionBtn').addEventListener('click', () => {
     arrowScores = [];
+    currentSession = {};
     currentEndNumber = 1;
-    showScreen("setup");
+    showScreen('setup');
   });
-  document.getElementById("exportCsvBtn")?.addEventListener("click", exportCsv);
-  if (canvas) canvas.addEventListener("click", handleCanvasScoreClick);
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+  if(canvas) canvas.addEventListener('click', handleCanvasClick);
 }
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
-  if (user) {
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-      currentUserRole = data.role || "archer";
-      document.getElementById("greeting").innerText = `Hello, ${data.name} (${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})!`;
-
-      if (currentUserRole === "coach") {
-        document.getElementById("startSessionBtn").style.display = "none";
-        const coachBtn = document.getElementById("menuCoachBtn");
-        if (!coachBtn) {
-          const menu = document.getElementById("menuScreen");
-          const btn = document.createElement("button");
-          btn.id = "menuCoachBtn";
-          btn.textContent = "Coach Dashboard";
-          btn.style.marginTop = "10px";
-          btn.addEventListener("click", showCoachDashboard);
-          menu.appendChild(btn);
-        } else {
-          coachBtn.style.display = "inline-block";
-        }
-      } else {
-        document.getElementById("startSessionBtn").style.display = "inline-block";
-        const coachBtn = document.getElementById("menuCoachBtn");
-        if (coachBtn) coachBtn.style.display = "none";
-      }
-
-      showScreen("menuScreen");
+  if(user){
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if(!userDoc.exists()){
+      showScreen('loginPage');
+      return;
     }
+    const userData = userDoc.data();
+    currentUserRole = userData.role ?? 'archer';
+    document.getElementById('greeting').innerText = `Hello, ${userData.name} (${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})!`;
+
+    if(currentUserRole === 'coach'){
+      document.getElementById('startSessionBtn').style.display = 'none';
+      if(!document.getElementById('menuCoachBtn')){
+        const btn = document.createElement('button');
+        btn.id = 'menuCoachBtn';
+        btn.textContent = 'Coach Dashboard';
+        btn.style.marginTop = '10px';
+        btn.addEventListener('click', () => {
+          showScreen('coachDashboard');
+          loadArcherList();
+        });
+        document.getElementById('menu').appendChild(btn);
+      }
+    } else {
+      document.getElementById('startSessionBtn').style.display = 'block';
+      const cbtn = document.getElementById('menuCoachBtn');
+      if(cbtn) cbtn.style.display = 'none';
+    }
+
+    showScreen('menu');
   } else {
     currentUserRole = null;
-    document.getElementById("greeting").innerText = "";
-    showScreen("loginPage");
+    showScreen('loginPage');
   }
 });
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener('DOMContentLoaded', () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
   drawTarget();
   updateEndScores();
-  updateEndSessionButtons();
+  updateButtons();
 });
