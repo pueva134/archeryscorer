@@ -495,7 +495,7 @@ async function loadArcherSessions(archerUID) {
 }
 
 // Display detailed session result with table and chart (Chart.js)
-function displaySessionResult(sessionData) {
+async function displaySessionResult(sessionData) {
   document.getElementById('sessionResultContainer').style.display = 'block';
   const summaryDiv = document.getElementById('sessionResultSummary');
   const tableDiv = document.getElementById('sessionResultTable');
@@ -563,7 +563,7 @@ function displaySessionResult(sessionData) {
 // Add navigation control to Coach Dashboard buttons
 document.getElementById('coachBackBtn').addEventListener('click', () => {
   document.getElementById('sessionResultContainer').style.display = 'none';
-  showScreen('menuScreen');
+  showScreen('coachDashboard');
 });
 
 // Modify auth state change to show coach dashboard to coaches
