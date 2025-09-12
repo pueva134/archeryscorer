@@ -604,61 +604,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-async function displaySessionResult(sessionData) {
-  document.getElementById("sessionResultContainer").style.display = "block";
-  const summaryDiv = document.getElementById("sessionResultSummary");
-  const tableDiv = document.getElementById("sessionResultTable");
-  const chartCanvas = document.getElementById("sessionResultChart");
-  summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
-    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
-    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
-    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
-    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
-  `;
-  const table = document.createElement("table");
-  table.style.width = "100%";
-  table.style.borderCollapse = "collapse";
-  let headerRow = "<tr><th>End</th>";
-  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) {
-    headerRow += `<th>Arrow ${i}</th>`;
-  }
-  headerRow += "<th>End Total</th></tr>";
-  table.innerHTML = headerRow;
-  sessionData.ends.forEach((endObj, idx) => {
-    const endArr = endObj.arrows || [];
-    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
-    let row = `<tr><td>${idx + 1}</td>`;
-    endArr.forEach((score) => {
-      row += `<td>${score}</td>`;
-    });
-    row += `<td>${endTotal}</td></tr>`;
-    table.innerHTML += row;
-  });
-  tableDiv.innerHTML = "";
-  tableDiv.appendChild(table);
-  const ctx = chartCanvas.getContext("2d");
-  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
-  const endTotals = sessionData.ends.map((end) =>
-    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
-  );
-  window.sessionChartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "End Total",
-          data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
-    },
-    options: { responsive: true, maintainAspectRatio: false },
-  });
-}
-
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
