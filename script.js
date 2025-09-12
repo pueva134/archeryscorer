@@ -1,3 +1,6 @@
+// ------------------------------
+// Complete modified script.js with Coach Role-Based Access Control
+// ------------------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,
@@ -19,6 +22,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+// Firebase Config & Init
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -32,16 +36,17 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Globals
 let currentUser = null;
 let currentUserRole = null;
-let currentSession = { ends: [] };
+let currentSession = {};
 let arrowScores = [];
-let currentEndCoords = [];
 let currentEndNumber = 1;
 
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 
+// Show screen helper
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
@@ -50,17 +55,20 @@ function showScreen(id) {
   if (id === "setup") updateSessionSetupOptions();
 }
 
+// Draw outdoor archery target
 function drawTarget() {
   if (!ctx) return;
   const radius = canvas.width / 2;
   const rings = [
-    { color: "#FFFFFF", radius: radius },
-    { color: "#000000", radius: radius * 0.8 },
-    { color: "#0000FF", radius: radius * 0.6 },
-    { color: "#FF0000", radius: radius * 0.4 },
-    { color: "#FFFF00", radius: radius * 0.2 }
+    { color: "#FFFFFF", radius: radius },           // 1-2 White
+    { color: "#000000", radius: radius * 0.8 },     // 3-4 Black
+    { color: "#0000FF", radius: radius * 0.6 },     // 5-6 Blue
+    { color: "#FF0000", radius: radius * 0.4 },     // 7-8 Red
+    { color: "#FFFF00", radius: radius * 0.2 }      // 9-10 Yellow
   ];
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   rings.forEach(ring => {
     ctx.beginPath();
     ctx.arc(radius, radius, ring.radius, 0, 2 * Math.PI);
@@ -69,22 +77,24 @@ function drawTarget() {
   });
 }
 
+// Update end arrow scores display
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
   if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
   if (endTotalDiv) {
-    const total = arrowScores.filter(s => typeof s === 'number').reduce((a, b) => a + b, 0);
-    endTotalDiv.innerText = `End Total: ${total}`;
+    const numeric = arrowScores.filter(s => typeof s === "number").reduce((a,b) => a + b, 0);
+    endTotalDiv.innerText = "End Total: " + numeric;
   }
 }
 
+// Update Next/End buttons visibility
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
-  const isLastEnd = currentEndNumber === currentSession.endsCount;
+  const lastEnd = currentEndNumber === currentSession.endsCount;
   const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
-  if (isLastEnd && arrowsComplete) {
+  if (lastEnd && arrowsComplete) {
     nextBtn.style.display = "none";
     endBtn.style.display = "inline-block";
   } else {
@@ -93,6 +103,7 @@ function updateEndSessionButtons() {
   }
 }
 
+// Handle canvas click to calculate score
 function handleCanvasScoreClick(e) {
   if (!currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -108,7 +119,8 @@ function handleCanvasScoreClick(e) {
   const maxRadius = canvas.width / 2;
   const ringWidth = maxRadius / 10;
 
-  let score = "M";
+  let score = "M"; // Miss by default
+
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
   else if (dist <= ringWidth * 3) score = 8;
@@ -121,11 +133,11 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 10) score = 1;
 
   arrowScores.push(score);
-  currentEndCoords.push({ x: x - centerX, y: centerY - y });
-  updateEndScores();
-  updateEndSessionButtons();
+  updateEndScores();         // Update the UI display with new scores
+  updateEndSessionButtons(); // Update Next/End Session buttons as needed
 }
 
+// Signup handler
 async function signup() {
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -142,8 +154,8 @@ async function signup() {
     const uid = userCredential.user.uid;
     await setDoc(doc(db, "users", uid), {
       name: username,
-      role,
-      sessions: {}
+      role: role,
+      sessions: {},
     });
     currentUser = userCredential.user;
     msgDiv.innerText = "Signup successful! Please login.";
@@ -153,6 +165,7 @@ async function signup() {
   }
 }
 
+// Login handler
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -169,34 +182,38 @@ async function login() {
   }
 }
 
+// Load session setup options dynamically
 function updateSessionSetupOptions() {
   const bowDistances = {
-    Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70, 80],
-    Compound: [10, 12, 15, 18, 20, 30, 40, 50],
-    Barebow: [10, 12, 15, 18, 20, 30],
-    Longbow: [10, 12, 15, 18, 20, 30]
+    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
+    Compound: [10,12,15,18,20,30,40,50],
+    Barebow: [10,12,15,18,20,30],
+    Longbow: [10,12,15,18,20,30],
   };
   const bowTargetFaces = {
     Compound: [
-      { value: "60", label: "60cm (Compound Only)" },
-      { value: "40", label: "40cm (Indoor)" },
-      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", label: "40cm 9-Spot (Indoor)" }
+      {value:"60", label:"60cm (Compound Only)"},
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"},
     ],
     indoorOnly: [
-      { value: "40", label: "40cm (Indoor)" },
-      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", label: "40cm 9-Spot (Indoor)" }
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"},
     ],
     outdoorOnly: [
-      { value: "122", label: "122cm (Outdoor)" },
-      { value: "80", label: "80cm (Outdoor)" }
-    ]
+      {value:"122", label:"122cm (Outdoor)"},
+      {value:"80", label:"80cm (Outdoor)"},
+    ],
   };
+
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-  if (bowSelect.options.length === 0) {
+
+  // Populate bow styles once
+  if(bowSelect.options.length === 0){
     Object.keys(bowDistances).forEach(bow => {
       const opt = document.createElement("option");
       opt.value = bow;
@@ -204,6 +221,7 @@ function updateSessionSetupOptions() {
       bowSelect.appendChild(opt);
     });
   }
+
   function updateDistances() {
     distSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
@@ -215,12 +233,13 @@ function updateSessionSetupOptions() {
     });
     updateTargetFaces();
   }
+
   function updateTargetFaces() {
     faceSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
     const distance = parseInt(distSelect.value);
     let faces = [];
-    if (distance <= 18) {
+    if(distance <= 18){
       faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
     } else {
       faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
@@ -232,13 +251,17 @@ function updateSessionSetupOptions() {
       faceSelect.appendChild(opt);
     });
   }
+
   bowSelect.onchange = updateDistances;
   distSelect.onchange = updateTargetFaces;
+
   updateDistances();
 }
 
-function startSession() {
-  if (currentUserRole !== "archer") {
+// Start session processing
+function startSession(){
+  // Role-based access control here: only archers can start session
+  if(currentUserRole !== "archer"){
     alert("Only Archers can start a scoring session.");
     return;
   }
@@ -252,7 +275,6 @@ function startSession() {
     totalScore: 0
   };
   arrowScores = [];
-  currentEndCoords = [];
   currentEndNumber = 1;
   document.getElementById("currentEnd").innerText = currentEndNumber;
   showScreen("scoringArea");
@@ -261,43 +283,40 @@ function startSession() {
   updateEndSessionButtons();
 }
 
-function undoLastArrow() {
-  if (arrowScores.length === 0) {
-    alert("No arrows to undo.");
-    return;
-  }
+// Undo last arrow
+function undoLastArrow(){
   arrowScores.pop();
-  currentEndCoords.pop();
   updateEndScores();
   updateEndSessionButtons();
 }
 
-async function nextEnd() {
-  if (arrowScores.length !== currentSession.arrowsPerEnd) {
+// Next end processing
+async function nextEnd(){
+  if(arrowScores.length !== currentSession.arrowsPerEnd){
     alert("Please score all arrows!");
     return;
   }
-  currentSession.ends.push({
-    arrows: [...arrowScores],
-    coords: [...currentEndCoords]
-  });
-  currentSession.totalScore += arrowScores.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
+  currentSession.ends.push([...arrowScores]);
+  currentSession.totalScore += arrowScores.filter(s=>typeof s=='number').reduce((a,b) => a+b, 0);
   arrowScores = [];
-  currentEndCoords = [];
   updateEndScores();
   updateEndSessionButtons();
-  if (currentEndNumber === currentSession.endsCount) {
-    alert("All ends completed. Please end the session.");
+  if(currentEndNumber === currentSession.endsCount){
+    // last end reached
     return;
   }
   currentEndNumber++;
   document.getElementById("currentEnd").innerText = currentEndNumber;
 }
 
+// Save session to Firestore
 async function saveSession() {
-  if (!currentUser) return;
+  if(!currentUser) return;
   const userRef = doc(db, "users", currentUser.uid);
   const sessionKey = Date.now().toString();
+
+  // Convert ends to an array of objects for Firestore compatibility
+  const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
 
   const newSession = {
     bowStyle: currentSession.bowStyle,
@@ -305,7 +324,7 @@ async function saveSession() {
     targetFace: currentSession.targetFace,
     arrowsPerEnd: currentSession.arrowsPerEnd,
     endsCount: currentSession.endsCount,
-    ends: currentSession.ends,
+    ends: endsObjects, // <--- now array of objects, not array of arrays
     totalScore: currentSession.totalScore,
     date: Timestamp.now()
   };
@@ -320,195 +339,38 @@ async function saveSession() {
   }
 }
 
-async function endSession() {
-  if (currentSession.ends.length > 0) {
+// End session
+async function endSession(){
+  if(currentSession.ends.length > 0){
     await saveSession();
   }
-  currentSession = { ends: [] };
+  currentSession = {};
   arrowScores = [];
-  currentEndCoords = [];
   currentEndNumber = 1;
   showScreen("menuScreen");
 }
 
-async function loadArchersList() {
-  const archerList = document.getElementById("archerList");
-  archerList.innerHTML = "";
-  const q = query(collection(db, "users"), where("role", "==", "archer"));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) {
-    archerList.innerHTML = "<li>No archers found.</li>";
-    return;
-  }
-  snapshot.forEach(docSnap => {
-    const archer = docSnap.data();
-    const li = document.createElement("li");
-    li.textContent = archer.name;
-    li.style.cursor = "pointer";
-    li.onclick = () => loadArcherSessions(docSnap.id);
-    archerList.appendChild(li);
+// View history
+async function viewHistory(){
+  if(!currentUser) return;
+  const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+  if(!userDoc.exists()) return;
+  const sessionsObject = userDoc.data().sessions || {};
+  const sessionsArr = Object.values(sessionsObject);
+  const container = document.getElementById("historyTable");
+  container.innerHTML = "";
+  let table = document.createElement("table");
+  table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
+  sessionsArr.forEach(s => {
+    const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
+    table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
   });
+  container.appendChild(table);
+  showScreen("historyScreen");
 }
 
-async function loadArcherSessions(archerUID) {
-  const sessionListDiv = document.getElementById("archerSessionList");
-  sessionListDiv.innerHTML = "Loading sessions...";
-  const userDoc = await getDoc(doc(db, "users", archerUID));
-  if (!userDoc.exists()) {
-    sessionListDiv.innerHTML = "Archer not found.";
-    return;
-  }
-  const sessions = userDoc.data().sessions || {};
-  const sessionEntries = Object.entries(sessions);
-  if (sessionEntries.length === 0) {
-    sessionListDiv.innerHTML = "No sessions found.";
-    return;
-  }
-  const ul = document.createElement("ul");
-  ul.style.listStyle = "none";
-  ul.style.paddingLeft = "0";
-  sessionEntries.forEach(([sessionId, sessionData]) => {
-    const li = document.createElement("li");
-    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : "No date";
-    const total = sessionData.totalScore || 0;
-    li.textContent = `Date: ${date} - Total Score: ${total}`;
-    li.style.cursor = "pointer";
-    li.style.padding = "5px";
-    li.style.borderBottom = "1px solid #555";
-    li.onclick = () => {
-      displaySessionResult(sessionData);
-    };
-    ul.appendChild(li);
-  });
-  sessionListDiv.innerHTML = "";
-  sessionListDiv.appendChild(ul);
-}
-
-function displaySessionResult(sessionData) {
-  document.getElementById("sessionResultContainer").style.display = "block";
-
-  const summaryDiv = document.getElementById("sessionResultSummary");
-  const tableDiv = document.getElementById("sessionResultTable");
-  const chartCanvas = document.getElementById("sessionResultChart");
-  const dispersionCanvas = document.getElementById("sessionDispersionChart");
-
-  summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
-    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
-    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
-    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
-    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
-  `;
-
-  const table = document.createElement("table");
-  table.style.width = "100%";
-  table.style.borderCollapse = "collapse";
-
-  let headerRow = "<tr><th>End</th>";
-  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) {
-    headerRow += `<th>Arrow ${i}</th>`;
-  }
-  headerRow += "<th>End Total</th></tr>";
-  table.innerHTML = headerRow;
-
-  sessionData.ends.forEach((endObj, idx) => {
-    const endArr = endObj.arrows || [];
-    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
-    let row = `<tr><td>${idx + 1}</td>`;
-    endArr.forEach((score) => {
-      row += `<td>${score}</td>`;
-    });
-    row += `<td>${endTotal}</td></tr>`;
-    table.innerHTML += row;
-  });
-  tableDiv.innerHTML = "";
-  tableDiv.appendChild(table);
-
-  const ctx = chartCanvas.getContext("2d");
-  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
-
-  const endTotals = sessionData.ends.map((end) =>
-    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
-  );
-
-  window.sessionChartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "End Total",
-          data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-    },
-  });
-
-  if (!dispersionCanvas) return;
-  const dispCtx = dispersionCanvas.getContext("2d");
-  if (window.sessionDispersionChartInstance) window.sessionDispersionChartInstance.destroy();
-
-  const scatterData = sessionData.ends.flatMap((end, i) =>
-    (end.coords || []).map((coord, idx) => ({
-      x: coord.x,
-      y: coord.y,
-      label: `End ${i + 1} Arrow ${idx + 1}`,
-    }))
-  );
-
-  window.sessionDispersionChartInstance = new Chart(dispCtx, {
-    type: "scatter",
-    data: {
-      datasets: [
-        {
-          label: "Arrow Dispersion",
-          data: scatterData,
-          backgroundColor: "rgba(255, 99, 132, 0.6)",
-        },
-      ],
-    },
-    options: {
-      scales: {
-        x: { type: "linear", position: "bottom", title: { display: true, text: "X position" } },
-        y: { type: "linear", title: { display: true, text: "Y position" }, reverse: true },
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label: (context) => context.raw.label || "",
-          },
-        },
-      },
-    },
-  });
-}
-
-function showCoachDashboard() {
-  showScreen("coachDashboard");
-  loadArchersList();
-}
-
-document.getElementById("coachBackBtn").addEventListener("click", () => {
-  document.getElementById("sessionResultContainer").style.display = "none";
-  showScreen("menuScreen");
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-  attachButtonHandlers();
-  updateSessionSetupOptions();
-  drawTarget();
-  updateEndScores();
-  updateEndSessionButtons();
-  if (canvas) canvas.addEventListener("click", handleCanvasScoreClick);
-});
-
-function attachButtonHandlers() {
+// Attach all button handlers for UI controls
+function attachButtonHandlers(){
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
   document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
@@ -523,7 +385,7 @@ function attachButtonHandlers() {
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
   document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
     arrowScores = [];
-    currentSession = { ends: [] };
+    currentSession = {};
     currentEndNumber = 1;
     showScreen("setup");
     drawTarget();
@@ -531,8 +393,232 @@ function attachButtonHandlers() {
     updateEndSessionButtons();
   });
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-  document.getElementById("coachBackBtn")?.addEventListener("click", () => {
-    document.getElementById("sessionResultContainer").style.display = "none";
-    showScreen("menuScreen");
+  if(canvas){
+    canvas.addEventListener("click", handleCanvasScoreClick);
+  }
+}
+
+// Auth state changes - update UI accordingly
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  if(user){
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if(userDoc.exists()){
+      const data = userDoc.data();
+      currentUserRole = data.role || "archer";
+      document.getElementById("greeting").innerText = `Hello, ${data.name} (${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})!`;
+
+      // Role-based UI adjustments
+      if(currentUserRole === "coach"){
+        document.getElementById("startSessionBtn").style.display = "none";
+        const coachBtn = document.getElementById("menuCoachBtn");
+        if(!coachBtn){
+           const menu = document.getElementById("menuScreen");
+           const btn = document.createElement("button");
+           btn.id = "menuCoachBtn";
+           btn.textContent = "Coach Dashboard";
+           btn.style.marginTop = "10px";
+           btn.addEventListener("click", showCoachDashboard);
+           menu.appendChild(btn);
+        } else {
+          coachBtn.style.display = "inline-block";
+        }
+      } else {
+        document.getElementById("startSessionBtn").style.display = "inline-block";
+        const coachBtn = document.getElementById("menuCoachBtn");
+        if(coachBtn) coachBtn.style.display = "none";
+      }
+
+      showScreen("menuScreen");
+    }
+  }
+  else {
+    currentUserRole = null;
+    document.getElementById("greeting").innerText = "";
+    showScreen("loginPage");
+  }
+});
+
+// Coach dashboard implementation
+let selectedArcherUID = null;
+let selectedArcherName = null;
+
+async function loadArchersList() {
+  const archerList = document.getElementById("archerList");
+  archerList.innerHTML = '';
+  const q = query(collection(db, "users"), where("role", "==", "archer"));
+  const snapshot = await getDocs(q);
+  console.log("archers query found", snapshot.size, "users");
+  if(snapshot.empty){
+    archerList.innerHTML = '<li>No archers found.</li>';
+    return;
+  }
+  snapshot.forEach(docSnap => {
+    const archer = docSnap.data();
+    const li = document.createElement("li");
+    li.textContent = archer.name;
+    li.style.cursor = "pointer";
+    li.onclick = () => loadArcherSessions(docSnap.id);
+    archerList.appendChild(li);
   });
 }
+async function loadArcherSessions(archerUID) {
+  const sessionListDiv = document.getElementById('archerSessionList');
+  sessionListDiv.innerHTML = 'Loading sessions...';
+
+  const userDoc = await getDoc(doc(db, "users", archerUID));
+  if (!userDoc.exists()) {
+    sessionListDiv.innerHTML = 'Archer not found.';
+    return;
+  }
+  const sessions = userDoc.data().sessions || {};
+  const sessionEntries = Object.entries(sessions);
+  if (sessionEntries.length === 0) {
+    sessionListDiv.innerHTML = 'No sessions found.';
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.style.listStyle = 'none';
+  ul.style.paddingLeft = '0';
+
+  sessionEntries.forEach(([sessionId, sessionData]) => {
+    const li = document.createElement('li');
+    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : 'No date';
+    const total = sessionData.totalScore || 0;
+    li.textContent = `Date: ${date} - Total Score: ${total}`;
+    li.style.cursor = 'pointer';
+    li.style.padding = '5px';
+    li.style.borderBottom = '1px solid #555';
+    li.onclick = () => {
+      displaySessionResult(sessionData);
+    };
+    ul.appendChild(li);
+  });
+
+  sessionListDiv.innerHTML = '';
+  sessionListDiv.appendChild(ul);
+}
+
+// Display detailed session result with table and chart (Chart.js)
+async function displaySessionResult(sessionData) {
+  document.getElementById('sessionResultContainer').style.display = 'block';
+  const summaryDiv = document.getElementById('sessionResultSummary');
+  const tableDiv = document.getElementById('sessionResultTable');
+  const chartCanvas = document.getElementById('sessionResultChart');
+
+  summaryDiv.innerHTML = `
+    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
+    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
+    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
+    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
+    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
+  `;
+
+  // Build table for ends and arrows per end
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+
+  let headerRow = '<tr><th>End</th>';
+  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
+  for (let i = 1; i <= arrowsCount; i++) {
+    headerRow += `<th>Arrow ${i}</th>`;
+  }
+  headerRow += '<th>End Total</th></tr>';
+  table.innerHTML = headerRow;
+
+  sessionData.ends.forEach((endObj, idx) => {
+    const endArr = endObj.arrows || [];
+    const endTotal = endArr.filter(s => typeof s === 'number').reduce((a, b) => a + b, 0);
+    let row = `<tr><td>${idx + 1}</td>`;
+    endArr.forEach(score => {
+      row += `<td>${score}</td>`;
+    });
+    row += `<td>${endTotal}</td></tr>`;
+    table.innerHTML += row;
+  });
+
+  tableDiv.innerHTML = '';
+  tableDiv.appendChild(table);
+
+  // Prepare data for Chart.js bar chart
+  const ctx = chartCanvas.getContext('2d');
+  if(window.sessionChartInstance) window.sessionChartInstance.destroy();
+
+  const endTotals = sessionData.ends.map(end =>
+    (end.arrows || []).filter(s => typeof s === 'number').reduce((a,b) => a+b, 0)
+  );
+
+  window.sessionChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [{
+        label: 'End Total',
+        data: endTotals,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+}
+
+function showCoachDashboard() {
+  showScreen('coachDashboard');
+  loadArchersList();
+}
+
+// Add navigation control to Coach Dashboard buttons
+document.getElementById('coachBackBtn').addEventListener('click', () => {
+  document.getElementById('sessionResultContainer').style.display = 'none';
+  showScreen('menuScreen');
+});
+
+// Modify auth state change to show coach dashboard to coaches
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    currentUser = null;
+    currentUserRole = null;
+    showScreen('loginPage');
+    return;
+  }
+  currentUser = user;
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (!userDoc.exists()) {
+    showScreen('loginPage');
+    return;
+  }
+  const data = userDoc.data();
+  currentUserRole = data.role || 'archer';
+  document.getElementById('greeting').innerText = `Hello, ${data.name}! (${currentUserRole})`;
+
+  if (currentUserRole === 'coach') {
+    showScreen('coachDashboard');
+    loadArchersList();
+  }
+  else {
+    showScreen('menuScreen');
+  }
+});
+
+// Ensure 'coachDashboard' has appropriate divs, "Back" button, "archerList", "archerSessionsContainer", etc., in your HTML.
+
+// In menu screen HTML, add a Coach Dashboard button visible only to coaches:
+// Check role on login and toggle button visibility accordingly.
+
+// That concludes coach ability to view all archers' session history and individual session results.
+
+// Let me know if you want me to help integrate the coach dashboard HTML snippet or CSS.
+
+// Initialization
+window.addEventListener("DOMContentLoaded", () => {
+  attachButtonHandlers();
+  updateSessionSetupOptions();
+  drawTarget();
+  updateEndScores();
+  updateEndSessionButtons();
+});
