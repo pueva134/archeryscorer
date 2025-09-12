@@ -453,7 +453,7 @@ async function loadArchersList() {
     li.textContent = archer.name;
     li.style.cursor = "pointer";
     li.onclick = () => loadArcherSessions(docSnap.id);
-    archersContainer.appendChild(li);
+    archerslist.appendChild(li);
   });
 }
 async function loadArcherSessions(archerUID) {
@@ -558,6 +558,11 @@ async function displaySessionResult(sessionData) {
       maintainAspectRatio: false
     }
   });
+}
+
+function showCoachDashboard() {
+  showScreen('coachDashboard');
+  loadArchersList();
 }
 
 // Add navigation control to Coach Dashboard buttons
