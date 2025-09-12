@@ -651,3 +651,25 @@ window.addEventListener("DOMContentLoaded", () => {
 const chartScript = document.createElement('script');
 chartScript.src = "https://cdn.jsdelivr.net/npm/chart.js";
 document.head.appendChild(chartScript);
+
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('selectedTheme') || '';
+  const themes = ['', 'light-theme', 'redblack-theme'];
+  if (themes.includes(savedTheme)) document.body.className = savedTheme;
+
+  // Remove any previous handler that shows alert
+  const toggleBtn = document.getElementById('menuToggleBtn');
+  if (toggleBtn) {
+    // Remove old alert if present (no need to call alert here!)
+    toggleBtn.onclick = null;
+    toggleBtn.addEventListener('click', function () {
+      // Actual theme toggle code here!
+      const currentTheme = document.body.className;
+      const themeIndex = themes.indexOf(currentTheme);
+      const nextIndex = (themeIndex + 1) % themes.length;
+      document.body.className = themes[nextIndex];
+      localStorage.setItem('selectedTheme', themes[nextIndex]);
+      // No alert—just toggle theme!
+    });
+  }
+});

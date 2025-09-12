@@ -94,3 +94,38 @@ button:hover {
     max-width: 97vw;
   }
 }
+
+/* ===== Red/Black Dark Theme Enhancements (active only when toggled) ===== */
+body.redblack-theme {
+  background: #000 !important; /* Pure black background */
+  color: #ff5353 !important;
+}
+
+body.redblack-theme .container {
+  background: #131313 !important;
+  border-radius: 20px;
+  color: #ff5353 !important;
+  box-shadow: 0 0 32px 8px #ff2121, 0 0 0 1px #ff1818 !important;
+}
+
+/* Buttons: full red gradients, focused red glow */
+body.redblack-theme button {
+  background: linear-gradient(90deg, #ff2020 0%, #b71c1c 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 18px 2px #ff2121, 0 2px 8px #b71c1c !important;
+  transition: box-shadow .22s, background .22s;
+}
+
+/* Even stronger red glow on hover/focus */
+body.redblack-theme button:hover,
+body.redblack-theme button:focus,
+body.redblack-theme button:active {
+  background: linear-gradient(90deg, #ff3333, #6b0f0f 100%) !important;
+  box-shadow: 0 0 36px 12px #ff3b3b, 0 2px 16px #ff2121 !important;
+}
+
+body.redblack-theme h1 {
+  color: #ff5353 !important;
+  text-shadow: 0 0 8px #ff2020;
+}
