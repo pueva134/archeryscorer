@@ -443,36 +443,34 @@ function attachButtonHandlers() {
   document.getElementById("backToSetupBtn").addEventListener("click", backToSetup);
   document.getElementById("backToMenuBtn").addEventListener("click", () => showScreen("menuScreen"));
 
-  if (canvas) {
+if (canvas) {
   canvas.addEventListener("click", (e) => {
     if (!currentSession.arrowsPerEnd) return;
     if (arrowScores.length >= currentSession.arrowsPerEnd) {
-      alert("All arrows for this end are scored.");
+      alert("All arrows for this end have been scored.");
       return;
     }
-
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const center = canvas.width / 2;
     const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
+    let score = "M"; // default is miss
 
-    let score = 0;
-    if (dist < 10) score = 10;
-    else if (dist < 20) score = 9;
-    else if (dist < 30) score = 8;
-    else if (dist < 40) score = 7;
-    else if (dist < 50) score = 6;
-    else if (dist < 60) score = 5;
-    else if (dist < 70) score = 4;
-    else if (dist < 80) score = 3;
-    else if (dist < 90) score = 2;
-    else if (dist < 120) score = 1;
-    else score = 0;
+    if (dist < 60) score = 10; // yellow inner (10)
+    else if (dist < 90) score = 9; // yellow outer (9)
+    else if (dist < 120) score = 8; // red inner (8)
+    else if (dist < 150) score = 7; // red outer (7)
+    else if (dist < 180) score = 6; // blue inner (6)
+    else if (dist < 210) score = 5; // blue outer (5)
+    else if (dist < 240) score = 4; // black inner (4)
+    else if (dist < 270) score = 3; // black outer (3)
+    else if (dist < 300) score = 2; // white inner (2)
+    else if (dist < 330) score = 1; // white outer (1)
 
     arrowScores.push(score);
-    updateScores();
-    updateButtons();
+    updateEndScores();
+    updateEndSessionButtons();
   });
 }
 }
