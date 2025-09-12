@@ -132,7 +132,158 @@ function handleCanvasScoreClick(e) {
   updateEndSessionButtons();
 }
 
-// ... include signup, login, session setup, etc. as in your current code ...
+// Signup handler
+async function signup() {
+  const username = document.getElementById("username").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
+  const msgDiv = document.getElementById("loginMessage");
+  msgDiv.innerText = "";
+  if (!username || !email || !password) {
+    msgDiv.innerText = "Please fill all fields!";
+    return;
+  }
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+    await setDoc(doc(db, "users", uid), {
+      name: username,
+      role: role,
+      sessions: {},
+    });
+    currentUser = userCredential.user;
+    msgDiv.innerText = "Signup successful! Please login.";
+    showScreen("loginPage");
+  } catch (e) {
+    msgDiv.innerText = e.message;
+  }
+}
+
+// Login handler
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const msgDiv = document.getElementById("loginMessage");
+  msgDiv.innerText = "";
+  if (!email || !password) {
+    msgDiv.innerText = "Please enter email and password!";
+    return;
+  }
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    msgDiv.innerText = e.message;
+  }
+}
+
+// Load session setup options dynamically
+function updateSessionSetupOptions() {
+  const bowDistances = {
+    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
+    Compound: [10,12,15,18,20,30,40,50],
+    Barebow: [10,12,15,18,20,30],
+    Longbow: [10,12,15,18,20,30],
+  };
+  const bowTargetFaces = {
+    Compound: [
+      {value:"60", label:"60cm (Compound Only)"},
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"},
+    ],
+    indoorOnly: [
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"},
+    ],
+    outdoorOnly: [
+      {value:"122", label:"122cm (Outdoor)"},
+      {value:"80", label:"80cm (Outdoor)"},
+    ],
+  };
+
+  const bowSelect = document.getElementById("bowStyle");
+  const distSelect = document.getElementById("distance");
+  const faceSelect = document.getElementById("targetFace");
+
+  // Populate bow styles once
+  if(bowSelect.options.length === 0){
+    Object.keys(bowDistances).forEach(bow => {
+      const opt = document.createElement("option");
+      opt.value = bow;
+      opt.textContent = bow;
+      bowSelect.appendChild(opt);
+    });
+  }
+
+  function updateDistances() {
+    distSelect.innerHTML = "";
+    const selectedBow = bowSelect.value;
+    bowDistances[selectedBow].forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = `${d}m`;
+      distSelect.appendChild(opt);
+    });
+    updateTargetFaces();
+  }
+
+  function updateTargetFaces() {
+    faceSelect.innerHTML = "";
+    const selectedBow = bowSelect.value;
+    const distance = parseInt(distSelect.value);
+    let faces = [];
+    if(distance <= 18){
+      faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
+    } else {
+      faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
+    }
+    faces.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f.value;
+      opt.textContent = f.label;
+      faceSelect.appendChild(opt);
+    });
+  }
+
+  bowSelect.onchange = updateDistances;
+  distSelect.onchange = updateTargetFaces;
+
+  updateDistances();
+}
+
+// Start session processing
+function startSession(){
+  // Role-based access control here: only archers can start session
+  if(currentUserRole !== "archer"){
+    alert("Only Archers can start a scoring session.");
+    return;
+  }
+  currentSession = {
+    bowStyle: document.getElementById("bowStyle").value,
+    distance: parseInt(document.getElementById("distance").value),
+    targetFace: document.getElementById("targetFace").value,
+    arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
+    endsCount: parseInt(document.getElementById("endsCount").value),
+    ends: [],
+    totalScore: 0
+  };
+  arrowScores = [];
+  currentEndNumber = 1;
+  document.getElementById("currentEnd").innerText = currentEndNumber;
+  showScreen("scoringArea");
+  drawTarget();
+  updateEndScores();
+  updateEndSessionButtons();
+}
+
+// Undo last arrow
+function undoLastArrow(){
+  arrowScores.pop();
+  updateEndScores();
+  updateEndSessionButtons();
+}
 
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
