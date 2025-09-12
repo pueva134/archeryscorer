@@ -355,8 +355,21 @@ async function saveSession() {
 }
 
 // End session and save all data once complete
-async function endSession(){
-  if(currentSession.ends.length > 0){
+async function endSession() {
+  // Check if any arrows scored in last end
+  if (arrowScores.length > 0 && arrowScores.length !== currentSession.arrowsPerEnd) {
+    alert(`Please score all arrows in End ${currentEndNumber} before ending session.`);
+    return;
+  }
+  // Push last end arrows if all scored
+  if (arrowScores.length === currentSession.arrowsPerEnd) {
+    currentSession.ends.push([...arrowScores]);
+    currentSession.totalScore += arrowScores.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
+    arrowScores = [];
+    console.log("Final end pushed in endSession");
+  }
+
+  if (currentSession.ends.length > 0) {
     await saveSession();
   }
   currentSession = {};
@@ -364,6 +377,7 @@ async function endSession(){
   currentEndNumber = 1;
   showScreen("menuScreen");
 }
+
 
 // View history for current user
 async function viewHistory(){
