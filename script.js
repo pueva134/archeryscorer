@@ -575,7 +575,7 @@ function showCoachDashboard() {
 // Add navigation control to Coach Dashboard buttons
 document.getElementById('coachBackBtn').addEventListener('click', () => {
   document.getElementById('sessionResultContainer').style.display = 'none';
-  showScreen('coachDashboard');
+  showScreen('menuScreen');
 });
 
 // Modify auth state change to show coach dashboard to coaches
