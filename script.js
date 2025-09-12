@@ -111,17 +111,15 @@ function handleCanvasScoreClick(e) {
     return;
   }
   const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
-  const dist = Math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2);
+  const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
   const maxRadius = canvas.width / 2;
-
-  let score = "M";  // Default Miss
-
-  // Each ring is 0.1 * maxRadius approx (for 10 rings)
   const ringWidth = maxRadius / 10;
+
+  let score = "M"; // Miss by default
 
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
@@ -135,8 +133,8 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 10) score = 1;
 
   arrowScores.push(score);
-  updateScoresUI();  // Your existing function to refresh display
-  updateButtonsUI(); // Update button states accordingly
+  updateEndScores();         // Update the UI display with new scores
+  updateEndSessionButtons(); // Update Next/End Session buttons as needed
 }
 
 // Signup handler
