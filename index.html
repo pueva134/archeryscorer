@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MyScorer - Archery Scoring App</title>
+<title>My Scorer - Archery Scoring App</title>
 <link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  /* Basic styles adapted from your report to preserve original UI theme */
+  /* Basic dark theme styling */
   body {
     background-color: #181f2a;
     color: #fff;
@@ -28,7 +28,7 @@
   h1, h2, h3 {
     text-align: center;
   }
-  input[type="text"], input[type="email"], input[type="password"], select, input[type="number"], textarea {
+  input, select, textarea {
     width: 100%;
     padding: 10px;
     margin: 8px 0 15px;
@@ -85,7 +85,6 @@
 <body>
 
 <div class="container">
-
   <!-- Login Screen -->
   <div id="loginPage" class="screen active">
     <h1>🏹 My Scorer 🏹</h1>
@@ -102,7 +101,7 @@
     <div id="loginMessage" class="message"></div>
   </div>
 
-  <!-- Welcome / Menu Screen -->
+  <!-- Menu Screen -->
   <div id="menuScreen" class="screen">
     <h1>🏹 My Scorer 🏹</h1>
     <p id="greeting" style="text-align:center; font-size:1rem; margin-bottom: 25px;"></p>
@@ -114,86 +113,68 @@
 
   <!-- Coach Dashboard -->
   <div id="coachDashboard" class="screen">
-  <h2>Coach Dashboard</h2>
-  <div id="archerListContainer">
-    <h3>Archers</h3>
-    <ul id="archerList" style="list-style:none; padding-left:0;"></ul>
-  </div>
-  <div id="archerSessionsContainer" style="margin-top:20px;">
-    <h3>Sessions for <span id="selectedArcherName">Select an archer</span></h3>
-    <div id="archerSessionList"></div>
-  </div>
-  <div id="sessionResultContainer" style="margin-top:20px; display:none;">
-    <h3>Session Details</h3>
-    <div id="sessionResultSummary"></div>
-    <div id="sessionResultTable"></div>
-    <canvas id="sessionResultChart" width="400" height="200"></canvas>
-    <button id="sessionResultCloseBtn">Close</button>
-  </div>
-  <button id="coachBackBtn" style="margin-top:20px;">Back to Menu</button>
+    <h2>Coach Dashboard</h2>
+    <div id="archerListContainer">
+      <h3>Archers</h3>
+      <ul id="archerList" style="list-style:none; padding-left:0;"></ul>
+    </div>
+    <div id="archerSessionsContainer" style="margin-top:20px;">
+      <h3>
+        Sessions for <span id="selectedArcherName">Select an archer</span>
+      </h3>
+      <div id="archerSessionList"></div>
+    </div>
+    <div id="sessionDetailContainer" style="margin-top:20px; display:none;">
+      <h3>Session Details</h3>
+      <div id="sessionDetailSummary"></div>
+      <div id="sessionDetailTable"></div>
+      <canvas id="sessionDetailScoreChart" width="400" height="200"></canvas>
+      <canvas id="sessionDetailDispersionChart" width="400" height="200" style="margin-top:20px;"></canvas>
+      <button id="sessionDetailCloseBtn">Close</button>
+    </div>
+    <button id="coachBackBtn" style="margin-top:20px;">Back to Menu</button>
   </div>
 
-  <!-- Session Setup Screen -->
+  <!-- Setup Screen -->
   <div id="setup" class="screen">
-    <h2>Session Setup</h2>
-    <label for="bowStyle">Bow Style:</label>
+    <h2>Setup Session</h2>
+    <label for="bowStyle">Bow Style</label>
     <select id="bowStyle"></select>
-
-    <label for="distance">Distance (m):</label>
+    <label for="distance">Distance</label>
     <select id="distance"></select>
-
-    <label for="targetFace">Target Face:</label>
+    <label for="targetFace">Target Face</label>
     <select id="targetFace"></select>
-
-    <label for="arrowsPerEnd">Arrows per End:</label>
+    <label for="arrowsPerEnd">Arrows Per End</label>
     <input type="number" id="arrowsPerEnd" value="6" min="1" max="12" />
-
-    <label for="endsCount">Number of Ends:</label>
+    <label for="endsCount">Number of Ends</label>
     <input type="number" id="endsCount" value="6" min="1" max="30" />
-
     <button id="startSessionBtn">Start Session</button>
     <button id="viewHistoryBtn">View History</button>
     <button id="logoutBtn">Logout</button>
   </div>
 
   <!-- Scoring Screen -->
-  <div id="scoringArea" class="screen">
+  <div id="scoring" class="screen">
     <h2>End <span id="currentEnd">1</span></h2>
     <canvas id="target" width="300" height="300"></canvas>
-    <p>Tap target to score</p>
-    <div id="endScores"></div>
-    <div id="endTotal">Total: 0</div>
-    <button id="undoBtn">Undo Last Arrow</button>
-    <button id="nextEndBtn">Next</button>
+    <p>Tap the target to score</p>
+    <div id="scoresList"></div>
+    <div id="scoresTotal">Total: 0</div>
+    <button id="undoArrowBtn">Undo Last Arrow</button>
+    <button id="nextEndBtn">Next End</button>
     <button id="endSessionBtn" style="display:none;">End Session</button>
-  </div>
-
-  <!-- Session Results Screen -->
-  <div id="results" class="screen">
-    <h2>Session Results</h2>
-    <div id="sessionSummary"></div>
-    <div id="scoreTable"></div>
-    <canvas id="scoreChart" width="400" height="200" style="margin-top: 20px;"></canvas>
-    <button id="newSessionBtn">New Session</button>
   </div>
 
   <!-- History Screen -->
   <div id="historyScreen" class="screen">
-    <h2>Session History</h2>
-    <div id="historyTable"></div>
-    <button id="backToMenuBtn">Back to Menu</button>
+    <h2>History</h2>
+    <div id="historyList"></div>
+    <button id="historyBackBtn">Back to Menu</button>
   </div>
-  <div id="sessionDetailModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); color:#fff; z-index:1000; align-items:center; justify-content:center;">
-  <div style="background:#222; padding:20px; border-radius:10px; max-width:90vw; max-height:80vh; overflow-y:auto; position:relative;">
-    <button id="closeDetailButton" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">&times;</button>
-    <div id="sessionDetailContent"></div>
-  </div>
-  </div>
+
 </div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="module" src="script.js"></script>
-
 </body>
 </html>
