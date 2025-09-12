@@ -341,6 +341,8 @@ function showSessionResults(sessionData) {
   const summaryDiv = document.getElementById("sessionSummary");
   const tableDiv = document.getElementById("scoreTable");
   const chartCanvas = document.getElementById("scoreChart");
+
+  // Update summary
   summaryDiv.innerHTML = `
     <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
     <p><strong>Distance:</strong> ${sessionData.distance}m</p>
@@ -348,36 +350,62 @@ function showSessionResults(sessionData) {
     <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
     <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
   `;
-  let tableHtml = "<table style='width:100%'><tr><th>End</th>";
+
+  // Build table of scores
+  let tableHtml = "<table style='width:100%; border-collapse: collapse;'><tr><th>End</th>";
   const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) tableHtml += `<th>Arrow ${i}</th>`;
+  for (let i = 1; i <= arrowsCount; i++) {
+    tableHtml += `<th>Arrow ${i}</th>`;
+  }
   tableHtml += "<th>End Total</th></tr>";
-  sessionData.ends.forEach((endObj, idx) => {
-    const arr = endObj.arrows || [];
-    const endTotal = arr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
-    let row = `<tr><td>${idx + 1}</td>`;
-    for (let i = 0; i < arrowsCount; i++) row += `<td>${arr[i] ?? ""}</td>`;
-    row += `<td>${endTotal}</td></tr>`;
-    tableHtml += row;
+  sessionData.ends.forEach((end, idx) => {
+    const arrows = end.arrows || [];
+    const endTotal = arrows.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
+    tableHtml += `<tr><td>${idx + 1}</td>`;
+    for (let i = 0; i < arrowsCount; i++) {
+      tableHtml += `<td>${arrows[i] ?? ""}</td>`;
+    }
+    tableHtml += `<td>${endTotal}</td></tr>`;
   });
   tableHtml += "</table>";
   tableDiv.innerHTML = tableHtml;
-  const endTotals = sessionData.ends.map((end) =>
-    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
+
+  // Prepare data for chart
+  const endTotals = sessionData.ends.map(end => 
+    (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
   );
+
+  // Destroy existing chart to prevent stacking
+  if (window.sessionChartInstance) {
+    window.sessionChartInstance.destroy();
+  }
+
+  // Create new chart instance
   window.sessionChartInstance = new Chart(chartCanvas.getContext("2d"), {
     type: "bar",
     data: {
-      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "End Total",
-          data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
+      labels: sessionData.ends.map((_, index) => `End ${index + 1}`),
+      datasets: [{
+        label: "End Total",
+        data: endTotals,
+        backgroundColor: "rgba(59, 130, 246, 0.7)"
+      }]
     },
-    options: { responsive: true, maintainAspectRatio: false },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 1000,
+        easing: "easeOutQuart",
+        loop: false,  // disable looping animation
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMax: Math.max(...endTotals) + 10  // Optional padding on Y axis max
+        }
+      }
+    }
   });
 }
 
