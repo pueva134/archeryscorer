@@ -447,7 +447,7 @@ async function loadArchersList() {
     archerList.innerHTML = '<li>No archers found.</li>';
     return;
   }
-  querySnapshot.forEach(docSnap => {
+  snapshot.forEach(docSnap => {
     const archer = docSnap.data();
     const li = document.createElement("li");
     li.textContent = archer.name;
