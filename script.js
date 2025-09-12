@@ -19,6 +19,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+// Firebase Config & Init
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -32,6 +33,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Globals
 let currentUser = null;
 let currentUserRole = null;
 let currentSession = { ends: [] };
@@ -42,19 +44,21 @@ let currentEndNumber = 1;
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 
+// Screen display helper
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
-  if (el) el.classList.add("active");
-  if (id === "scoringArea") drawTarget();
-  if (id === "setup") updateSessionSetupOptions();
+  if(el) el.classList.add("active");
+  if(id === "scoringArea") drawTarget();
+  if(id === "setup") updateSessionSetupOptions();
 }
 
+// Draw archery target rings
 function drawTarget() {
-  if (!ctx) return;
+  if(!ctx) return;
   const radius = canvas.width / 2;
   const rings = [
-    { color: "#FFFFFF", radius: radius }, 
+    { color: "#FFFFFF", radius: radius },
     { color: "#000000", radius: radius * 0.8 },
     { color: "#0000FF", radius: radius * 0.6 },
     { color: "#FF0000", radius: radius * 0.4 },
@@ -69,22 +73,24 @@ function drawTarget() {
   });
 }
 
+// Update end scores display
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
-  if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
-  if (endTotalDiv) {
-    const total = arrowScores.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
-    endTotalDiv.innerText = "End Total: " + total;
+  if(endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
+  if(endTotalDiv){
+    const total = arrowScores.filter(s => typeof s === "number").reduce((a,b) => a + b, 0);
+    endTotalDiv.innerText = `End Total: ${total}`;
   }
 }
 
+// Show/hide Next/End buttons
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
-  const lastEnd = currentEndNumber === currentSession.endsCount;
+  const isLastEnd = currentEndNumber === currentSession.endsCount;
   const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
-  if (lastEnd && arrowsComplete) {
+  if(isLastEnd && arrowsComplete){
     nextBtn.style.display = "none";
     endBtn.style.display = "inline-block";
   } else {
@@ -93,9 +99,10 @@ function updateEndSessionButtons() {
   }
 }
 
+// Handle scoring on target click and record coords
 function handleCanvasScoreClick(e) {
-  if (!currentSession.arrowsPerEnd) return;
-  if (arrowScores.length >= currentSession.arrowsPerEnd) {
+  if(!currentSession.arrowsPerEnd) return;
+  if(arrowScores.length >= currentSession.arrowsPerEnd){
     alert("All arrows scored");
     return;
   }
@@ -108,24 +115,25 @@ function handleCanvasScoreClick(e) {
   const maxRadius = canvas.width / 2;
   const ringWidth = maxRadius / 10;
 
-  let score = "M"; 
-  if (dist <= ringWidth * 1) score = 10;
-  else if (dist <= ringWidth * 2) score = 9;
-  else if (dist <= ringWidth * 3) score = 8;
-  else if (dist <= ringWidth * 4) score = 7;
-  else if (dist <= ringWidth * 5) score = 6;
-  else if (dist <= ringWidth * 6) score = 5;
-  else if (dist <= ringWidth * 7) score = 4;
-  else if (dist <= ringWidth * 8) score = 3;
-  else if (dist <= ringWidth * 9) score = 2;
-  else if (dist <= ringWidth * 10) score = 1;
+  let score = "M";
+  if(dist <= ringWidth * 1) score = 10;
+  else if(dist <= ringWidth * 2) score = 9;
+  else if(dist <= ringWidth * 3) score = 8;
+  else if(dist <= ringWidth * 4) score = 7;
+  else if(dist <= ringWidth * 5) score = 6;
+  else if(dist <= ringWidth * 6) score = 5;
+  else if(dist <= ringWidth * 7) score = 4;
+  else if(dist <= ringWidth * 8) score = 3;
+  else if(dist <= ringWidth * 9) score = 2;
+  else if(dist <= ringWidth * 10) score = 1;
 
   arrowScores.push(score);
-  currentEndCoords.push({ x: x - centerX, y: centerY - y });
+  currentEndCoords.push({ x: x - centerX, y: centerY - y }); // inverted Y for chart
   updateEndScores();
   updateEndSessionButtons();
 }
 
+// Signup
 async function signup() {
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -133,113 +141,113 @@ async function signup() {
   const role = document.getElementById("role").value;
   const msgDiv = document.getElementById("loginMessage");
   msgDiv.innerText = "";
-  if (!username || !email || !password) {
+  if(!username || !email || !password) {
     msgDiv.innerText = "Please fill all fields!";
     return;
   }
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
     const uid = userCredential.user.uid;
-    await setDoc(doc(db, "users", uid), { name: username, role, sessions: {} });
+    await setDoc(doc(db,"users",uid),{
+      name: username,
+      role,
+      sessions: {}
+    });
     currentUser = userCredential.user;
     msgDiv.innerText = "Signup successful! Please login.";
     showScreen("loginPage");
-  } catch (e) {
+  } catch(e) {
     msgDiv.innerText = e.message;
   }
 }
 
+// Login
 async function login() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const msgDiv = document.getElementById("loginMessage");
-  msgDiv.innerText = "";
-  if (!email || !password) {
-    msgDiv.innerText = "Please enter email and password!";
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+  const msgDiv=document.getElementById("loginMessage");
+  msgDiv.innerText="";
+  if(!email || !password){
+    msgDiv.innerText="Please enter email and password!";
     return;
   }
   try {
-    await signInWithEmailAndPassword(auth, email, password);
-  } catch (e) {
-    msgDiv.innerText = e.message;
+    await signInWithEmailAndPassword(auth,email,password);
+  } catch(e) {
+    msgDiv.innerText=e.message;
   }
 }
 
+// Session options update
 function updateSessionSetupOptions() {
   const bowDistances = {
-    Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70, 80],
-    Compound: [10, 12, 15, 18, 20, 30, 40, 50],
-    Barebow: [10, 12, 15, 18, 20, 30],
-    Longbow: [10, 12, 15, 18, 20, 30],
+    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
+    Compound: [10,12,15,18,20,30,40,50],
+    Barebow: [10,12,15,18,20,30],
+    Longbow: [10,12,15,18,20,30]
   };
   const bowTargetFaces = {
     Compound: [
-      { value: "60", label: "60cm (Compound Only)" },
-      { value: "40", label: "40cm (Indoor)" },
-      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", label: "40cm 9-Spot (Indoor)" },
+      {value:"60", label:"60cm (Compound Only)"},
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
     indoorOnly: [
-      { value: "40", label: "40cm (Indoor)" },
-      { value: "3spot", label: "40cm 3-Spot (Indoor)" },
-      { value: "9spot", label: "40cm 9-Spot (Indoor)" },
+      {value:"40", label:"40cm (Indoor)"},
+      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
+      {value:"9spot", label:"40cm 9-Spot (Indoor)"}
     ],
     outdoorOnly: [
-      { value: "122", label: "122cm (Outdoor)" },
-      { value: "80", label: "80cm (Outdoor)" },
-    ],
+      {value:"122", label:"122cm (Outdoor)"},
+      {value:"80", label:"80cm (Outdoor)"}
+    ]
   };
-
-  const bowSelect = document.getElementById("bowStyle");
-  const distSelect = document.getElementById("distance");
-  const faceSelect = document.getElementById("targetFace");
-
-  if (bowSelect.options.length === 0) {
-    Object.keys(bowDistances).forEach((bow) => {
-      const opt = document.createElement("option");
-      opt.value = bow;
-      opt.textContent = bow;
+  const bowSelect=document.getElementById("bowStyle");
+  const distSelect=document.getElementById("distance");
+  const faceSelect=document.getElementById("targetFace");
+  if(bowSelect.options.length===0) {
+    Object.keys(bowDistances).forEach(bow=>{
+      const opt=document.createElement("option");
+      opt.value=bow;
+      opt.textContent=bow;
       bowSelect.appendChild(opt);
     });
   }
-
-  function updateDistances() {
-    distSelect.innerHTML = "";
-    const selectedBow = bowSelect.value;
-    bowDistances[selectedBow].forEach((d) => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = `${d}m`;
+  function updateDistances(){
+    distSelect.innerHTML="";
+    const selectedBow=bowSelect.value;
+    bowDistances[selectedBow].forEach(d=>{
+      const opt=document.createElement("option");
+      opt.value=d;
+      opt.textContent=d+"m";
       distSelect.appendChild(opt);
     });
     updateTargetFaces();
   }
-
-  function updateTargetFaces() {
-    faceSelect.innerHTML = "";
-    const selectedBow = bowSelect.value;
-    const distance = parseInt(distSelect.value);
-    let faces = [];
-    if (distance <= 18) {
-      faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
-    } else {
-      faces =
-        selectedBow === "Compound"
-          ? bowTargetFaces.Compound
-          : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
+  function updateTargetFaces(){
+    faceSelect.innerHTML="";
+    const selectedBow=bowSelect.value;
+    const dist=parseInt(distSelect.value);
+    let faces=[];
+    if(dist<=18){
+      faces=selectedBow==="Compound"?bowTargetFaces.Compound:bowTargetFaces.indoorOnly;
+    } else{
+      faces=selectedBow==="Compound"?bowTargetFaces.Compound:bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
     }
-    faces.forEach((f) => {
-      const opt = document.createElement("option");
-      opt.value = f.value;
-      opt.textContent = f.label;
+    faces.forEach(f=>{
+      const opt=document.createElement("option");
+      opt.value=f.value;
+      opt.textContent=f.label;
       faceSelect.appendChild(opt);
     });
   }
-  bowSelect.onchange = updateDistances;
-  distSelect.onchange = updateTargetFaces;
+  bowSelect.onchange=updateDistances;
+  distSelect.onchange=updateTargetFaces;
   updateDistances();
 }
 
+// Start session
 function startSession() {
   if (currentUserRole !== "archer") {
     alert("Only Archers can start a scoring session.");
@@ -252,7 +260,7 @@ function startSession() {
     arrowsPerEnd: parseInt(document.getElementById("arrowsPerEnd").value),
     endsCount: parseInt(document.getElementById("endsCount").value),
     ends: [],
-    totalScore: 0,
+    totalScore: 0
   };
   arrowScores = [];
   currentEndCoords = [];
@@ -264,6 +272,7 @@ function startSession() {
   updateEndSessionButtons();
 }
 
+// Undo last arrow
 function undoLastArrow() {
   if (arrowScores.length === 0) {
     alert("No arrow to undo.");
@@ -275,6 +284,7 @@ function undoLastArrow() {
   updateEndSessionButtons();
 }
 
+// Next end
 async function nextEnd() {
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
     alert("Please score all arrows!");
@@ -282,25 +292,24 @@ async function nextEnd() {
   }
   currentSession.ends.push({
     arrows: [...arrowScores],
-    coords: [...currentEndCoords],
+    coords: [...currentEndCoords]
   });
   currentSession.totalScore += arrowScores
-    .filter((s) => typeof s === "number")
+    .filter(s => typeof s === "number")
     .reduce((a, b) => a + b, 0);
-
   arrowScores = [];
   currentEndCoords = [];
   updateEndScores();
   updateEndSessionButtons();
-
   if (currentEndNumber === currentSession.endsCount) {
-    alert("All ends completed. Please end session.");
+    alert("All ends completed. Please end the session.");
     return;
   }
   currentEndNumber++;
   document.getElementById("currentEnd").innerText = currentEndNumber;
 }
 
+// Save session
 async function saveSession() {
   if (!currentUser) return;
   const userRef = doc(db, "users", currentUser.uid);
@@ -314,12 +323,12 @@ async function saveSession() {
     endsCount: currentSession.endsCount,
     ends: currentSession.ends,
     totalScore: currentSession.totalScore,
-    date: Timestamp.now(),
+    date: Timestamp.now()
   };
 
   try {
     await updateDoc(userRef, {
-      [`sessions.${sessionKey}`]: newSession,
+      [`sessions.${sessionKey}`]: newSession
     });
     console.log("Session saved:", sessionKey);
   } catch (e) {
@@ -327,6 +336,7 @@ async function saveSession() {
   }
 }
 
+// End session
 async function endSession() {
   if (currentSession.ends.length > 0) {
     await saveSession();
@@ -337,6 +347,82 @@ async function endSession() {
   currentEndNumber = 1;
   showScreen("menuScreen");
 }
+
+// History view
+async function viewHistory() {
+  if (!currentUser) return;
+  const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+  if (!userDoc.exists()) return;
+  const sessionsObject = userDoc.data().sessions || {};
+  const sessionsArr = Object.values(sessionsObject);
+  const container = document.getElementById("historyTable");
+  container.innerHTML = "";
+  let table = document.createElement("table");
+  table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
+  sessionsArr.forEach((s) => {
+    const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
+    table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
+  });
+  container.appendChild(table);
+  showScreen("historyScreen");
+}
+
+// Attach button handlers
+function attachButtonHandlers() {
+  document.getElementById("signupBtn")?.addEventListener("click", signup);
+  document.getElementById("loginBtn")?.addEventListener("click", login);
+  document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
+  document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
+  document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
+  document.getElementById("menuToggleBtn")?.addEventListener("click", () => alert("Theme toggle not implemented"));
+  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+  document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
+  document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
+  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
+  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
+  document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
+    arrowScores = [];
+    currentSession = { ends: [] };
+    currentEndNumber = 1;
+    showScreen("setup");
+    drawTarget();
+    updateEndScores();
+    updateEndSessionButtons();
+  });
+  document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+  if (canvas) canvas.addEventListener("click", handleCanvasScoreClick);
+  document.getElementById("coachBackBtn")?.addEventListener("click", () => {
+    document.getElementById("sessionResultContainer").style.display = "none";
+    showScreen("menuScreen");
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      currentUserRole = data.role || "archer";
+      document.getElementById("greeting").innerText = `Hello, ${data.name}! (${currentUserRole})`;
+      if (currentUserRole === "coach") {
+        showScreen("coachDashboard");
+        await loadArchersList();
+      } else {
+        showScreen("menuScreen");
+      }
+    }
+  } else {
+    currentUser = null;
+    currentUserRole = null;
+    showScreen("loginPage");
+  }
+});
+
+// Coach Dashboard functions
+let selectedArcherUID = null;
+let selectedArcherName = null;
 
 async function loadArchersList() {
   const archerList = document.getElementById("archerList");
@@ -409,7 +495,6 @@ function displaySessionResult(sessionData) {
     <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
   `;
 
-  // Build score table
   const table = document.createElement("table");
   table.style.width = "100%";
   table.style.borderCollapse = "collapse";
@@ -432,11 +517,9 @@ function displaySessionResult(sessionData) {
     row += `<td>${endTotal}</td></tr>`;
     table.innerHTML += row;
   });
-
   tableDiv.innerHTML = "";
   tableDiv.appendChild(table);
 
-  // Score chart
   const ctx = chartCanvas.getContext("2d");
   if (window.sessionChartInstance) window.sessionChartInstance.destroy();
 
@@ -462,7 +545,6 @@ function displaySessionResult(sessionData) {
     },
   });
 
-  // Dispersion chart
   if (!dispersionCanvas) return;
   const dispCtx = dispersionCanvas.getContext("2d");
   if (window.sessionDispersionChartInstance) window.sessionDispersionChartInstance.destroy();
@@ -512,30 +594,6 @@ document.getElementById("coachBackBtn").addEventListener("click", () => {
   showScreen("menuScreen");
 });
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    currentUser = null;
-    currentUserRole = null;
-    showScreen("loginPage");
-    return;
-  }
-  currentUser = user;
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (!userDoc.exists()) {
-    showScreen("loginPage");
-    return;
-  }
-  const data = userDoc.data();
-  currentUserRole = data.role || "archer";
-  document.getElementById("greeting").innerText = `Hello, ${data.name}! (${currentUserRole})`;
-  if (currentUserRole === "coach") {
-    showScreen("coachDashboard");
-    await loadArchersList();
-  } else {
-    showScreen("menuScreen");
-  }
-});
-
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
@@ -544,3 +602,32 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndSessionButtons();
   if (canvas) canvas.addEventListener("click", handleCanvasScoreClick);
 });
+
+function attachButtonHandlers() {
+  document.getElementById("signupBtn")?.addEventListener("click", signup);
+  document.getElementById("loginBtn")?.addEventListener("click", login);
+  document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
+  document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
+  document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
+  document.getElementById("menuToggleBtn")?.addEventListener("click", () => alert("Theme toggle not implemented"));
+  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+  document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
+  document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
+  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
+  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
+  document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
+    arrowScores = [];
+    currentSession = { ends: [] };
+    currentEndNumber = 1;
+    showScreen("setup");
+    drawTarget();
+    updateEndScores();
+    updateEndSessionButtons();
+  });
+  document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+  document.getElementById("coachBackBtn")?.addEventListener("click", () => {
+    document.getElementById("sessionResultContainer").style.display = "none";
+    showScreen("menuScreen");
+  });
+}
