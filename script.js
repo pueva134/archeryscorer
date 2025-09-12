@@ -539,6 +539,7 @@ function attachButtonHandlers() {
   document.getElementById("loginBtn")?.addEventListener("click", login);
   document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
   document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
+  document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
   document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
   document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
   document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
