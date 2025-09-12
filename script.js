@@ -603,31 +603,3 @@ window.addEventListener("DOMContentLoaded", () => {
   if (canvas) canvas.addEventListener("click", handleCanvasScoreClick);
 });
 
-function attachButtonHandlers() {
-  document.getElementById("signupBtn")?.addEventListener("click", signup);
-  document.getElementById("loginBtn")?.addEventListener("click", login);
-  document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
-  document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
-  document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
-  document.getElementById("menuToggleBtn")?.addEventListener("click", () => alert("Theme toggle not implemented"));
-  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
-  document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
-  document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
-  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
-  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
-  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
-  document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
-    arrowScores = [];
-    currentSession = { ends: [] };
-    currentEndNumber = 1;
-    showScreen("setup");
-    drawTarget();
-    updateEndScores();
-    updateEndSessionButtons();
-  });
-  document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-  document.getElementById("coachBackBtn")?.addEventListener("click", () => {
-    document.getElementById("sessionResultContainer").style.display = "none";
-    showScreen("menuScreen");
-  });
-}
