@@ -314,18 +314,19 @@ async function saveSession(){
   if(!currentUser) return;
   const userRef = doc(db, "users", currentUser.uid);
   const sessionKey = Date.now().toString();
+  const newSession = {
+    bowStyle: currentSession.bowStyle,
+    distance: currentSession.distance,
+    targetFace: currentSession.targetFace,
+    arrowsPerEnd: currentSession.arrowsPerEnd,
+    endsCount: currentSession.endsCount,
+    ends: currentSession.ends,
+    totalScore: currentSession.totalScore,
+    date: Timestamp.now()
+  };
   try {
     await updateDoc(userRef, {
-      [`sessions.${sessionKey}`]: {  // Using dot notation for nested maps
-        bowStyle: currentSession.bowStyle,
-        distance: currentSession.distance,
-        targetFace: currentSession.targetFace,
-        arrowsPerEnd: currentSession.arrowsPerEnd,
-        endsCount: currentSession.endsCount,
-        ends: currentSession.ends,
-        totalScore: currentSession.totalScore,
-        date: Timestamp.now()
-      }
+      [`sessions.${sessionKey}`]: newSession
     });
     console.log("Session saved:", sessionKey);
   } catch(e) {
