@@ -1,5 +1,5 @@
 // ------------------------------
-// Complete script.js for MyScorer
+// Complete modified script.js with Coach Role-Based Access Control
 // ------------------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
@@ -38,6 +38,7 @@ const db = getFirestore(app);
 
 // Globals
 let currentUser = null;
+let currentUserRole = null;
 let currentSession = {};
 let arrowScores = [];
 let currentEndNumber = 1;
@@ -252,6 +253,11 @@ function updateSessionSetupOptions() {
 
 // Start session processing
 function startSession(){
+  // Role-based access control here: only archers can start session
+  if(currentUserRole !== "archer"){
+    alert("Only Archers can start a scoring session.");
+    return;
+  }
   currentSession = {
     bowStyle: document.getElementById("bowStyle").value,
     distance: parseInt(document.getElementById("distance").value),
@@ -351,15 +357,12 @@ function attachButtonHandlers(){
   document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
   document.getElementById("menuToggleBtn")?.addEventListener("click", () => alert("Theme toggle not implemented"));
-
   document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
   document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
-
   document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
-
   document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
     arrowScores = [];
     currentSession = {};
@@ -369,9 +372,7 @@ function attachButtonHandlers(){
     updateEndScores();
     updateEndSessionButtons();
   });
-
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-
   if(canvas){
     canvas.addEventListener("click", handleCanvasScoreClick);
   }
@@ -383,17 +384,116 @@ onAuthStateChanged(auth, async user => {
   if(user){
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if(userDoc.exists()){
-      document.getElementById("greeting").innerText = `Hello, ${userDoc.data().name}!`;
+      const data = userDoc.data();
+      currentUserRole = data.role || "archer";
+      document.getElementById("greeting").innerText = `Hello, ${data.name} (${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})!`;
+
+      // Role-based UI adjustments
+      if(currentUserRole === "coach"){
+        document.getElementById("startSessionBtn").style.display = "none";
+        const coachBtn = document.getElementById("menuCoachBtn");
+        if(!coachBtn){
+           const menu = document.getElementById("menuScreen");
+           const btn = document.createElement("button");
+           btn.id = "menuCoachBtn";
+           btn.textContent = "Coach Dashboard";
+           btn.style.marginTop = "10px";
+           btn.addEventListener("click", showCoachDashboard);
+           menu.appendChild(btn);
+        } else {
+          coachBtn.style.display = "inline-block";
+        }
+      } else {
+        document.getElementById("startSessionBtn").style.display = "inline-block";
+        const coachBtn = document.getElementById("menuCoachBtn");
+        if(coachBtn) coachBtn.style.display = "none";
+      }
+
+      showScreen("menuScreen");
     }
-    showScreen("menuScreen");
   }
   else {
+    currentUserRole = null;
     document.getElementById("greeting").innerText = "";
     showScreen("loginPage");
   }
 });
 
-// Initialization on page load
+// Coach dashboard implementation
+let selectedArcherUID = null;
+let selectedArcherName = null;
+
+async function loadArchersList() {
+  const archerList = document.getElementById("archerList");
+  archerList.innerHTML = "";
+
+  const usersQuery = query(collection(db, "users"), where("role", "==", "archer"));
+  const snapshot = await getDocs(usersQuery);
+  if(snapshot.empty){
+    archerList.innerHTML = "<li>No archers found</li>";
+    return;
+  }
+  snapshot.forEach(docSnap => {
+    const archer = docSnap.data();
+    const li = document.createElement("li");
+    li.textContent = archer.name;
+    li.style.cursor = "pointer";
+    li.style.padding = "5px";
+    li.style.borderBottom = "1px solid #555";
+    li.addEventListener("click", () => {
+      selectedArcherUID = docSnap.id;
+      selectedArcherName = archer.name;
+      document.getElementById("selectedArcherName").innerText = selectedArcherName;
+      loadArcherSessionHistory(selectedArcherUID);
+    });
+    archerList.appendChild(li);
+  });
+}
+
+async function loadArcherSessionHistory(archerUID) {
+  const sessionDiv = document.getElementById("archerSessionHistoryTable");
+  sessionDiv.innerHTML = "Loading...";
+  try {
+    const userDoc = await getDoc(doc(db, "users", archerUID));
+    if(!userDoc.exists()){
+      sessionDiv.innerHTML = "Archer not found";
+      return;
+    }
+    const sessionsObj = userDoc.data().sessions || {};
+    const sessionsArr = Object.values(sessionsObj);
+    if(sessionsArr.length === 0){
+      sessionDiv.innerHTML = "No sessions found";
+      return;
+    }
+    
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+    table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
+    sessionsArr.forEach(s => {
+      const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
+      table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
+    });
+    sessionDiv.innerHTML = "";
+    sessionDiv.appendChild(table);
+  } catch(e) {
+    sessionDiv.innerHTML = "Error loading sessions";
+    console.error(e);
+  }
+}
+
+function showCoachDashboard(){
+  if(currentUserRole !== "coach"){
+    alert("Access denied. Coach area only.");
+    return;
+  }
+  showScreen("coachDashboard");
+  loadArchersList();
+}
+
+document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+
+// Initialization
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
