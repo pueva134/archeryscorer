@@ -1,6 +1,3 @@
-// ------------------------------
-// Complete modified script.js with Coach Role-Based Access Control
-// ------------------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,
@@ -296,27 +293,40 @@ async function nextEnd(){
     alert("Please score all arrows!");
     return;
   }
+  // Push current end's scores
   currentSession.ends.push([...arrowScores]);
+
+  // Update total score for current session
   currentSession.totalScore += arrowScores.filter(s=>typeof s=='number').reduce((a,b) => a+b, 0);
+
+  // Reset arrow scores for next end
   arrowScores = [];
+
   updateEndScores();
   updateEndSessionButtons();
+
+  console.log("Ends accumulated so far:", currentSession.ends.length);
+
   if(currentEndNumber === currentSession.endsCount){
-    // last end reached
+    // All ends completed, ready for session save (do not save here)
+    console.log("All ends completed. Ready to save full session.");
     return;
   }
+
   currentEndNumber++;
   document.getElementById("currentEnd").innerText = currentEndNumber;
 }
 
-// Save session to Firestore
+// Save session to Firestore (called only after entire session completes)
 async function saveSession() {
   if(!currentUser) return;
-  const userRef = doc(db, "users", currentUser.uid);
-  const sessionKey = Date.now().toString();
 
-  // Convert ends to an array of objects for Firestore compatibility
+  console.log("Saving full session with ends count:", currentSession.ends.length);
+
+  // Convert ends to Firestore-friendly objects
   const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
+
+  const sessionKey = Date.now().toString();
 
   const newSession = {
     bowStyle: currentSession.bowStyle,
@@ -324,12 +334,13 @@ async function saveSession() {
     targetFace: currentSession.targetFace,
     arrowsPerEnd: currentSession.arrowsPerEnd,
     endsCount: currentSession.endsCount,
-    ends: endsObjects, // <--- now array of objects, not array of arrays
+    ends: endsObjects,
     totalScore: currentSession.totalScore,
     date: Timestamp.now()
   };
 
   try {
+    const userRef = doc(db, "users", currentUser.uid);
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: newSession
     });
@@ -339,7 +350,7 @@ async function saveSession() {
   }
 }
 
-// End session
+// End session and save all data once complete
 async function endSession(){
   if(currentSession.ends.length > 0){
     await saveSession();
@@ -350,7 +361,7 @@ async function endSession(){
   showScreen("menuScreen");
 }
 
-// View history
+// View history for current user
 async function viewHistory(){
   if(!currentUser) return;
   const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -413,13 +424,13 @@ onAuthStateChanged(auth, async user => {
         document.getElementById("startSessionBtn").style.display = "none";
         const coachBtn = document.getElementById("menuCoachBtn");
         if(!coachBtn){
-           const menu = document.getElementById("menuScreen");
-           const btn = document.createElement("button");
-           btn.id = "menuCoachBtn";
-           btn.textContent = "Coach Dashboard";
-           btn.style.marginTop = "10px";
-           btn.addEventListener("click", showCoachDashboard);
-           menu.appendChild(btn);
+          const menu = document.getElementById("menuScreen");
+          const btn = document.createElement("button");
+          btn.id = "menuCoachBtn";
+          btn.textContent = "Coach Dashboard";
+          btn.style.marginTop = "10px";
+          btn.addEventListener("click", showCoachDashboard);
+          menu.appendChild(btn);
         } else {
           coachBtn.style.display = "inline-block";
         }
@@ -458,11 +469,15 @@ async function loadArchersList() {
     const li = document.createElement("li");
     li.textContent = archer.name;
     li.style.cursor = "pointer";
-    li.onclick = () => loadArcherSessions(docSnap.id);
+    li.onclick = () => loadArcherSessions(docSnap.id, archer.name);
     archerList.appendChild(li);
   });
 }
-async function loadArcherSessions(archerUID) {
+
+async function loadArcherSessions(archerUID, archerName) {
+  selectedArcherUID = archerUID;
+  selectedArcherName = archerName;
+  document.getElementById("selectedArcherName").innerText = archerName;
   const sessionListDiv = document.getElementById('archerSessionList');
   sessionListDiv.innerHTML = 'Loading sessions...';
 
@@ -500,7 +515,7 @@ async function loadArcherSessions(archerUID) {
   sessionListDiv.appendChild(ul);
 }
 
-// Display detailed session result with table and chart (Chart.js)
+// Display detailed session result with table and Chart.js
 async function displaySessionResult(sessionData) {
   document.getElementById('sessionResultContainer').style.display = 'block';
   const summaryDiv = document.getElementById('sessionResultSummary');
@@ -567,18 +582,19 @@ async function displaySessionResult(sessionData) {
   });
 }
 
+// Show coach dashboard screen and load archers list
 function showCoachDashboard() {
   showScreen('coachDashboard');
   loadArchersList();
 }
 
-// Add navigation control to Coach Dashboard buttons
+// Navigation control for coach dashboard back button
 document.getElementById('coachBackBtn').addEventListener('click', () => {
   document.getElementById('sessionResultContainer').style.display = 'none';
   showScreen('menuScreen');
 });
 
-// Modify auth state change to show coach dashboard to coaches
+// Modify auth state change to show coach dashboard to coaches and regular menu to archers/judges
 onAuthStateChanged(auth, async user => {
   if (!user) {
     currentUser = null;
@@ -605,15 +621,6 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// Ensure 'coachDashboard' has appropriate divs, "Back" button, "archerList", "archerSessionsContainer", etc., in your HTML.
-
-// In menu screen HTML, add a Coach Dashboard button visible only to coaches:
-// Check role on login and toggle button visibility accordingly.
-
-// That concludes coach ability to view all archers' session history and individual session results.
-
-// Let me know if you want me to help integrate the coach dashboard HTML snippet or CSS.
-
 // Initialization
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
@@ -622,3 +629,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndScores();
   updateEndSessionButtons();
 });
+// Load Chart.js library dynamically for session result charts
+//const chartScript = document.createElement('script');
+//chartScript.src = "https://cdn.jsdelivr.net/npm/chart.js";
+//document.head.appendChild(chartScript);
