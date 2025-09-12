@@ -387,15 +387,15 @@ function attachButtonHandlers() {
     currentEndNumber = 1;
     showScreen("setup");
     drawTarget();
-    updateEndScores();
-    updateEndSessionButtons();
+    updateScores();
+    updateButtons();
   });
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-  if (canvas) canvas.addEventListener("click", handleCanvasScoreClick);
   document.getElementById("coachBackBtn")?.addEventListener("click", () => {
     document.getElementById("sessionResultContainer").style.display = "none";
     showScreen("menuScreen");
   });
+  if (canvas) canvas.addEventListener("click", handleCanvasClick);
 }
 
 onAuthStateChanged(auth, async (user) => {
