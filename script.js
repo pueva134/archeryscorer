@@ -19,7 +19,6 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase Config & Init
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -33,18 +32,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Globals
 let currentUser = null;
 let currentUserRole = null;
 let currentSession = {};
 let arrowScores = [];
 let currentEndNumber = 1;
-let sessionDataForResults = null; // holds last session for results display
+let sessionDataForResults = null;
 
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
 
-// Show screen helper
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
@@ -53,7 +50,6 @@ function showScreen(id) {
   if (id === "setup") updateSessionSetupOptions();
 }
 
-// Draw outdoor archery target
 function drawTarget() {
   if (!ctx) return;
   const radius = canvas.width / 2;
@@ -73,18 +69,16 @@ function drawTarget() {
   });
 }
 
-// Update end arrow scores display
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
   if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
   if (endTotalDiv) {
-    const numeric = arrowScores.filter(s => typeof s === "number").reduce((a,b) => a + b, 0);
+    const numeric = arrowScores.filter(s => typeof s === "number").reduce((a,b)=>a+b, 0);
     endTotalDiv.innerText = "End Total: " + numeric;
   }
 }
 
-// Update Next/End buttons visibility
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
@@ -102,7 +96,6 @@ function updateEndSessionButtons() {
   }
 }
 
-// Handle canvas click to calculate score
 function handleCanvasScoreClick(e) {
   if (!currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -117,9 +110,7 @@ function handleCanvasScoreClick(e) {
   const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
   const maxRadius = canvas.width / 2;
   const ringWidth = maxRadius / 10;
-
-  let score = "M"; // Miss by default
-
+  let score = "M";
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
   else if (dist <= ringWidth * 3) score = 8;
@@ -130,13 +121,11 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 8) score = 3;
   else if (dist <= ringWidth * 9) score = 2;
   else if (dist <= ringWidth * 10) score = 1;
-
   arrowScores.push(score);
   updateEndScores();
   updateEndSessionButtons();
 }
 
-// Signup handler
 async function signup() {
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -164,7 +153,6 @@ async function signup() {
   }
 }
 
-// Login handler
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -181,37 +169,12 @@ async function login() {
   }
 }
 
-// Load session setup options dynamically
 function updateSessionSetupOptions() {
-  const bowDistances = {
-    Recurve: [10,12,15,18,20,30,40,50,60,70,80],
-    Compound: [10,12,15,18,20,30,40,50],
-    Barebow: [10,12,15,18,20,30],
-    Longbow: [10,12,15,18,20,30],
-  };
-  const bowTargetFaces = {
-    Compound: [
-      {value:"60", label:"60cm (Compound Only)"},
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"},
-    ],
-    indoorOnly: [
-      {value:"40", label:"40cm (Indoor)"},
-      {value:"3spot", label:"40cm 3-Spot (Indoor)"},
-      {value:"9spot", label:"40cm 9-Spot (Indoor)"},
-    ],
-    outdoorOnly: [
-      {value:"122", label:"122cm (Outdoor)"},
-      {value:"80", label:"80cm (Outdoor)"},
-    ],
-  };
-
+  const bowDistances = { Recurve:[10,12,15,18,20,30,40,50,60,70,80], Compound:[10,12,15,18,20,30,40,50], Barebow:[10,12,15,18,20,30], Longbow:[10,12,15,18,20,30]};
+  const bowTargetFaces = { Compound:[{value:"60",label:"60cm (Compound Only)"},{value:"40",label:"40cm (Indoor)"},{value:"3spot",label:"40cm 3-Spot (Indoor)"},{value:"9spot",label:"40cm 9-Spot (Indoor)"}], indoorOnly:[{value:"40",label:"40cm (Indoor)"},{value:"3spot",label:"40cm 3-Spot (Indoor)"},{value:"9spot",label:"40cm 9-Spot (Indoor)"}], outdoorOnly:[{value:"122",label:"122cm (Outdoor)"},{value:"80",label:"80cm (Outdoor)"}] };
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-
-  // Populate bow styles once
   if(bowSelect.options.length === 0){
     Object.keys(bowDistances).forEach(bow => {
       const opt = document.createElement("option");
@@ -220,7 +183,6 @@ function updateSessionSetupOptions() {
       bowSelect.appendChild(opt);
     });
   }
-
   function updateDistances() {
     distSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
@@ -232,16 +194,15 @@ function updateSessionSetupOptions() {
     });
     updateTargetFaces();
   }
-
   function updateTargetFaces() {
     faceSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
     const distance = parseInt(distSelect.value);
     let faces = [];
     if(distance <= 18){
-      faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
+      faces = selectedBow==="Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
     } else {
-      faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
+      faces = selectedBow==="Compound" ? bowTargetFaces.Compound : bowTargetFaces.outdoorOnly.concat(bowTargetFaces.indoorOnly);
     }
     faces.forEach(f => {
       const opt = document.createElement("option");
@@ -250,14 +211,11 @@ function updateSessionSetupOptions() {
       faceSelect.appendChild(opt);
     });
   }
-
   bowSelect.onchange = updateDistances;
   distSelect.onchange = updateTargetFaces;
-
   updateDistances();
 }
 
-// Start session processing
 function startSession(){
   if(currentUserRole !== "archer"){
     alert("Only Archers can start a scoring session.");
@@ -281,37 +239,27 @@ function startSession(){
   updateEndSessionButtons();
 }
 
-// Undo last arrow
-function undoLastArrow(){
-  arrowScores.pop();
-  updateEndScores();
-  updateEndSessionButtons();
-}
+function undoLastArrow(){ arrowScores.pop(); updateEndScores(); updateEndSessionButtons(); }
 
-// Next end processing
 async function nextEnd(){
   if(arrowScores.length !== currentSession.arrowsPerEnd){
     alert("Please score all arrows!");
     return;
   }
   currentSession.ends.push([...arrowScores]);
-  currentSession.totalScore += arrowScores.filter(s=>typeof s=='number').reduce((a,b) => a+b, 0);
+  currentSession.totalScore += arrowScores.filter(s=>typeof s=='number').reduce((a,b)=>a+b,0);
   arrowScores = [];
   updateEndScores();
   updateEndSessionButtons();
-  console.log("Ends accumulated so far:", currentSession.ends.length);
   if(currentEndNumber === currentSession.endsCount){
-    console.log("All ends completed. Ready to save full session.");
     return;
   }
   currentEndNumber++;
   document.getElementById("currentEnd").innerText = currentEndNumber;
 }
 
-// Save session to Firestore (called only after entire session completes)
 async function saveSession() {
   if(!currentUser) return;
-  console.log("Saving full session with ends count:", currentSession.ends.length);
   const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
   const sessionKey = Date.now().toString();
   const newSession = {
@@ -326,17 +274,11 @@ async function saveSession() {
   };
   try {
     const userRef = doc(db, "users", currentUser.uid);
-    await updateDoc(userRef, {
-      [`sessions.${sessionKey}`]: newSession
-    });
-    console.log("Session saved:", sessionKey);
+    await updateDoc(userRef, { [`sessions.${sessionKey}`]: newSession });
     sessionDataForResults = newSession;
-  } catch (e) {
-    console.error("Failed to save session:", e);
-  }
+  } catch (e) { console.error("Failed to save session:", e); }
 }
 
-// End session and save all data once complete, then show results page
 async function endSession() {
   if (arrowScores.length > 0 && arrowScores.length !== currentSession.arrowsPerEnd) {
     alert(`Please score all arrows in End ${currentEndNumber} before ending session.`);
@@ -346,7 +288,6 @@ async function endSession() {
     currentSession.ends.push([...arrowScores]);
     currentSession.totalScore += arrowScores.filter(s => typeof s === "number").reduce((a,b)=>a+b,0);
     arrowScores = [];
-    console.log("Final end pushed in endSession");
   }
   if (currentSession.ends.length > 0) {
     await saveSession();
@@ -359,13 +300,12 @@ async function endSession() {
   showScreen("menuScreen");
 }
 
-// Show session results screen with table and chart
+// SESSION RESULTS PAGE
 function showSessionResults(sessionData) {
   showScreen("results");
   const summaryDiv = document.getElementById("sessionSummary");
   const tableDiv = document.getElementById("scoreTable");
   const chartCanvas = document.getElementById("scoreChart");
-
   summaryDiv.innerHTML = `
     <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
     <p><strong>Distance:</strong> ${sessionData.distance}m</p>
@@ -373,15 +313,13 @@ function showSessionResults(sessionData) {
     <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
     <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
   `;
-
-  let tableHtml = "<table style='width: 100%; border-collapse: collapse;'><tr><th>End</th>";
+  let tableHtml = "<table style='width:100%'><tr><th>End</th>";
   const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
   for(let i=1;i<=arrowsCount;i++) tableHtml += `<th>Arrow ${i}</th>`;
   tableHtml += "<th>End Total</th></tr>";
-
   sessionData.ends.forEach((endObj, idx) => {
     const arr = endObj.arrows || [];
-    const endTotal = arr.filter(s => typeof s === "number").reduce((a,b)=>a+b,0);
+    const endTotal = arr.filter(s=>typeof s==="number").reduce((a,b)=>a+b,0);
     let row = `<tr><td>${idx+1}</td>`;
     for(let i=0; i<arrowsCount; i++) row += `<td>${arr[i]??""}</td>`;
     row += `<td>${endTotal}</td></tr>`;
@@ -389,47 +327,51 @@ function showSessionResults(sessionData) {
   });
   tableHtml += "</table>";
   tableDiv.innerHTML = tableHtml;
-
   if(window.sessionChartInstance) window.sessionChartInstance.destroy();
-
   const endTotals = sessionData.ends.map(end =>
     (end.arrows || []).filter(s => typeof s === 'number').reduce((a,b) => a+b, 0)
   );
-
   window.sessionChartInstance = new Chart(chartCanvas.getContext('2d'), {
     type: 'bar',
-    data: {
-      labels: sessionData.ends.map((_,i)=>`End ${i+1}`),
-      datasets: [{
-        label: 'End Total',
-        data: endTotals,
-        backgroundColor: 'rgba(59,130,246,0.7)'
-      }]
-    },
+    data: { labels: sessionData.ends.map((_,i)=>`End ${i+1}`), datasets:[{ label:'End Total', data:endTotals, backgroundColor:'rgba(59,130,246,0.7)' }] },
     options: { responsive:true, maintainAspectRatio:false }
   });
 }
 
-// Export session results as CSV
 function exportCsv() {
   if(!sessionDataForResults) {
     alert("No session data available to export.");
     return;
   }
   const arrowsCount = sessionDataForResults.arrowsPerEnd || (sessionDataForResults.ends[0]?.arrows.length || 0);
-  let csv = "End," + Array.from({length: arrowsCount}, (_,i)=>`Arrow ${i+1}`).join(",") + "\n";
-  sessionDataForResults.ends.forEach((end, idx) => {
-    const row = [idx+1, ...end.arrows.map(s => (typeof s==="number"?s:"M"))];
-    csv += row.join(",") + "\n";
+  let csv = "End,"+Array.from({length:arrowsCount},(_,i)=>`Arrow ${i+1}`).join(",")+"\n";
+  sessionDataForResults.ends.forEach((end,idx)=>{
+    const row = [idx+1, ...end.arrows.map(s=>(typeof s==="number"?s:"M"))];
+    csv+=row.join(",")+"\n";
   });
-  const blob = new Blob([csv], {type: "text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `archery-session-${Date.now()}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`archery-session-${Date.now()}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+async function viewHistory() {
+  if(!currentUser) return;
+  const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+  if(!userDoc.exists()) return;
+  const sessionsObject = userDoc.data().sessions || {};
+  const sessionsArr = Object.values(sessionsObject);
+  const container = document.getElementById("historyTable");
+  container.innerHTML = "";
+  let table = document.createElement("table");
+  table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
+  sessionsArr.forEach(s => {
+    const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
+    table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
+  });
+  container.appendChild(table);
+  showScreen("historyScreen");
 }
 
 function attachButtonHandlers() {
@@ -445,9 +387,9 @@ function attachButtonHandlers() {
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
   document.getElementById("backToSetupBtn")?.addEventListener("click", ()=>{
-    arrowScores = [];
-    currentSession = {};
-    currentEndNumber = 1;
+    arrowScores=[];
+    currentSession={};
+    currentEndNumber=1;
     showScreen("setup");
     drawTarget();
     updateEndScores();
@@ -455,18 +397,16 @@ function attachButtonHandlers() {
   });
   document.getElementById("backToMenuBtn")?.addEventListener("click", ()=>showScreen("menuScreen"));
   document.getElementById("newSessionBtn")?.addEventListener("click", ()=>{
-    currentSession = {};
-    arrowScores = [];
-    currentEndNumber = 1;
+    currentSession={};
+    arrowScores=[];
+    currentEndNumber=1;
     showScreen("setup");
   });
   document.getElementById("exportCsvBtn")?.addEventListener("click", exportCsv);
   if(canvas) canvas.addEventListener("click", handleCanvasScoreClick);
 }
 
-// View history, coach dashboard, load archers, load archer sessions, display session results etc. remain unchanged.
-
-// Auth state listener remains unchanged
+// Auth state change, coach dashboard, etc. can follow as in your code.
 
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
