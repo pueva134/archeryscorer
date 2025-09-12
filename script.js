@@ -107,27 +107,36 @@ function updateEndSessionButtons() {
 function handleCanvasScoreClick(e) {
   if (!currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
-    alert("All arrows for this end have been scored.");
+    alert("All arrows scored");
     return;
   }
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const center = canvas.width / 2;
-  const dist = Math.sqrt(Math.pow(x - center, 2) + Math.pow(y - center, 2));
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const dist = Math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2);
   const maxRadius = canvas.width / 2;
-  let score = "M"; // Miss by default
 
-  // Assign score based on approximate ring radii
-  if (dist <= maxRadius * 0.2) score = 10;         // Yellow inner
-  else if (dist <= maxRadius * 0.4) score = 8;     // Red
-  else if (dist <= maxRadius * 0.6) score = 6;     // Blue
-  else if (dist <= maxRadius * 0.8) score = 4;     // Black
-  else if (dist <= maxRadius) score = 2;           // White
+  let score = "M";  // Default Miss
+
+  // Each ring is 0.1 * maxRadius approx (for 10 rings)
+  const ringWidth = maxRadius / 10;
+
+  if (dist <= ringWidth * 1) score = 10;
+  else if (dist <= ringWidth * 2) score = 9;
+  else if (dist <= ringWidth * 3) score = 8;
+  else if (dist <= ringWidth * 4) score = 7;
+  else if (dist <= ringWidth * 5) score = 6;
+  else if (dist <= ringWidth * 6) score = 5;
+  else if (dist <= ringWidth * 7) score = 4;
+  else if (dist <= ringWidth * 8) score = 3;
+  else if (dist <= ringWidth * 9) score = 2;
+  else if (dist <= ringWidth * 10) score = 1;
 
   arrowScores.push(score);
-  updateEndScores();
-  updateEndSessionButtons();
+  updateScoresUI();  // Your existing function to refresh display
+  updateButtonsUI(); // Update button states accordingly
 }
 
 // Signup handler
@@ -309,13 +318,20 @@ async function saveSession(){
   const sessionKey = Date.now().toString();
   try {
     await updateDoc(userRef, {
-      [`sessions.${sessionKey}`]: {
-        ...currentSession,
-        date: Timestamp.now(),
+      [`sessions.${sessionKey}`]: {  // Using dot notation for nested maps
+        bowStyle: currentSession.bowStyle,
+        distance: currentSession.distance,
+        targetFace: currentSession.targetFace,
+        arrowsPerEnd: currentSession.arrowsPerEnd,
+        endsCount: currentSession.endsCount,
+        ends: currentSession.ends,
+        totalScore: currentSession.totalScore,
+        date: Timestamp.now()
       }
     });
+    console.log("Session saved:", sessionKey);
   } catch(e) {
-    console.error("Error saving session:", e);
+    console.error("Failed to save session:", e);
   }
 }
 
@@ -423,35 +439,26 @@ onAuthStateChanged(auth, async user => {
 let selectedArcherUID = null;
 let selectedArcherName = null;
 
-async function loadArchersList() {
-  const archerList = document.getElementById("archerList");
-  archerList.innerHTML = '';
+async function loadAllArchers(){
+  const archersContainer = document.getElementById("archerList");
+  archersContainer.innerHTML = "";
 
   const q = query(collection(db, "users"), where("role", "==", "archer"));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) {
-    archerList.innerHTML = '<li>No archers found.</li>';
+  const querySnapshot = await getDocs(q);
+  if(querySnapshot.empty){
+    archersContainer.innerHTML = "<li>No archers found</li>";
     return;
   }
 
-  snapshot.forEach(docSnap => {
+  querySnapshot.forEach(docSnap => {
     const archer = docSnap.data();
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.textContent = archer.name;
-    li.style.cursor = 'pointer';
-    li.style.padding = '5px';
-    li.style.borderBottom = '1px solid #555';
-    li.onclick = () => {
-      selectedArcherUID = docSnap.id;
-      selectedArcherName = archer.name;
-      document.getElementById('selectedArcherName').innerText = selectedArcherName;
-      loadArcherSessions(selectedArcherUID);
-      document.getElementById('sessionResultContainer').style.display = 'none';
-    };
-    archerList.appendChild(li);
+    li.style.cursor = "pointer";
+    li.onclick = () => loadArcherSessions(docSnap.id);
+    archersContainer.appendChild(li);
   });
 }
-
 async function loadArcherSessions(archerUID) {
   const sessionListDiv = document.getElementById('archerSessionList');
   sessionListDiv.innerHTML = 'Loading sessions...';
