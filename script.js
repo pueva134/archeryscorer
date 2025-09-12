@@ -316,16 +316,16 @@ async function saveSession(){
   const sessionKey = Date.now().toString();
   try {
     await updateDoc(userRef, {
-      [`sessions.${sessionKey}`]: {  // Using dot notation for nested maps
-        bowStyle: currentSession.bowStyle,
-        distance: currentSession.distance,
-        targetFace: currentSession.targetFace,
-        arrowsPerEnd: currentSession.arrowsPerEnd,
-        endsCount: currentSession.endsCount,
-        ends: currentSession.ends,
-        totalScore: currentSession.totalScore,
-        date: Timestamp.now()
-      }
+    [`sessions.${sessionKey}`]: {
+    bowStyle: currentSession.bowStyle,
+    distance: currentSession.distance,
+    targetFace: currentSession.targetFace,
+    arrowsPerEnd: currentSession.arrowsPerEnd,
+    endsCount: currentSession.endsCount,
+    ends: currentSession.ends, // Array of arrays
+    totalScore: currentSession.totalScore,
+    date: Timestamp.now()
+    }
     });
     console.log("Session saved:", sessionKey);
   } catch(e) {
@@ -350,15 +350,24 @@ async function viewHistory(){
   const userDoc = await getDoc(doc(db, "users", currentUser.uid));
   if(!userDoc.exists()) return;
   const sessionsObject = userDoc.data().sessions || {};
-  const sessionsArr = Object.values(sessionsObject);
+  const sessionsArr = Object.entries(sessionsObject); // [key, session]
   const container = document.getElementById("historyTable");
   container.innerHTML = "";
+
   let table = document.createElement("table");
   table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
-  sessionsArr.forEach(s => {
+
+  // For each session, add a row
+  sessionsArr.forEach(([key, s]) => {
     const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
-    table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
+    const row = document.createElement("tr");
+    row.style.cursor = "pointer";
+    row.innerHTML = `<td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td>`;
+    // Add click handler
+    row.onclick = () => showSessionDetails(s, key);
+    table.appendChild(row);
   });
+
   container.appendChild(table);
   showScreen("historyScreen");
 }
