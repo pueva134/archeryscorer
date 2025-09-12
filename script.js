@@ -310,26 +310,31 @@ async function nextEnd(){
 }
 
 // Save session to Firestore
-async function saveSession(){
+async function saveSession() {
   if(!currentUser) return;
   const userRef = doc(db, "users", currentUser.uid);
   const sessionKey = Date.now().toString();
+
+  // Convert ends to an array of objects for Firestore compatibility
+  const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
+
   const newSession = {
     bowStyle: currentSession.bowStyle,
     distance: currentSession.distance,
     targetFace: currentSession.targetFace,
     arrowsPerEnd: currentSession.arrowsPerEnd,
     endsCount: currentSession.endsCount,
-    ends: currentSession.ends,
+    ends: endsObjects, // <--- now array of objects, not array of arrays
     totalScore: currentSession.totalScore,
     date: Timestamp.now()
   };
+
   try {
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: newSession
     });
     console.log("Session saved:", sessionKey);
-  } catch(e) {
+  } catch (e) {
     console.error("Failed to save session:", e);
   }
 }
@@ -523,8 +528,8 @@ async function displaySessionResult(sessionData) {
   headerRow += '<th>End Total</th></tr>';
   table.innerHTML = headerRow;
 
-  sessionData.ends.forEach((endArr, idx) => {
-    const endTotal = endArr.filter(s => typeof s === 'number').reduce((a,b) => a+b, 0);
+  sessionData.ends.forEach((endObj, idx) => {
+  const endArr = endObj.arrows;
     let row = `<tr><td>${idx + 1}</td>`;
     endArr.forEach(score => {
       row += `<td>${score}</td>`;
