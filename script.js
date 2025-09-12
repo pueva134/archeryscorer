@@ -453,7 +453,7 @@ async function loadArchersList() {
     li.textContent = archer.name;
     li.style.cursor = "pointer";
     li.onclick = () => loadArcherSessions(docSnap.id);
-    archerlist.appendChild(li);
+    archerList.appendChild(li);
   });
 }
 async function loadArcherSessions(archerUID) {
