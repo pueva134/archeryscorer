@@ -604,11 +604,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-function showCoachDashboard() {
-  showScreen("coachDashboard");
-  loadArchersList();
-}
-
 async function loadArchersList() {
   const archerList = document.getElementById("archerList");
   archerList.innerHTML = "";
