@@ -21,12 +21,12 @@ import {
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD...yourKeyHere",
+  apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
   projectId: "my-scorer",
   storageBucket: "my-scorer.appspot.com",
   messagingSenderId: "243500946215",
-  appId: "1:243500946215:web:yourid"
+  appId: "1:243500946215:web:bd976f1bd437edce684f02"
 };
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
