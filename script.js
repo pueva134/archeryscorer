@@ -437,17 +437,16 @@ onAuthStateChanged(auth, async user => {
 let selectedArcherUID = null;
 let selectedArcherName = null;
 
-async function loadAllArchers(){
-  const archersContainer = document.getElementById("archerList");
-  archersContainer.innerHTML = "";
-
+async function loadArchersList() {
+  const archerList = document.getElementById("archerList");
+  archerList.innerHTML = '';
   const q = query(collection(db, "users"), where("role", "==", "archer"));
-  const querySnapshot = await getDocs(q);
-  if(querySnapshot.empty){
-    archersContainer.innerHTML = "<li>No archers found</li>";
+  const snapshot = await getDocs(q);
+  console.log("archers query found", snapshot.size, "users");
+  if(snapshot.empty){
+    archerList.innerHTML = '<li>No archers found.</li>';
     return;
   }
-
   querySnapshot.forEach(docSnap => {
     const archer = docSnap.data();
     const li = document.createElement("li");
