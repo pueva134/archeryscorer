@@ -91,11 +91,15 @@ function updateEndSessionButtons() {
   const endBtn = document.getElementById("endSessionBtn");
   const lastEnd = currentEndNumber === currentSession.endsCount;
   const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
-  if (lastEnd && arrowsComplete) {
+  // Only show "Next" if not the last end and current arrows are complete
+  if (!lastEnd && arrowsComplete) {
+    nextBtn.style.display = "inline-block";
+    endBtn.style.display = "none";
+  } else if (lastEnd && arrowsComplete) {
     nextBtn.style.display = "none";
     endBtn.style.display = "inline-block";
   } else {
-    nextBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
     endBtn.style.display = "none";
   }
 }
