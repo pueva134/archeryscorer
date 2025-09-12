@@ -19,6 +19,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+// Firebase Config & Init
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -38,7 +39,7 @@ let currentUserRole = null;
 let currentSession = {};
 let arrowScores = [];
 let currentEndNumber = 1;
-let sessionDataForResults = null; // for last saved session display
+let sessionDataForResults = null;
 
 const canvas = document.getElementById("target");
 const ctx = canvas?.getContext("2d");
@@ -420,6 +421,119 @@ async function viewHistory() {
   showScreen("historyScreen");
 }
 
+function showCoachDashboard() {
+  showScreen("coachDashboard");
+  loadArchersList();
+}
+
+async function loadArchersList() {
+  const archerList = document.getElementById("archerList");
+  archerList.innerHTML = "";
+  const q = query(collection(db, "users"), where("role", "==", "archer"));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    archerList.innerHTML = "<li>No archers found.</li>";
+    return;
+  }
+  snapshot.forEach((docSnap) => {
+    const archer = docSnap.data();
+    const li = document.createElement("li");
+    li.textContent = archer.name;
+    li.style.cursor = "pointer";
+    li.onclick = () => loadArcherSessions(docSnap.id, archer.name);
+    archerList.appendChild(li);
+  });
+}
+
+async function loadArcherSessions(archerUID, archerName) {
+  const sessionListDiv = document.getElementById("archerSessionList");
+  sessionListDiv.innerHTML = "Loading sessions...";
+  const userDoc = await getDoc(doc(db, "users", archerUID));
+  if (!userDoc.exists()) {
+    sessionListDiv.innerHTML = "Archer not found.";
+    return;
+  }
+  const sessions = userDoc.data().sessions || {};
+  const sessionEntries = Object.entries(sessions);
+  if (sessionEntries.length === 0) {
+    sessionListDiv.innerHTML = "No sessions found.";
+    return;
+  }
+  const ul = document.createElement("ul");
+  ul.style.listStyle = "none";
+  ul.style.paddingLeft = "0";
+  sessionEntries.forEach(([sessionId, sessionData]) => {
+    const li = document.createElement("li");
+    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : "No date";
+    const total = sessionData.totalScore || 0;
+    li.textContent = `Date: ${date} - Total Score: ${total}`;
+    li.style.cursor = "pointer";
+    li.style.padding = "5px";
+    li.style.borderBottom = "1px solid #555";
+    li.onclick = () => {
+      displaySessionResult(sessionData);
+    };
+    ul.appendChild(li);
+  });
+  sessionListDiv.innerHTML = "";
+  sessionListDiv.appendChild(ul);
+}
+
+async function displaySessionResult(sessionData) {
+  document.getElementById("sessionResultContainer").style.display = "block";
+  const summaryDiv = document.getElementById("sessionResultSummary");
+  const tableDiv = document.getElementById("sessionResultTable");
+  const chartCanvas = document.getElementById("sessionResultChart");
+  summaryDiv.innerHTML = `
+    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
+    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
+    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
+    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
+    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
+  `;
+  const table = document.createElement("table");
+  table.style.width = "100%";
+  table.style.borderCollapse = "collapse";
+  let headerRow = "<tr><th>End</th>";
+  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
+  for (let i = 1; i <= arrowsCount; i++) {
+    headerRow += `<th>Arrow ${i}</th>`;
+  }
+  headerRow += "<th>End Total</th></tr>";
+  table.innerHTML = headerRow;
+  sessionData.ends.forEach((endObj, idx) => {
+    const endArr = endObj.arrows || [];
+    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
+    let row = `<tr><td>${idx + 1}</td>`;
+    endArr.forEach((score) => {
+      row += `<td>${score}</td>`;
+    });
+    row += `<td>${endTotal}</td></tr>`;
+    table.innerHTML += row;
+  });
+  tableDiv.innerHTML = "";
+  tableDiv.appendChild(table);
+  const ctx = chartCanvas.getContext("2d");
+  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
+  const endTotals = sessionData.ends.map((end) =>
+    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
+  );
+  window.sessionChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [
+        {
+          label: "End Total",
+          data: endTotals,
+          backgroundColor: "rgba(59, 130, 246, 0.7)",
+        },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+  });
+}
+
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -489,6 +603,119 @@ onAuthStateChanged(auth, async (user) => {
     showScreen("loginPage");
   }
 });
+
+function showCoachDashboard() {
+  showScreen("coachDashboard");
+  loadArchersList();
+}
+
+async function loadArchersList() {
+  const archerList = document.getElementById("archerList");
+  archerList.innerHTML = "";
+  const q = query(collection(db, "users"), where("role", "==", "archer"));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    archerList.innerHTML = "<li>No archers found.</li>";
+    return;
+  }
+  snapshot.forEach((docSnap) => {
+    const archer = docSnap.data();
+    const li = document.createElement("li");
+    li.textContent = archer.name;
+    li.style.cursor = "pointer";
+    li.onclick = () => loadArcherSessions(docSnap.id, archer.name);
+    archerList.appendChild(li);
+  });
+}
+
+async function loadArcherSessions(archerUID, archerName) {
+  const sessionListDiv = document.getElementById("archerSessionList");
+  sessionListDiv.innerHTML = "Loading sessions...";
+  const userDoc = await getDoc(doc(db, "users", archerUID));
+  if (!userDoc.exists()) {
+    sessionListDiv.innerHTML = "Archer not found.";
+    return;
+  }
+  const sessions = userDoc.data().sessions || {};
+  const sessionEntries = Object.entries(sessions);
+  if (sessionEntries.length === 0) {
+    sessionListDiv.innerHTML = "No sessions found.";
+    return;
+  }
+  const ul = document.createElement("ul");
+  ul.style.listStyle = "none";
+  ul.style.paddingLeft = "0";
+  sessionEntries.forEach(([sessionId, sessionData]) => {
+    const li = document.createElement("li");
+    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : "No date";
+    const total = sessionData.totalScore || 0;
+    li.textContent = `Date: ${date} - Total Score: ${total}`;
+    li.style.cursor = "pointer";
+    li.style.padding = "5px";
+    li.style.borderBottom = "1px solid #555";
+    li.onclick = () => {
+      displaySessionResult(sessionData);
+    };
+    ul.appendChild(li);
+  });
+  sessionListDiv.innerHTML = "";
+  sessionListDiv.appendChild(ul);
+}
+
+async function displaySessionResult(sessionData) {
+  document.getElementById("sessionResultContainer").style.display = "block";
+  const summaryDiv = document.getElementById("sessionResultSummary");
+  const tableDiv = document.getElementById("sessionResultTable");
+  const chartCanvas = document.getElementById("sessionResultChart");
+  summaryDiv.innerHTML = `
+    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
+    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
+    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
+    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
+    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
+  `;
+  const table = document.createElement("table");
+  table.style.width = "100%";
+  table.style.borderCollapse = "collapse";
+  let headerRow = "<tr><th>End</th>";
+  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
+  for (let i = 1; i <= arrowsCount; i++) {
+    headerRow += `<th>Arrow ${i}</th>`;
+  }
+  headerRow += "<th>End Total</th></tr>";
+  table.innerHTML = headerRow;
+  sessionData.ends.forEach((endObj, idx) => {
+    const endArr = endObj.arrows || [];
+    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
+    let row = `<tr><td>${idx + 1}</td>`;
+    endArr.forEach((score) => {
+      row += `<td>${score}</td>`;
+    });
+    row += `<td>${endTotal}</td></tr>`;
+    table.innerHTML += row;
+  });
+  tableDiv.innerHTML = "";
+  tableDiv.appendChild(table);
+  const ctx = chartCanvas.getContext("2d");
+  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
+  const endTotals = sessionData.ends.map((end) =>
+    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
+  );
+  window.sessionChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [
+        {
+          label: "End Total",
+          data: endTotals,
+          backgroundColor: "rgba(59, 130, 246, 0.7)",
+        },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+  });
+}
 
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
