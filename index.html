@@ -119,9 +119,15 @@
     <h3>Archers</h3>
     <ul id="archerList" style="list-style:none; padding-left:0;"></ul>
   </div>
-  <div id="archerSessions" style="margin-top:20px;">
+  <div id="archerSessionsContainer" style="margin-top:20px;">
     <h3>Sessions for <span id="selectedArcherName">Select an archer</span></h3>
-    <div id="archerSessionHistoryTable"></div>
+    <div id="archerSessionList"></div>
+  </div>
+  <div id="sessionResultContainer" style="margin-top:20px; display:none;">
+    <h3>Session Details</h3>
+    <div id="sessionResultSummary"></div>
+    <div id="sessionResultTable"></div>
+    <canvas id="sessionResultChart" width="400" height="200"></canvas>
   </div>
   <button id="coachBackBtn" style="margin-top:20px;">Back to Menu</button>
   </div>

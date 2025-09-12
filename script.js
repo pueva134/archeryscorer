@@ -425,73 +425,178 @@ let selectedArcherName = null;
 
 async function loadArchersList() {
   const archerList = document.getElementById("archerList");
-  archerList.innerHTML = "";
+  archerList.innerHTML = '';
 
-  const usersQuery = query(collection(db, "users"), where("role", "==", "archer"));
-  const snapshot = await getDocs(usersQuery);
-  if(snapshot.empty){
-    archerList.innerHTML = "<li>No archers found</li>";
+  const q = query(collection(db, "users"), where("role", "==", "archer"));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    archerList.innerHTML = '<li>No archers found.</li>';
     return;
   }
+
   snapshot.forEach(docSnap => {
     const archer = docSnap.data();
-    const li = document.createElement("li");
+    const li = document.createElement('li');
     li.textContent = archer.name;
-    li.style.cursor = "pointer";
-    li.style.padding = "5px";
-    li.style.borderBottom = "1px solid #555";
-    li.addEventListener("click", () => {
+    li.style.cursor = 'pointer';
+    li.style.padding = '5px';
+    li.style.borderBottom = '1px solid #555';
+    li.onclick = () => {
       selectedArcherUID = docSnap.id;
       selectedArcherName = archer.name;
-      document.getElementById("selectedArcherName").innerText = selectedArcherName;
-      loadArcherSessionHistory(selectedArcherUID);
-    });
+      document.getElementById('selectedArcherName').innerText = selectedArcherName;
+      loadArcherSessions(selectedArcherUID);
+      document.getElementById('sessionResultContainer').style.display = 'none';
+    };
     archerList.appendChild(li);
   });
 }
 
-async function loadArcherSessionHistory(archerUID) {
-  const sessionDiv = document.getElementById("archerSessionHistoryTable");
-  sessionDiv.innerHTML = "Loading...";
-  try {
-    const userDoc = await getDoc(doc(db, "users", archerUID));
-    if(!userDoc.exists()){
-      sessionDiv.innerHTML = "Archer not found";
-      return;
-    }
-    const sessionsObj = userDoc.data().sessions || {};
-    const sessionsArr = Object.values(sessionsObj);
-    if(sessionsArr.length === 0){
-      sessionDiv.innerHTML = "No sessions found";
-      return;
-    }
-    
-    const table = document.createElement("table");
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-    table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
-    sessionsArr.forEach(s => {
-      const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
-      table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
-    });
-    sessionDiv.innerHTML = "";
-    sessionDiv.appendChild(table);
-  } catch(e) {
-    sessionDiv.innerHTML = "Error loading sessions";
-    console.error(e);
-  }
-}
+async function loadArcherSessions(archerUID) {
+  const sessionListDiv = document.getElementById('archerSessionList');
+  sessionListDiv.innerHTML = 'Loading sessions...';
 
-function showCoachDashboard(){
-  if(currentUserRole !== "coach"){
-    alert("Access denied. Coach area only.");
+  const userDoc = await getDoc(doc(db, "users", archerUID));
+  if (!userDoc.exists()) {
+    sessionListDiv.innerHTML = 'Archer not found.';
     return;
   }
-  showScreen("coachDashboard");
-  loadArchersList();
+  const sessions = userDoc.data().sessions || {};
+  const sessionEntries = Object.entries(sessions);
+  if (sessionEntries.length === 0) {
+    sessionListDiv.innerHTML = 'No sessions found.';
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.style.listStyle = 'none';
+  ul.style.paddingLeft = '0';
+
+  sessionEntries.forEach(([sessionId, sessionData]) => {
+    const li = document.createElement('li');
+    const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : 'No date';
+    const total = sessionData.totalScore || 0;
+    li.textContent = `Date: ${date} - Total Score: ${total}`;
+    li.style.cursor = 'pointer';
+    li.style.padding = '5px';
+    li.style.borderBottom = '1px solid #555';
+    li.onclick = () => {
+      displaySessionResult(sessionData);
+    };
+    ul.appendChild(li);
+  });
+
+  sessionListDiv.innerHTML = '';
+  sessionListDiv.appendChild(ul);
 }
 
-document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+// Display detailed session result with table and chart (Chart.js)
+function displaySessionResult(sessionData) {
+  document.getElementById('sessionResultContainer').style.display = 'block';
+  const summaryDiv = document.getElementById('sessionResultSummary');
+  const tableDiv = document.getElementById('sessionResultTable');
+  const chartCanvas = document.getElementById('sessionResultChart');
+
+  summaryDiv.innerHTML = `
+    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
+    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
+    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
+    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
+    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
+  `;
+
+  // Build table for ends and arrows per end
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  let headerRow = '<tr><th>End</th>';
+
+  const arrowsCount = sessionData.ends[0]?.length || 0;
+  for (let i = 1; i <= arrowsCount; i++) {
+    headerRow += `<th>Arrow ${i}</th>`;
+  }
+  headerRow += '<th>End Total</th></tr>';
+  table.innerHTML = headerRow;
+
+  sessionData.ends.forEach((endArr, idx) => {
+    const endTotal = endArr.filter(s => typeof s === 'number').reduce((a,b) => a+b, 0);
+    let row = `<tr><td>${idx + 1}</td>`;
+    endArr.forEach(score => {
+      row += `<td>${score}</td>`;
+    });
+    row += `<td>${endTotal}</td></tr>`;
+    table.innerHTML += row;
+  });
+
+  tableDiv.innerHTML = '';
+  tableDiv.appendChild(table);
+
+  // Prepare data for Chart.js bar chart
+  const ctx = chartCanvas.getContext('2d');
+  if(window.sessionChartInstance) window.sessionChartInstance.destroy();
+
+  const endTotals = sessionData.ends.map(
+    end => end.filter(s => typeof s === 'number').reduce((a,b) => a + b, 0)
+  );
+
+  window.sessionChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [{
+        label: 'End Total',
+        data: endTotals,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+}
+
+// Add navigation control to Coach Dashboard buttons
+document.getElementById('coachBackBtn').addEventListener('click', () => {
+  document.getElementById('sessionResultContainer').style.display = 'none';
+  showScreen('menuScreen');
+});
+
+// Modify auth state change to show coach dashboard to coaches
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    currentUser = null;
+    currentUserRole = null;
+    showScreen('loginPage');
+    return;
+  }
+  currentUser = user;
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (!userDoc.exists()) {
+    showScreen('loginPage');
+    return;
+  }
+  const data = userDoc.data();
+  currentUserRole = data.role || 'archer';
+  document.getElementById('greeting').innerText = `Hello, ${data.name}! (${currentUserRole})`;
+
+  if (currentUserRole === 'coach') {
+    showScreen('coachDashboard');
+    loadArchersList();
+  }
+  else {
+    showScreen('menuScreen');
+  }
+});
+
+// Ensure 'coachDashboard' has appropriate divs, "Back" button, "archerList", "archerSessionsContainer", etc., in your HTML.
+
+// In menu screen HTML, add a Coach Dashboard button visible only to coaches:
+// Check role on login and toggle button visibility accordingly.
+
+// That concludes coach ability to view all archers' session history and individual session results.
+
+// Let me know if you want me to help integrate the coach dashboard HTML snippet or CSS.
 
 // Initialization
 window.addEventListener("DOMContentLoaded", () => {
