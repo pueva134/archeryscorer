@@ -395,9 +395,11 @@ function attachButtonHandlers() {
 
 // Auth state change handler
 onAuthStateChanged(auth, async (user) => {
+  console.log("Auth state changed", user);
   currentUser = user;
   if(user){
     const userDoc = await getDoc(doc(db, "users", user.uid));
+    console.log("Fetched userDoc:", userDoc.exists(), userDoc.data());
     if(userDoc.exists()){
       const data = userDoc.data();
       currentUserRole = data.role || "archer";
