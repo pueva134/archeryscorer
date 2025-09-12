@@ -362,7 +362,6 @@ function showSessionResults(sessionData) {
   });
   tableHtml += "</table>";
   tableDiv.innerHTML = tableHtml;
-  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
   const endTotals = sessionData.ends.map((end) =>
     (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
   );
@@ -513,24 +512,38 @@ async function displaySessionResult(sessionData) {
   });
   tableDiv.innerHTML = "";
   tableDiv.appendChild(table);
+  if (window.sessionChartInstance) {
+    window.sessionChartInstance.destroy();
+  }
   const ctx = chartCanvas.getContext("2d");
-  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
-  const endTotals = sessionData.ends.map((end) =>
-    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0)
+  const endTotals = sessionData.ends.map((end) => 
+    (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
   );
+
   window.sessionChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
       labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "End Total",
-          data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
+      datasets: [{
+        label: "End Total",
+        data: endTotals,
+        backgroundColor: "rgba(59, 130, 246, 0.7)"
+      }]
     },
-    options: { responsive: true, maintainAspectRatio: false },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 1000, // animation duration in ms
+        easing: 'easeOutQuart' // easing effect
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: Math.max(...endTotals) + 10  // optional: set a fixed max for y-axis
+        }
+      }
+    }
   });
 }
 
