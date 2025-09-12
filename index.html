@@ -85,12 +85,17 @@
 <body>
 
 <div class="container">
-
   <!-- Login Screen -->
   <div id="loginPage" class="screen active">
     <h1>🏹 My Scorer 🏹</h1>
-    <input type="text" id="username" placeholder="Enter your name" />
-    <input type="email" id="email" placeholder="Email Address" />
+      <div>
+      <label for="username">Name:</label>
+      <input type="text" id="username" placeholder="Enter name" />
+    </div>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="Email Address" />
+    </div>
     <input type="password" id="password" placeholder="Password" />
     <select id="role">
       <option value="archer">Archer</option>
