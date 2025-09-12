@@ -571,7 +571,10 @@ function displaySessionResult(sessionData) {
 }
 
 // Add navigation control to Coach Dashboard buttons
-document.getElementById('coachBackBtn').addEventListener('click', () => {
+  document.getElementById('sessionResultCloseBtn').addEventListener('click', () => {
+  document.getElementById('sessionResultContainer').style.display = 'none';
+});
+  document.getElementById('coachBackBtn').addEventListener('click', () => {
   document.getElementById('sessionResultContainer').style.display = 'none';
   showScreen('menuScreen');
 });
