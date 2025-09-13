@@ -420,15 +420,29 @@ async function endSession() {
 // Updated showSessionResults with bar chart for end scores and total session score displayed:
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
+  let dateStr = "N/A";
+  if (session.date) {
+    // If it's a Firestore Timestamp object, get seconds
+    if (session.date.seconds) {
+      dateStr = new Date(session.date.seconds * 1000).toLocaleString();
+    }
+    // If it's a JS Date object for local sessions, convert directly
+    else if (session.date instanceof Date) {
+      dateStr = session.date.toLocaleString();
+    }
+    // If it's something else (string), use as is
+    else if (typeof session.date === "string") {
+      dateStr = session.date;
+    }
+  }
 
-  // Summary stats
   document.getElementById("sessionResultsSummary").innerHTML = `
     <strong>Score:</strong> ${session.totalScore} / ${session.endsCount * session.arrowsPerEnd * 10}
-    <br><strong>Date:</strong> ${new Date(session.date.seconds * 1000).toLocaleString()}
+    <br><strong>Date:</strong> ${dateStr}
     <br><strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m
     <br><strong>Target Face:</strong> ${session.targetFace}
   `;
-
+  
   // Results table
   const tableDiv = document.getElementById("sessionResultsTable");
   let table = "<table border='1'><tr><th>End</th>";
