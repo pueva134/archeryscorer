@@ -1,3 +1,5 @@
+/* ================= Base Styles (yours with slight additions for consistency) ================= */
+
 html, body {
   height: 100%;
   margin: 0;
@@ -9,19 +11,13 @@ html, body {
   height: 100vh;
   overflow-x: hidden;  /* Prevent horizontal scroll */
   overflow-y: auto;
-}
-
-body {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  overflow-x: hidden;
+  box-sizing: border-box;
 }
-/* Constrain container max width and allow it to shrink on small screens */
+
 .container {
   display: flex;
   flex-direction: column;
@@ -29,7 +25,7 @@ body {
   align-items: center;
   min-width: 320px;  /* slightly smaller min width */
   max-width: 400px;
-  width: 95vw;       /* Use viewport width but capped by max-width */
+  width: 95vw;        /* Use viewport width but capped by max-width */
   padding: 30px 28px;
   background: rgba(24, 31, 42, 0.98);
   border-radius: 18px;
@@ -37,9 +33,9 @@ body {
   box-sizing: border-box;
   max-height: 90vh;  /* prevent container height from exceeding viewport */
   overflow-y: auto;  /* scroll within container if content long */
+  text-align: center;
 }
 
-/* Screen containers fill container, scroll within if content overflows */
 .screen {
   width: 100%;
   max-height: 85vh;  /* limit height to viewport fraction */
@@ -51,12 +47,10 @@ body {
   padding: 5px;
 }
 
-/* Show active screen */
 .screen.active {
   display: flex;
 }
 
-/* Canvas and chart elements responsive */
 canvas {
   max-width: 100%;
   height: auto;
@@ -65,18 +59,7 @@ canvas {
   box-sizing: border-box;
 }
 
-/* For very small screens, adjust container */
-@media (max-width: 450px) {
-  .container {
-    max-width: 96vw;
-    min-width: auto;
-    padding: 8vw 3vw;
-  }
-  input, select, button {
-    max-width: 97vw;
-  }
-}
-/* Ensure form elements are symmetrical & centered */
+/* Input, select, button styles */
 input, select, button {
   max-width: 320px;
   width: 100%;
@@ -89,14 +72,14 @@ input, select, button {
   box-sizing: border-box;
 }
 
-/* Headings should be centered */
+/* Headings centered */
 h1, h2, h3 {
   width: 100%;
   text-align: center;
   margin-bottom: 20px;
 }
 
-/* Button gradient and hover style */
+/* Button base style with gradient & hover */
 button {
   background: linear-gradient(90deg, #3b82f6, #52c3ff);
   color: #fff;
@@ -112,6 +95,7 @@ button:hover {
   background: linear-gradient(90deg, #2563eb, #1d4ed8);
 }
 
+/* Message styles */
 .message {
   color: #e74c3c;
   text-align: center;
@@ -120,10 +104,31 @@ button:hover {
   width: 100%;
 }
 
-/* ===== Red/Black Dark Theme Enhancements (active only when toggled) ===== */
+/* Responsive adjustments */
+@media (max-width: 450px) {
+  .container {
+    max-width: 96vw;
+    min-width: auto;
+    padding: 8vw 3vw;
+  }
+  input, select, button {
+    max-width: 97vw;
+  }
+}
+
+/* ================= Red/Black Dark Theme ================= */
+
 body.redblack-theme {
   background: #000 !important; /* Pure black background */
   color: #ff5353 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 body.redblack-theme .container {
@@ -131,9 +136,9 @@ body.redblack-theme .container {
   border-radius: 20px;
   color: #ff5353 !important;
   box-shadow: 0 0 32px 8px #ff2121, 0 0 0 1px #ff1818 !important;
+  text-align: center;
 }
 
-/* Buttons: full red gradients, focused red glow */
 body.redblack-theme button {
   background: linear-gradient(90deg, #ff2020 0%, #b71c1c 100%) !important;
   color: #fff !important;
@@ -142,7 +147,6 @@ body.redblack-theme button {
   transition: box-shadow .22s, background .22s;
 }
 
-/* Even stronger red glow on hover/focus */
 body.redblack-theme button:hover,
 body.redblack-theme button:focus,
 body.redblack-theme button:active {
@@ -155,10 +159,19 @@ body.redblack-theme h1 {
   text-shadow: 0 0 8px #ff2020;
 }
 
-/* ===== Light Theme Adaptation ===== */
+/* ================= Light Theme ================= */
+
 body.light-theme {
   background: linear-gradient(135deg, #f5f8fa, #dbeafe);
   color: #222222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 body.light-theme .container {
@@ -166,6 +179,7 @@ body.light-theme .container {
   border-radius: 18px;
   box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.12);
   color: #222222;
+  text-align: center;
 }
 
 body.light-theme input,
@@ -193,7 +207,6 @@ body.light-theme button:focus {
   background: #e0e7ff;
 }
 
-/* Button styling */
 body.light-theme button {
   background: linear-gradient(90deg, #fbbf24, #f59e42);
   color: #222222;
@@ -209,8 +222,8 @@ body.light-theme button:hover {
   background: linear-gradient(90deg, #d97706, #b45309);
 }
 
-body.light-theme h1, 
-body.light-theme h2, 
+body.light-theme h1,
+body.light-theme h2,
 body.light-theme h3 {
   width: 100%;
   text-align: center;
@@ -218,7 +231,6 @@ body.light-theme h3 {
   color: #222222;
 }
 
-/* Message style */
 body.light-theme .message {
   color: #b91c1c;
   text-align: center;
@@ -227,7 +239,6 @@ body.light-theme .message {
   width: 100%;
 }
 
-/* Responsive */
 @media (max-width: 450px) {
   body.light-theme .container {
     max-width: 96vw;
