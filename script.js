@@ -83,13 +83,20 @@ function drawTarget() {
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
-  if (endScoresDiv) endScoresDiv.innerText = arrowScores.join(" | ");
+
+  // Use score property for display
+  if (endScoresDiv) {
+    endScoresDiv.innerText = arrowScores.map(a => typeof a === "object" ? a.score : a).join(" | ");
+  }
   if (endTotalDiv) {
-    const numeric = arrowScores.filter(s => typeof s === "number").reduce((a,b) => a + b, 0);
+    // Only sum numeric scores, ignore "M" (misses)
+    const numeric = arrowScores
+      .map(a => typeof a === "object" ? a.score : a)
+      .filter(s => typeof s === "number")
+      .reduce((a,b) => a + b, 0);
     endTotalDiv.innerText = "End Total: " + numeric;
   }
 }
-
 
 // Update Next/End buttons visibility
 function updateEndSessionButtons() {
@@ -517,6 +524,8 @@ const lastEnd = session.ends[session.ends.length - 1];
 // Defensive: Only draw if lastEnd contains arrows as objects
 if (lastEnd && typeof lastEnd === "object") {
   lastEnd.forEach(arrow => {
+  let score = (typeof arrow === "object") ? arrow.score : arrow;
+  table += `<td>${score}</td>`;
   if (typeof arrow === "object" && arrow.x !== undefined && arrow.y !== undefined) {
       ctx.beginPath();
       ctx.arc(arrow.x, arrow.y, 7, 0, 2 * Math.PI);
