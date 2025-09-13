@@ -171,12 +171,18 @@ body.redblack-theme button {
   background: linear-gradient(90deg, #ff2121 0%, #ff5353 100%) !important;
   color: #fff !important;
   border: none !important;
-  box-shadow: 0 0 18px 2px #ff2121, 0 2px 8px #b71c1c !important;
+  box-shadow: 0 0 8px 1.5px rgba(255, 33, 33, 0.6), 0 2px 6px rgba(183, 28, 28, 0.6) !important;
+  border-radius: 12px !important;
+  min-height: 44px;
+  font-size: 1.12rem;
+  width: 100%;
 }
 
+/* Redblack theme button hover softened glow */
 body.redblack-theme button:hover,
 body.redblack-theme button:focus {
   background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
+  box-shadow: 0 0 14px 3px rgba(255, 59, 59, 0.7), 0 2px 8px rgba(255, 33, 33, 0.7) !important;
 }
 
 /* Buttons: Light theme */
@@ -218,16 +224,30 @@ body.light-theme h1 {
 }
 
 /* Container adjustments for themes */
+body.redblack-theme {
+  background-color: #000 !important;  /* solid black */
+  background-image: none !important; /* remove any gradient/img */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
 body.redblack-theme .container {
   background: #131313 !important;
   border-radius: 22px !important;
-  box-shadow: 0 0 38px 12px #ff5353, 0 0 2px #ff2121 !important;
+  box-shadow: 0 0 20px 6px #ff5353, 0 0 2px #ff2121 !important;
+  color: #ff5353 !important;
+  text-align: center;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   margin: auto !important;
-  text-align: center;
 }
 
 body.light-theme .container {
