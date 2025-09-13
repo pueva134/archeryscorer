@@ -371,6 +371,7 @@ async function endSession() {
 
   if (currentSession.ends.length > 0) {
     await saveSession();
+    showSessionResults(currentSession);
   }
   currentSession = {};
   arrowScores = [];
@@ -378,6 +379,74 @@ async function endSession() {
   showScreen("menuScreen");
 }
 
+async function showSessionResults(session) {
+  showScreen("sessionResultsScreen");
+  
+  // Summary stats
+  document.getElementById("sessionResultsSummary").innerHTML = `
+    <strong>Score:</strong> ${session.totalScore} / ${session.endsCount * session.arrowsPerEnd * 10}
+    <br><strong>Date:</strong> ${new Date().toLocaleString()}
+    <br><strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m
+    <br><strong>Target Face:</strong> ${session.targetFace}
+  `;
+
+  // Results table
+  const tableDiv = document.getElementById("sessionResultsTable");
+  let table = "<table border='1'><tr><th>End</th>";
+  for(let i=1; i<=session.arrowsPerEnd; i++) table += `<th>Arrow ${i}</th>`;
+  table += "<th>End Total</th></tr>";
+  session.ends.forEach((end, idx) => {
+    const total = end.filter(s => typeof s === "number").reduce((a,b) => a+b, 0);
+    table += `<tr><td>${idx+1}</td>`;
+    end.forEach(score => table += `<td>${score}</td>`);
+    table += `<td>${total}</td></tr>`;
+  });
+  table += "</table>";
+  tableDiv.innerHTML = table;
+
+  // Trend Line Chart (Chart.js)
+  const chartCanvas = document.getElementById("sessionResultsTrendChart");
+  if(window.resultTrendChart) window.resultTrendChart.destroy();
+  const endPercentages = session.ends.map(end => {
+    const total = end.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
+    return ((total / (session.arrowsPerEnd * 10)) * 100).toFixed(1);
+  });
+  window.resultTrendChart = new Chart(chartCanvas.getContext("2d"), {
+    type: 'line',
+    data: {
+      labels: session.ends.map((_, i) => `End ${i+1}`),
+      datasets: [{
+        label: 'End % Points',
+        data: endPercentages,
+        borderColor: '#38bdf8',
+        fill: false
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // Target Rings Viz (for last end)
+  const targetCanvas = document.getElementById("sessionResultsTarget");
+  const ctx = targetCanvas.getContext("2d");
+  const radius = targetCanvas.width / 2;
+  const rings = [
+    { color: "#FFFFFF", r: radius },
+    { color: "#000000", r: radius * 0.8 },
+    { color: "#0000FF", r: radius * 0.6 },
+    { color: "#FF0000", r: radius * 0.4 },
+    { color: "#FFFF00", r: radius * 0.2 }
+  ];
+  ctx.clearRect(0,0,targetCanvas.width,targetCanvas.height);
+  rings.forEach(rg => {
+    ctx.beginPath(); ctx.arc(radius, radius, rg.r, 0, 2 * Math.PI);
+    ctx.fillStyle = rg.color; ctx.fill();
+  });
+  // Optionally: Plot arrows for last end or full session as dots
+  // (This requires saving arrow coordinates if desired for advanced analytics)
+}
+
+// Attach a button to return to menu
+document.getElementById("backToMenuBtn").addEventListener("click", () => showScreen("menuScreen"));
 
 // View history for current user
 async function viewHistory(){
