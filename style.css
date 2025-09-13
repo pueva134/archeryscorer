@@ -2,6 +2,7 @@
 
 html, body {
   height: 100vh;
+  width: 100vw;
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -13,7 +14,17 @@ html, body {
   color: #fff;
   overflow-x: hidden;  /* Prevent horizontal scroll */
   overflow-y: auto;
-  width: 100vw;
+}
+
+body, body.light-theme, body.redblack-theme {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh;
+  min-width: 100vw;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .container {
@@ -33,6 +44,7 @@ html, body {
   box-sizing: border-box;
   text-align: center;
   overflow-y: auto;
+  gap: 18px;
 }
 
 .screen {
@@ -54,6 +66,7 @@ html, body {
   width: 100%;
   height: auto;
   padding: 5px 0;
+  gap: 18px;
 }
 
 canvas {
@@ -77,12 +90,6 @@ input, select, button {
   cursor: pointer;
 }
 
-h1, h2, h3 {
-  width: 100%;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
 button {
   background: linear-gradient(90deg, #3b82f6, #52c3ff);
   color: #fff;
@@ -99,7 +106,7 @@ button {
 }
 
 button:not(:last-child) {
-  margin-bottom: 12px;
+  margin-bottom: 15px;
 }
 
 button:hover {
@@ -114,7 +121,7 @@ button:hover {
   width: 100%;
 }
 
-/* Inputs & Selects: Consistent look in all themes */
+/* Inputs & Selects Styling */
 input, select {
   max-width: 320px;
   width: 100%;
@@ -126,7 +133,6 @@ input, select {
   color: #222;
 }
 
-/* Default Dark Theme Inputs/Selects */
 body:not(.light-theme):not(.redblack-theme) input,
 body:not(.light-theme):not(.redblack-theme) select {
   background: #1A2332;
@@ -134,7 +140,6 @@ body:not(.light-theme):not(.redblack-theme) select {
   border: 1.8px solid #3b82f6;
 }
 
-/* Redblack theme Inputs/Selects */
 body.redblack-theme input,
 body.redblack-theme select {
   background: #23181a;
@@ -142,7 +147,6 @@ body.redblack-theme select {
   border: 1.8px solid #ff3b3b;
 }
 
-/* Light theme Inputs/Selects */
 body.light-theme input,
 body.light-theme select {
   background: #f8fafe;
@@ -152,10 +156,10 @@ body.light-theme select {
 
 /* Labels */
 label, .form-label {
-  color: #f2f2f2;
   font-weight: 500;
   display: block;
   margin-bottom: 6px;
+  color: #f2f2f2;
 }
 
 body.redblack-theme label, body.redblack-theme .form-label {
@@ -166,7 +170,7 @@ body.light-theme label, body.light-theme .form-label {
   color: #222;
 }
 
-/* Buttons: Redblack theme */
+/* Buttons: Redblack Theme */
 body.redblack-theme button {
   background: linear-gradient(90deg, #ff2121 0%, #ff5353 100%) !important;
   color: #fff !important;
@@ -178,14 +182,13 @@ body.redblack-theme button {
   width: 100%;
 }
 
-/* Redblack theme button hover softened glow */
 body.redblack-theme button:hover,
 body.redblack-theme button:focus {
   background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
   box-shadow: 0 0 14px 3px rgba(255, 59, 59, 0.7), 0 2px 8px rgba(255, 33, 33, 0.7) !important;
 }
 
-/* Buttons: Light theme */
+/* Buttons: Light Theme */
 body.light-theme button {
   background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
   color: #222222;
@@ -225,8 +228,8 @@ body.light-theme h1 {
 
 /* Container adjustments for themes */
 body.redblack-theme {
-  background-color: #000 !important;  /* solid black */
-  background-image: none !important; /* remove any gradient/img */
+  background-color: #000 !important;
+  background-image: none !important;
   display: flex;
   align-items: center;
   justify-content: center;
