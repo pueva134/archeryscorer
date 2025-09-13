@@ -417,18 +417,17 @@ async function endSession() {
   // wait for Back To Menu button click to do that
 }
 
-
+// Updated showSessionResults with bar chart for end scores and total session score displayed:
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
-  
+
   // Summary stats
   document.getElementById("sessionResultsSummary").innerHTML = `
     <strong>Score:</strong> ${session.totalScore} / ${session.endsCount * session.arrowsPerEnd * 10}
-    <br><strong>Date:</strong> ${new Date().toLocaleString()}
+    <br><strong>Date:</strong> ${new Date(session.date.seconds * 1000).toLocaleString()}
     <br><strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m
     <br><strong>Target Face:</strong> ${session.targetFace}
   `;
-
 
   // Results table
   const tableDiv = document.getElementById("sessionResultsTable");
@@ -444,28 +443,47 @@ function showSessionResults(session) {
   table += "</table>";
   tableDiv.innerHTML = table;
 
-
-  // Trend Line Chart (Chart.js)
+  // Draw Chart.js bar chart with end totals & total session score as title
   const chartCanvas = document.getElementById("sessionResultsTrendChart");
-  if(window.resultTrendChart) window.resultTrendChart.destroy();
-  const endPercentages = session.ends.map(end => {
-    const total = end.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
-    return ((total / (session.arrowsPerEnd * 10)) * 100).toFixed(1);
-  });
-  window.resultTrendChart = new Chart(chartCanvas.getContext("2d"), {
-    type: 'line',
+  if(window.sessionChartInstance) window.sessionChartInstance.destroy();
+
+  const endTotals = session.ends.map(end =>
+    end.filter(s => typeof s === 'number').reduce((a,b) => a+b, 0)
+  );
+
+  window.sessionChartInstance = new Chart(chartCanvas.getContext("2d"), {
+    type: 'bar',
     data: {
-      labels: session.ends.map((_, i) => `End ${i+1}`),
+      labels: session.ends.map((_, i) => `End ${i + 1}`),
       datasets: [{
-        label: 'End % Points',
-        data: endPercentages,
-        borderColor: '#38bdf8',
-        fill: false
+        label: 'Points per End',
+        data: endTotals,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)'
       }]
     },
-    options: { responsive: true, maintainAspectRatio: false }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Session Total Score: ${session.totalScore}`,
+          font: { size: 16, weight: 'bold' }
+        },
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: session.arrowsPerEnd * 10, // Max score per end assuming max 10 points per arrow
+          title: { display: true, text: 'Points' }
+        },
+        x: {
+          title: { display: true, text: 'End Number' }
+        }
+      }
+    }
   });
-
 
   // Target Rings Viz (for last end)
   const targetCanvas = document.getElementById("sessionResultsTarget");
