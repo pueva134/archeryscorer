@@ -1,256 +1,204 @@
-/* ================= Base Styles ================= */
-
+/* ================= Center everything ================= */
 html, body {
   height: 100vh;
   width: 100vw;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #1f2937, #111827);
   color: #fff;
-  overflow-x: hidden;  /* Prevent horizontal scroll */
+  box-sizing: border-box;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
+/* Consistent centering for all themes */
 body, body.light-theme, body.redblack-theme {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   min-height: 100vh;
   min-width: 100vw;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
+/* ================= Form panel ================= */
 .container {
   display: flex !important;
   flex-direction: column !important;
-  justify-content: center !important;
   align-items: center !important;
+  justify-content: center !important;
   margin: auto !important;
   min-width: 320px;
   max-width: 400px;
   width: 90vw;
   max-height: 90vh;
-  padding: 30px 28px;
+  padding: 32px 30px;
+  border-radius: 22px;
+  box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .13);
   background: rgba(24, 31, 42, 0.98);
-  border-radius: 18px;
-  box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
   box-sizing: border-box;
   text-align: center;
   overflow-y: auto;
-  gap: 18px;
 }
 
-.screen {
+/* ================= Form Setup spacing ================= */
+form, .session-setup-form, .login-form, .signup-form, .screen.active {
   width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 5px;
-}
-
-.screen.active {
   display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
+  flex-direction: column;
   align-items: center !important;
-  width: 100%;
-  height: auto;
-  padding: 5px 0;
-  gap: 18px;
-}
-
-canvas {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto 15px auto;
-  box-sizing: border-box;
-}
-
-input, select, button {
+  justify-content: center !important;
+  gap: 16px; /* Consistent vertical spacing between inputs & buttons */
+  margin: 0 auto;
   max-width: 320px;
-  width: 100%;
-  display: block;
-  margin: 7px auto 15px auto;
-  padding: 11px 14px;
-  border-radius: 10px;
-  border: none;
-  font-size: 1rem;
   box-sizing: border-box;
-  cursor: pointer;
 }
 
-button {
-  background: linear-gradient(90deg, #3b82f6, #52c3ff);
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  transition: background 0.3s, box-shadow 0.2s;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-  min-height: 44px;
-  font-size: 1.12rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  width: 100%;
-}
-
-button:not(:last-child) {
-  margin-bottom: 15px;
-}
-
-button:hover {
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
-}
-
-.message {
-  color: #e74c3c;
-  text-align: center;
-  margin-bottom: 12px;
-  font-weight: 600;
-  width: 100%;
-}
-
-/* Inputs & Selects Styling */
+/* Inputs and selects */
 input, select {
   max-width: 320px;
   width: 100%;
   padding: 11px 14px;
-  border-radius: 10px;
-  border: 1.8px solid transparent;
-  font-size: 1rem;
-  background: #f2f4f8;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  font-size: 1.05rem;
+  background: #e6eefb;
   color: #222;
+  box-sizing: border-box;
+  margin: 0 !important;
+  letter-spacing: 0.01em;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+/* Label styling */
+label, .form-label {
+  font-weight: 600;
+  font-size: 1rem;
+  display: block;
+  margin-bottom: 5px;
+  color: #e3e3e3;
+  text-align: left;
+  width: 100%;
+}
+
+/* Theme-specific input/select border color */
+body.light-theme input,
+body.light-theme select {
+  background: #fff;
+  color: #222;
+  border: 2px solid #fbbf24;
 }
 
 body:not(.light-theme):not(.redblack-theme) input,
 body:not(.light-theme):not(.redblack-theme) select {
-  background: #1A2332;
-  color: #fff;
-  border: 1.8px solid #3b82f6;
+  background: #212c3b;
+  color: #e3e3e3;
+  border: 2px solid #3b82f6;
 }
 
 body.redblack-theme input,
 body.redblack-theme select {
   background: #23181a;
   color: #ff5353;
-  border: 1.8px solid #ff3b3b;
+  border: 2px solid #ff3b3b;
 }
 
-body.light-theme input,
-body.light-theme select {
-  background: #f8fafe;
-  color: #222;
-  border: 1.8px solid #ffd364;
-}
-
-/* Labels */
-label, .form-label {
-  font-weight: 500;
-  display: block;
-  margin-bottom: 6px;
-  color: #f2f2f2;
-}
-
-body.redblack-theme label, body.redblack-theme .form-label {
-  color: #ff5353;
-}
-
-body.light-theme label, body.light-theme .form-label {
-  color: #222;
-}
-
-/* Buttons: Redblack Theme */
-body.redblack-theme button {
-  background: linear-gradient(90deg, #ff2121 0%, #ff5353 100%) !important;
-  color: #fff !important;
-  border: none !important;
-  box-shadow: 0 0 8px 1.5px rgba(255, 33, 33, 0.6), 0 2px 6px rgba(183, 28, 28, 0.6) !important;
-  border-radius: 12px !important;
-  min-height: 44px;
-  font-size: 1.12rem;
+/* ================= Buttons ================= */
+button {
+  max-width: 320px;
   width: 100%;
-}
-
-body.redblack-theme button:hover,
-body.redblack-theme button:focus {
-  background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
-  box-shadow: 0 0 14px 3px rgba(255, 59, 59, 0.7), 0 2px 8px rgba(255, 33, 33, 0.7) !important;
-}
-
-/* Buttons: Light Theme */
-body.light-theme button {
-  background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
-  color: #222222;
-  font-weight: bold;
+  min-height: 44px;
+  padding: 12px 0;
+  font-size: 1.13rem;
+  font-weight: 700;
+  border-radius: 14px;
   border: none;
-  transition: background 0.3s ease;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-  min-height: 44px;
-  font-size: 1.12rem;
-  width: 100%;
-  box-shadow: 0 2px 9px rgba(59, 130, 246, 0.07);
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.28s, box-shadow 0.2s;
+  box-shadow: 0 2px 9px rgba(0,0,0,0.09);
+  margin: 0 !important;
+}
+
+/* Consistent gap between buttons */
+form button:not(:last-child),
+.screen.active button:not(:last-child) {
+  margin-bottom: 14px !important;
+}
+
+body:not(.light-theme):not(.redblack-theme) button {
+  background: linear-gradient(90deg, #3b82f6, #52c3ff);
+  color: #fff;
+}
+
+body:not(.light-theme):not(.redblack-theme) button:hover {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+
+body.light-theme button {
+  background: linear-gradient(90deg, #fbbf24, #f59e42);
+  color: #222;
 }
 
 body.light-theme button:hover {
   background: linear-gradient(90deg, #ffd364, #fbbf24);
 }
 
-/* Heading */
+/* Red/Black theme: softer buttons */
+body.redblack-theme button {
+  background: linear-gradient(90deg, #ff2121 0%, #ff5353 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 0 7px 1px rgba(255, 33, 33, 0.47), 0 1px 4px rgba(183, 28, 28, 0.38) !important;
+}
+
+body.redblack-theme button:hover,
+body.redblack-theme button:focus {
+  background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
+  box-shadow: 0 0 14px 3px rgba(255, 59, 59, 0.55), 0 1.5px 7px rgba(255, 33, 33, 0.4) !important;
+}
+
+/* Headings */
 h1 {
   width: 100%;
   text-align: center;
   font-size: 2.1rem;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   font-weight: 900;
+  letter-spacing: 0.012em;
 }
 
 body.redblack-theme h1 {
   color: #ff5353 !important;
-  text-shadow: 0 0 9px #ff2020;
+  text-shadow: 0 0 7px #ff2020;
 }
 
 body.light-theme h1 {
   color: #222 !important;
 }
 
+body.light-theme label {
+  color: #222;
+}
+
+body.redblack-theme label {
+  color: #ff5353;
+}
+
 /* Container adjustments for themes */
 body.redblack-theme {
   background-color: #000 !important;
   background-image: none !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  margin: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  box-sizing: border-box;
 }
 
 body.redblack-theme .container {
   background: #131313 !important;
   border-radius: 22px !important;
-  box-shadow: 0 0 20px 6px #ff5353, 0 0 2px #ff2121 !important;
+  box-shadow: 0 0 18px 4px #ff5353, 0 0 2px #ff2121 !important;
   color: #ff5353 !important;
-  text-align: center;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: auto !important;
 }
 
 body.light-theme .container {
@@ -258,15 +206,27 @@ body.light-theme .container {
   border-radius: 18px;
   box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.12);
   color: #222222;
-  text-align: center;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: auto !important;
 }
 
-/* Responsive adjustments */
+/* ================= Message ================= */
+.message {
+  text-align: center;
+  width: 100%;
+  font-weight: bold;
+  margin-bottom: 14px;
+  font-size: 1.06rem;
+  color: #e74c3c;
+}
+
+body.light-theme .message {
+  color: #b91c1c;
+}
+
+body.redblack-theme .message {
+  color: #ff3535;
+}
+
+/* ================= Responsive adjustments ================= */
 @media (max-width: 450px) {
   .container {
     max-width: 96vw !important;
@@ -274,6 +234,9 @@ body.light-theme .container {
     padding: 8vw 3vw !important;
   }
   input, select, button {
+    max-width: 97vw;
+  }
+  form, .screen.active {
     max-width: 97vw;
   }
   button {
