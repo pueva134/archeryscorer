@@ -19,7 +19,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase Config & Init
+// Firebase init
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -28,7 +28,6 @@ const firebaseConfig = {
   messagingSenderId: "243500946215",
   appId: "1:243500946215:web:bd976f1bd437edce684f02"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -52,7 +51,7 @@ function showScreen(id) {
   if (id === "setup") updateSessionSetupOptions();
 }
 
-// Draw outdoor archery target
+// Draw archery target
 function drawTarget() {
   if (!ctx) return;
   const radius = canvas.width / 2;
@@ -63,9 +62,7 @@ function drawTarget() {
     { color: "#FF0000", radius: radius * 0.4 },     // 7-8 Red
     { color: "#FFFF00", radius: radius * 0.2 }      // 9-10 Yellow
   ];
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   rings.forEach(ring => {
     ctx.beginPath();
     ctx.arc(radius, radius, ring.radius, 0, 2 * Math.PI);
@@ -74,7 +71,7 @@ function drawTarget() {
   });
 }
 
-// Update end arrow scores display
+// Score update UI
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
@@ -85,13 +82,12 @@ function updateEndScores() {
   }
 }
 
-// Update Next/End buttons visibility
+// Next/End buttons
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
   const lastEnd = currentEndNumber === currentSession.endsCount;
   const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
-  // Only show "Next" if not the last end and current arrows are complete
   if (!lastEnd && arrowsComplete) {
     nextBtn.style.display = "inline-block";
     endBtn.style.display = "none";
@@ -104,7 +100,7 @@ function updateEndSessionButtons() {
   }
 }
 
-// Handle canvas click to calculate score
+// Canvas click score handling
 function handleCanvasScoreClick(e) {
   if (!currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -119,9 +115,7 @@ function handleCanvasScoreClick(e) {
   const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
   const maxRadius = canvas.width / 2;
   const ringWidth = maxRadius / 10;
-
-  let score = "M"; // Miss by default
-
+  let score = "M";
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
   else if (dist <= ringWidth * 3) score = 8;
@@ -132,10 +126,9 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 8) score = 3;
   else if (dist <= ringWidth * 9) score = 2;
   else if (dist <= ringWidth * 10) score = 1;
-
   arrowScores.push(score);
-  updateEndScores();         // Update the UI display with new scores
-  updateEndSessionButtons(); // Update Next/End Session buttons as needed
+  updateEndScores();
+  updateEndSessionButtons();
 }
 
 // Signup handler
@@ -183,7 +176,7 @@ async function login() {
   }
 }
 
-// Load session setup options dynamically
+// Session Setup Options
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10,12,15,18,20,30,40,50,60,70,80],
@@ -208,12 +201,9 @@ function updateSessionSetupOptions() {
       {value:"80", label:"80cm (Outdoor)"},
     ],
   };
-
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-
-  // Populate bow styles once
   if(bowSelect.options.length === 0){
     Object.keys(bowDistances).forEach(bow => {
       const opt = document.createElement("option");
@@ -222,7 +212,6 @@ function updateSessionSetupOptions() {
       bowSelect.appendChild(opt);
     });
   }
-
   function updateDistances() {
     distSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
@@ -234,7 +223,6 @@ function updateSessionSetupOptions() {
     });
     updateTargetFaces();
   }
-
   function updateTargetFaces() {
     faceSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
@@ -252,21 +240,19 @@ function updateSessionSetupOptions() {
       faceSelect.appendChild(opt);
     });
   }
-
   bowSelect.onchange = updateDistances;
   distSelect.onchange = updateTargetFaces;
-
   updateDistances();
 }
 
-// Start session processing
+// Start session
 function startSession(){
-  // Role-based access control here: only archers can start session
   if(currentUserRole !== "archer"){
     alert("Only Archers can start a scoring session.");
     return;
   }
   currentSession = {
+    round: "WA Standard",
     bowStyle: document.getElementById("bowStyle").value,
     distance: parseInt(document.getElementById("distance").value),
     targetFace: document.getElementById("targetFace").value,
@@ -297,90 +283,68 @@ async function nextEnd(){
     alert("Please score all arrows!");
     return;
   }
-  // Push current end's scores
   currentSession.ends.push([...arrowScores]);
-
-  // Update total score for current session
   currentSession.totalScore += arrowScores.filter(s=>typeof s=='number').reduce((a,b) => a+b, 0);
-
-  // Reset arrow scores for next end
   arrowScores = [];
-
   updateEndScores();
   updateEndSessionButtons();
-
-  console.log("Ends accumulated so far:", currentSession.ends.length);
-
   if(currentEndNumber === currentSession.endsCount){
-    // All ends completed, ready for session save (do not save here)
-    console.log("All ends completed. Ready to save full session.");
     return;
   }
-
   currentEndNumber++;
   document.getElementById("currentEnd").innerText = currentEndNumber;
 }
 
-// Save session to Firestore (called only after entire session completes)
+// Save session to Firestore
 async function saveSession() {
   if(!currentUser) return;
-
-  console.log("Saving full session with ends count:", currentSession.ends.length);
-
-  // Convert ends to Firestore-friendly objects
   const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
-
   const sessionKey = Date.now().toString();
-
   const newSession = {
-    bowStyle: currentSession.bowStyle,
-    distance: currentSession.distance,
-    targetFace: currentSession.targetFace,
-    arrowsPerEnd: currentSession.arrowsPerEnd,
-    endsCount: currentSession.endsCount,
+    ...currentSession,
     ends: endsObjects,
-    totalScore: currentSession.totalScore,
     date: Timestamp.now()
   };
-
   try {
     const userRef = doc(db, "users", currentUser.uid);
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: newSession
     });
-    console.log("Session saved:", sessionKey);
   } catch (e) {
     console.error("Failed to save session:", e);
   }
 }
 
-// End session and save all data once complete
+// End session
 async function endSession() {
-  // Check if any arrows scored in last end
   if (arrowScores.length > 0 && arrowScores.length !== currentSession.arrowsPerEnd) {
     alert(`Please score all arrows in End ${currentEndNumber} before ending session.`);
     return;
   }
-  // Push last end arrows if all scored
   if (arrowScores.length === currentSession.arrowsPerEnd) {
     currentSession.ends.push([...arrowScores]);
     currentSession.totalScore += arrowScores.filter(s => typeof s === "number").reduce((a, b) => a + b, 0);
     arrowScores = [];
-    console.log("Final end pushed in endSession");
   }
-
   if (currentSession.ends.length > 0) {
     await saveSession();
+    // Show session results
+    const session = {
+      ...currentSession,
+      ends: currentSession.ends.map(endObj => Array.isArray(endObj) ? endObj : endObj.arrows)
+    };
+    renderSessionResults(session);
+    showScreen('results');
+  } else {
+    showScreen("menuScreen");
   }
   currentSession = {};
   arrowScores = [];
   currentEndNumber = 1;
-  showScreen("menuScreen");
 }
 
-
-// View history for current user
-async function viewHistory(){
+// View history
+async function viewHistory() {
   if(!currentUser) return;
   const userDoc = await getDoc(doc(db, "users", currentUser.uid));
   if(!userDoc.exists()) return;
@@ -398,14 +362,86 @@ async function viewHistory(){
   showScreen("historyScreen");
 }
 
-// Attach all button handlers for UI controls
+// ===== SESSION RESULTS RENDERING =====
+function renderSessionResults(session) {
+  // Fill summary stats
+  document.getElementById('resultRound').textContent = session.round || 'WA Standard';
+  document.getElementById('resultBow').textContent = session.bowStyle || '';
+  document.getElementById('resultFace').textContent = session.targetFace || '';
+  document.getElementById('resultDistance').textContent = session.distance ? `${session.distance}m` : '';
+  const maxScore = session.endsCount * session.arrowsPerEnd * 10;
+  const percent = Math.round(100 * session.totalScore / maxScore);
+  document.getElementById('resultScore').textContent = `${session.totalScore}/${maxScore} (${percent}%)`;
+  // Calculate X/10 stats
+  let xCount = 0, tenCount = 0;
+  session.ends.forEach(end => {
+    end.forEach(val => {
+      if (val === "X") xCount++;
+      if (val === 10 || val === "X") tenCount++;
+    });
+  });
+  document.getElementById('resultXCount').textContent = xCount;
+  document.getElementById('resultTenX').textContent = tenCount;
+  // Calculate average
+  document.getElementById('resultAverage').textContent = session.totalScore && session.ends.length
+    ? (session.totalScore / (session.ends.length * session.arrowsPerEnd)).toFixed(2) : '';
+
+  // ===== SCORE TABLE =====
+  const tableDiv = document.getElementById('scoreTable');
+  let tableHtml = `<table><thead><tr><th>End</th>`;
+  for (let i = 1; i <= session.arrowsPerEnd; i++) tableHtml += `<th>${i}</th>`;
+  tableHtml += '<th>Sum</th></tr></thead><tbody>';
+  session.ends.forEach((endArr, idx) => {
+    let sum = endArr.reduce((a, b) => (typeof b === "number" ? a + b : a), 0);
+    tableHtml += `<tr><td>${idx + 1}</td>`;
+    endArr.forEach(score => {
+      let color = "#404040";
+      if (score === 10 || score === "X") color = "#ffe600";
+      else if (score === 9) color = "#fff59d";
+      else if (score >= 8) color = "#ff5252";
+      else if (score >= 6) color = "#90caf9";
+      else if (score >= 4) color = "#8bc34a";
+      else if (score >= 1) color = "#616161";
+      else if (score === "M") color = "#cfd8dc";
+      tableHtml += `<td><div style="width:28px;height:28px;margin:auto;border-radius:50%;background:${color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:bold;">${score}</div></td>`;
+    });
+    tableHtml += `<td>${sum}</td></tr>`;
+  });
+  tableHtml += '</tbody></table>';
+  tableDiv.innerHTML = tableHtml;
+
+  // ===== STATISTICS CHART =====
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
+  const endTotals = session.ends.map(end =>
+    end.reduce((a, b) => (typeof b === "number" ? a + b : a), 0));
+  window.sessionChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: endTotals.map((_, i) => `End ${i + 1}`),
+      datasets: [{
+        label: 'End %',
+        data: endTotals.map(sum => Math.round(100 * sum / (session.arrowsPerEnd * 10))),
+        borderColor: '#42a5f5',
+        backgroundColor: 'rgba(66,165,245,0.06)',
+        fill: true,
+        tension: 0.25
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false }},
+      scales: { y: { min: 0, max: 100, title: { display: true, text: '%' } } }
+    }
+  });
+}
+
+// Button handler setup
 function attachButtonHandlers(){
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
   document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
   document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("menuLogoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
-  document.getElementById("menuToggleBtn")?.addEventListener("click", () => alert("Theme toggle not implemented"));
   document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
   document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
   document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth).then(() => showScreen("loginPage")));
@@ -427,7 +463,7 @@ function attachButtonHandlers(){
   }
 }
 
-// Auth state changes - update UI accordingly
+// Auth state changes
 onAuthStateChanged(auth, async user => {
   currentUser = user;
   if(user){
@@ -436,8 +472,6 @@ onAuthStateChanged(auth, async user => {
       const data = userDoc.data();
       currentUserRole = data.role || "archer";
       document.getElementById("greeting").innerText = `Hello, ${data.name} (${currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)})!`;
-
-      // Role-based UI adjustments
       if(currentUserRole === "coach"){
         document.getElementById("startSessionBtn").style.display = "none";
         const coachBtn = document.getElementById("menuCoachBtn");
@@ -457,7 +491,6 @@ onAuthStateChanged(auth, async user => {
         const coachBtn = document.getElementById("menuCoachBtn");
         if(coachBtn) coachBtn.style.display = "none";
       }
-
       showScreen("menuScreen");
     }
   }
@@ -471,13 +504,11 @@ onAuthStateChanged(auth, async user => {
 // Coach dashboard implementation
 let selectedArcherUID = null;
 let selectedArcherName = null;
-
 async function loadArchersList() {
   const archerList = document.getElementById("archerList");
   archerList.innerHTML = '';
   const q = query(collection(db, "users"), where("role", "==", "archer"));
   const snapshot = await getDocs(q);
-  console.log("archers query found", snapshot.size, "users");
   if(snapshot.empty){
     archerList.innerHTML = '<li>No archers found.</li>';
     return;
@@ -491,14 +522,12 @@ async function loadArchersList() {
     archerList.appendChild(li);
   });
 }
-
 async function loadArcherSessions(archerUID, archerName) {
   selectedArcherUID = archerUID;
   selectedArcherName = archerName;
   document.getElementById("selectedArcherName").innerText = archerName;
   const sessionListDiv = document.getElementById('archerSessionList');
   sessionListDiv.innerHTML = 'Loading sessions...';
-
   const userDoc = await getDoc(doc(db, "users", archerUID));
   if (!userDoc.exists()) {
     sessionListDiv.innerHTML = 'Archer not found.';
@@ -510,11 +539,9 @@ async function loadArcherSessions(archerUID, archerName) {
     sessionListDiv.innerHTML = 'No sessions found.';
     return;
   }
-
   const ul = document.createElement('ul');
   ul.style.listStyle = 'none';
   ul.style.paddingLeft = '0';
-
   sessionEntries.forEach(([sessionId, sessionData]) => {
     const li = document.createElement('li');
     const date = sessionData.date ? new Date(sessionData.date.seconds * 1000).toLocaleString() : 'No date';
@@ -528,18 +555,16 @@ async function loadArcherSessions(archerUID, archerName) {
     };
     ul.appendChild(li);
   });
-
   sessionListDiv.innerHTML = '';
   sessionListDiv.appendChild(ul);
 }
 
-// Display detailed session result with table and Chart.js
+// Coach session results (similar structure as session results)
 async function displaySessionResult(sessionData) {
   document.getElementById('sessionResultContainer').style.display = 'block';
   const summaryDiv = document.getElementById('sessionResultSummary');
   const tableDiv = document.getElementById('sessionResultTable');
   const chartCanvas = document.getElementById('sessionResultChart');
-
   summaryDiv.innerHTML = `
     <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
     <p><strong>Distance:</strong> ${sessionData.distance}m</p>
@@ -547,72 +572,74 @@ async function displaySessionResult(sessionData) {
     <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
     <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
   `;
-
-  // Build table for ends and arrows per end
+  // Score Table
   const table = document.createElement('table');
   table.style.width = '100%';
   table.style.borderCollapse = 'collapse';
-
   let headerRow = '<tr><th>End</th>';
   const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) {
-    headerRow += `<th>Arrow ${i}</th>`;
-  }
+  for (let i = 1; i <= arrowsCount; i++) headerRow += `<th>Arrow ${i}</th>`;
   headerRow += '<th>End Total</th></tr>';
   table.innerHTML = headerRow;
-
   sessionData.ends.forEach((endObj, idx) => {
     const endArr = endObj.arrows || [];
     const endTotal = endArr.filter(s => typeof s === 'number').reduce((a, b) => a + b, 0);
     let row = `<tr><td>${idx + 1}</td>`;
     endArr.forEach(score => {
-      row += `<td>${score}</td>`;
+      let color = "#404040";
+      if (score === 10 || score === "X") color = "#ffe600";
+      else if (score === 9) color = "#fff59d";
+      else if (score >= 8) color = "#ff5252";
+      else if (score >= 6) color = "#90caf9";
+      else if (score >= 4) color = "#8bc34a";
+      else if (score >= 1) color = "#616161";
+      else if (score === "M") color = "#cfd8dc";
+      row += `<td><div style="width:28px;height:28px;margin:auto;border-radius:50%;background:${color};color:#111;display:flex;align-items:center;justify-content:center;font-weight:bold;">${score}</div></td>`;
     });
     row += `<td>${endTotal}</td></tr>`;
     table.innerHTML += row;
   });
-
   tableDiv.innerHTML = '';
   tableDiv.appendChild(table);
 
-  // Prepare data for Chart.js bar chart
+  // Chart.js - plot end scores
   const ctx = chartCanvas.getContext('2d');
   if(window.sessionChartInstance) window.sessionChartInstance.destroy();
-
   const endTotals = sessionData.ends.map(end =>
-    (end.arrows || []).filter(s => typeof s === 'number').reduce((a,b) => a+b, 0)
-  );
-
+    (end.arrows || []).filter(s => typeof s === 'number').reduce((a,b) => a+b, 0));
   window.sessionChartInstance = new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
       labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
       datasets: [{
-        label: 'End Total',
-        data: endTotals,
-        backgroundColor: 'rgba(59, 130, 246, 0.7)'
+        label: 'End %',
+        data: endTotals.map(sum => Math.round(100 * sum / (arrowsCount * 10))),
+        borderColor: '#42a5f5',
+        backgroundColor: 'rgba(66,165,245,0.06)',
+        fill: true,
+        tension: 0.25
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false
+      plugins: { legend: { display: false }},
+      scales: { y: { min: 0, max: 100, title: { display: true, text: '%' } } }
     }
   });
 }
 
-// Show coach dashboard screen and load archers list
+// Show coach dashboard screen
 function showCoachDashboard() {
   showScreen('coachDashboard');
   loadArchersList();
 }
 
-// Navigation control for coach dashboard back button
+// Navigation for coach dashboard back button
 document.getElementById('coachBackBtn').addEventListener('click', () => {
   document.getElementById('sessionResultContainer').style.display = 'none';
   showScreen('menuScreen');
 });
 
-// Modify auth state change to show coach dashboard to coaches and regular menu to archers/judges
+// Auth state: show coach dashboard or regular menu
 onAuthStateChanged(auth, async user => {
   if (!user) {
     currentUser = null;
@@ -629,12 +656,10 @@ onAuthStateChanged(auth, async user => {
   const data = userDoc.data();
   currentUserRole = data.role || 'archer';
   document.getElementById('greeting').innerText = `Hello, ${data.name}! (${currentUserRole})`;
-
   if (currentUserRole === 'coach') {
     showScreen('coachDashboard');
     loadArchersList();
-  }
-  else {
+  } else {
     showScreen('menuScreen');
   }
 });
@@ -647,29 +672,26 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndScores();
   updateEndSessionButtons();
 });
-// Load Chart.js library dynamically for session result charts
-const chartScript = document.createElement('script');
-chartScript.src = "https://cdn.jsdelivr.net/npm/chart.js";
-document.head.appendChild(chartScript);
 
+// Theme toggle (unchanged)
+const themes = ['', 'light-theme', 'redblack-theme'];
+function getCurrentTheme() { return document.body.className; }
+function getThemeIndex() { return themes.indexOf(getCurrentTheme()); }
+function applyTheme(index) {
+  const theme = themes[index] || '';
+  document.body.className = theme;
+  localStorage.setItem('selectedTheme', theme);
+}
+function toggleTheme() {
+  const currentIndex = getThemeIndex();
+  const nextIndex = (currentIndex + 1) % themes.length;
+  applyTheme(nextIndex);
+}
 document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('selectedTheme') || '';
-  const themes = ['', 'light-theme', 'redblack-theme'];
-  if (themes.includes(savedTheme)) document.body.className = savedTheme;
-
-  // Remove any previous handler that shows alert
-  const toggleBtn = document.getElementById('menuToggleBtn');
-  if (toggleBtn) {
-    // Remove old alert if present (no need to call alert here!)
-    toggleBtn.onclick = null;
-    toggleBtn.addEventListener('click', function () {
-      // Actual theme toggle code here!
-      const currentTheme = document.body.className;
-      const themeIndex = themes.indexOf(currentTheme);
-      const nextIndex = (themeIndex + 1) % themes.length;
-      document.body.className = themes[nextIndex];
-      localStorage.setItem('selectedTheme', themes[nextIndex]);
-      // No alert—just toggle theme!
-    });
+  if (themes.includes(savedTheme)) {
+    document.body.className = savedTheme;
   }
+  const toggleBtn = document.getElementById('menuToggleBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
 });
