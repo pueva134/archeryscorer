@@ -69,11 +69,7 @@ function drawTarget() {
     { color: "#FF0000", radius: radius * 0.4 },      // 7-8 Red
     { color: "#FFFF00", radius: radius * 0.2 }       // 9-10 Yellow
   ];
-
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-
   rings.forEach(ring => {
     ctx.beginPath();
     ctx.arc(radius, radius, ring.radius, 0, 2 * Math.PI);
@@ -145,9 +141,9 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 8) score = 3;
   else if (dist <= ringWidth * 9) score = 2;
   else if (dist <= ringWidth * 10) score = 1;
+  else score = "M"; // Outside target
 
-
-  arrowScores.push(score);
+  arrowScores.push({ score, x, y });
   updateEndScores();          // Update the UI display with new scores
   updateEndSessionButtons(); // Update Next/End Session buttons as needed
 }
@@ -442,7 +438,7 @@ function showSessionResults(session) {
     <br><strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m
     <br><strong>Target Face:</strong> ${session.targetFace}
   `;
-  
+
   // Results table
   const tableDiv = document.getElementById("sessionResultsTable");
   let table = "<table border='1'><tr><th>End</th>";
@@ -510,11 +506,26 @@ function showSessionResults(session) {
     { color: "#FF0000", r: radius * 0.4 },
     { color: "#FFFF00", r: radius * 0.2 }
   ];
-  ctx.clearRect(0,0,targetCanvas.width,targetCanvas.height);
+  ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
   rings.forEach(rg => {
-    ctx.beginPath(); ctx.arc(radius, radius, rg.r, 0, 2 * Math.PI);
-    ctx.fillStyle = rg.color; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(radius, radius, rg.r, 0, 2 * Math.PI);
+  ctx.fillStyle = rg.color;
+  ctx.fill();
+});
+const lastEnd = session.ends[session.ends.length - 1];
+// Defensive: Only draw if lastEnd contains arrows as objects
+if (lastEnd && typeof lastEnd === "object") {
+  lastEnd.forEach(arrow => {
+    ctx.beginPath();
+    ctx.arc(arrow.x, arrow.y, 7, 0, 2 * Math.PI); // 7px dot
+    ctx.fillStyle = "lime";
+    ctx.fill();
+    ctx.strokeStyle = "#222";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   });
+}
   // Optionally: Plot arrow dots if coordinates tracked (not implemented here)
 }
 
