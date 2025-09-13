@@ -451,28 +451,22 @@ function showSessionResults(session) {
   let table = "<table border='1'><tr><th>End</th>";
   for(let i=1; i<=session.arrowsPerEnd; i++) table += `<th>Arrow ${i}</th>`;
   table += "<th>End Total</th></tr>";
-ession.ends.forEach((end, idx) => {
-  const total = end
-    .map(arrow => typeof arrow === "object" ? arrow.score : arrow)
-    .filter(s => typeof s === "number")
-    .reduce((a, b) => a + b, 0);
-  table += `<tr><td>${idx+1}</td>`;
-  end.forEach(arrow => {
-    let scoreVal = (typeof arrow === "object") ? arrow.score : arrow;
-    table += `<td>${scoreVal}</td>`;
+  session.ends.forEach((end, idx) => {
+    const total = end.filter(s => typeof s === "number").reduce((a,b) => a+b, 0);
+    table += `<tr><td>${idx+1}</td>`;
+    end.forEach(score => table += `<td>${score}</td>`);
+    table += `<td>${total}</td></tr>`;
   });
-  table += `<td>${total}</td></tr>`;
-});
+  table += "</table>";
+  tableDiv.innerHTML = table;
+
   // Draw Chart.js bar chart with end totals & total session score as title
   const chartCanvas = document.getElementById("sessionResultsTrendChart");
   if(window.sessionChartInstance) window.sessionChartInstance.destroy();
 
   const endTotals = session.ends.map(end =>
-  end
-    .map(arrow => typeof arrow === "object" ? arrow.score : arrow)
-    .filter(s => typeof s === "number")
-    .reduce((a, b) => a + b, 0)
-);
+    end.filter(s => typeof s === 'number').reduce((a,b) => a+b, 0)
+  );
 
   window.sessionChartInstance = new Chart(chartCanvas.getContext("2d"), {
     type: 'bar',
