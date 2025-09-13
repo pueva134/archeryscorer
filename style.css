@@ -1,4 +1,4 @@
-/* ================= Center Everything ================= */
+/* ================= Root & Body ================= */
 html, body {
   height: 100vh;
   width: 100vw;
@@ -15,7 +15,7 @@ html, body {
   overflow-y: auto;
 }
 
-/* Consistent centering for all themes */
+/* All body themes centered */
 body, body.light-theme, body.redblack-theme {
   display: flex !important;
   align-items: center !important;
@@ -24,231 +24,253 @@ body, body.light-theme, body.redblack-theme {
   min-width: 100vw;
 }
 
-/* ================= Card Container (Wide/Modern) ================= */
+/* ================= Container Panel ================= */
 .container {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   margin: auto !important;
-  min-width: 350px;
-  max-width: 520px;
-  width: 100%;
-  padding: 46px 34px;
-  border-radius: 24px;
-  box-shadow: 0 8px 44px 0 rgba(41,84,247, .13), 0 2px 14px 0 rgba(0,0,0,0.11);
+  max-width: 480px;
+  width: 90vw;
+  min-width: 320px;
+  max-height: 90vh;
+  padding: 40px 36px;
+  border-radius: 26px;
+  box-shadow: 0 8px 44px 0 rgba(41, 84, 247, 0.13), 0 2px 14px 0 rgba(0, 0, 0, 0.11);
   background: rgba(24, 31, 42, 0.98);
   box-sizing: border-box;
   text-align: center;
   overflow-y: auto;
+  gap: 24px;
 }
 
-/* ================= Form Setup and Spacing ================= */
+/* ================= Form & Content ================= */
 form, .session-setup-form, .login-form, .signup-form, .screen.active {
   width: 100%;
+  max-width: 400px;
   display: flex !important;
   flex-direction: column;
   align-items: center !important;
   justify-content: center !important;
-  gap: 18px; /* Consistent vertical spacing between inputs & buttons */
+  gap: 18px;
   margin: 0 auto;
-  max-width: 420px;
   box-sizing: border-box;
 }
 
-/* Inputs and selects: Wide, modern */
+/* ================= Inputs & selects ================= */
 input, select {
-  max-width: 99%;
-  min-width: 210px;
+  max-width: 100%;
   width: 100%;
-  padding: 13px 18px;
-  border-radius: 14px;
+  min-width: 280px;
+  padding: 14px 18px;
+  border-radius: 16px;
   border: 2px solid transparent;
-  font-size: 1.14rem;
-  background: #e6eefb;
+  font-size: 1.1rem;
+  background: #e9f0ff;
   color: #222;
   box-sizing: border-box;
-  margin: 0 !important;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   outline: none;
-  transition: border-color 0.3s, background 0.17s;
-  box-shadow: 0 2px 14px rgba(30,60,120,0.065);
+  box-shadow: 0 3px 22px rgba(30, 60, 120, 0.07);
+  transition: border-color 0.3s ease, background 0.3s ease;
+  margin: 0 !important;
 }
 
 input:focus, select:focus {
+  background: #dcedff;
   border-color: #3b82f6;
-  background: #dbeafe;
-  box-shadow: 0 3px 22px rgba(30,60,120,0.12);
+  box-shadow: 0 5px 28px rgba(30, 60, 120, 0.15);
 }
 
-/* Placeholder styling for modern effect */
 input::placeholder, select::placeholder {
-  color: #444;
+  color: #666;
   opacity: 1;
-  font-size: 1.11rem;
+  font-size: 1.06rem;
 }
 
-/* Remove label visual prominence: Use placeholders for fields */
-label, .form-label {
-  font-weight: 600;
-  font-size: 1rem;
-  display: block;
-  margin-bottom: 5px;
-  color: #e3e3e3;
-  text-align: left;
-  width: 100%;
-}
-
-/* Theme-specific input/select border color */
+/* Theme-dependent input styling */
 body.light-theme input,
 body.light-theme select {
   background: #fff;
   color: #222;
   border: 2px solid #fbbf24;
 }
+
 body:not(.light-theme):not(.redblack-theme) input,
 body:not(.light-theme):not(.redblack-theme) select {
-  background: #212c3b;
-  color: #e3e3e3;
+  background: #202a3a;
+  color: #e6e6e6;
   border: 2px solid #3b82f6;
 }
+
 body.redblack-theme input,
 body.redblack-theme select {
-  background: #23181a;
-  color: #ff5353;
-  border: 2px solid #ff3b3b;
+  background: #292021;
+  color: #ff6161;
+  border: 2px solid #ff4040;
 }
 
-/* ================= Buttons: Centered, Wide, Modern ================= */
+/* ================= Buttons ================= */
 button {
   width: 100%;
-  min-height: 48px;
-  padding: 0;
-  font-size: 1.16rem;
-  font-weight: 700;
-  border-radius: 24px;
+  max-width: 400px;
+  min-height: 50px;
+  padding: 14px 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+  border-radius: 28px;
   border: none;
   box-sizing: border-box;
   cursor: pointer;
-  transition: background 0.28s, box-shadow 0.2s;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.11);
+  transition: background 0.3s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
   margin: 0 !important;
-  letter-spacing: 0.02em;
-  text-align: center;
+  letter-spacing: 0.03em;
 }
 
 /* Consistent gap between buttons */
 form button:not(:last-child),
 .screen.active button:not(:last-child) {
-  margin-bottom: 17px !important;
+  margin-bottom: 20px !important;
 }
 
+/* Default theme buttons */
 body:not(.light-theme):not(.redblack-theme) button {
-  background: linear-gradient(90deg, #16ccfc, #367cf8 80%);
+  background: linear-gradient(90deg, #2196f3 0%, #64b5f6 100%);
   color: #fff;
 }
+
 body:not(.light-theme):not(.redblack-theme) button:hover {
-  background: linear-gradient(90deg, #2997ff, #65bfff 90%);
+  background: linear-gradient(90deg, #1e88e5 0%, #42a5f5 100%);
 }
 
+/* Light theme buttons */
 body.light-theme button {
-  background: linear-gradient(90deg, #fbbf24, #f59e42);
+  background: linear-gradient(90deg, #fcc419 0%, #fb923c 100%);
   color: #222;
-}
-body.light-theme button:hover {
-  background: linear-gradient(90deg, #ffd364, #fbbf24);
+  box-shadow: 0 4px 20px rgba(251, 181, 72, 0.4);
 }
 
-/* Red/Black theme: softer buttons */
-body.redblack-theme button {
-  background: linear-gradient(90deg, #ff2121 10%, #ff5353 90%) !important;
-  color: #fff !important;
-  box-shadow: 0 0 7px 1px rgba(255, 33, 33, 0.37), 0 1px 4px rgba(183, 28, 28, 0.29) !important;
+body.light-theme button:hover {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
 }
+
+/* Red/black theme buttons softened glow */
+body.redblack-theme button {
+  background: linear-gradient(90deg, #ff3838 0%, #ff6363 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 0 9px 2px rgba(255, 56, 56, 0.55), 0 2px 7px rgba(200, 45, 45, 0.3);
+}
+
 body.redblack-theme button:hover,
 body.redblack-theme button:focus {
-  background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
-  box-shadow: 0 0 14px 3px rgba(255, 59, 59, 0.40), 0 1.5px 7px rgba(255, 33, 33, 0.3) !important;
+  background: linear-gradient(90deg, #ff5959 0%, #ff7777 100%) !important;
+  box-shadow: 0 0 18px 5px rgba(255, 89, 89, 0.7), 0 2px 12px rgba(255, 55, 55, 0.4);
 }
 
-/* ================= Headings: Bold, Wide, Emojis ================= */
+/* ================= Headings ================= */
 h1 {
   width: 100%;
   text-align: center;
-  font-size: 2.3rem;
+  font-size: 2.6rem;
   margin-bottom: 32px;
   font-weight: 900;
-  letter-spacing: 0.014em;
+  letter-spacing: 0.02em;
   color: #ffd700;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 body.redblack-theme h1 {
-  color: #ff5353 !important;
-  text-shadow: 0 0 7px #ff2020;
-}
-body.light-theme h1 {
-  color: #222 !important;
+  color: #ff5c5c !important;
+  text-shadow: 0 0 10px #ff3636;
 }
 
-/* Container adjustments for card effect */
+body.light-theme h1 {
+  color: #333 !important;
+}
+
+/* ================= Labels ================= */
+label, .form-label {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ddd;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+body.redblack-theme label,
+body.redblack-theme .form-label {
+  color: #ff8a8a;
+}
+
+body.light-theme label,
+body.light-theme .form-label {
+  color: #444;
+}
+
+/* ================= Container Theme Variations ================= */
 body.redblack-theme {
-  background-color: #000 !important;
+  background-color: #0b0000 !important;
   background-image: none !important;
 }
 
 body.redblack-theme .container {
-  background: #141014 !important;
-  border-radius: 24px !important;
-  box-shadow: 0 0 24px 8px #ff4242, 0 0 2px #ff2121 !important;
-  color: #ff5353 !important;
+  background: #230b0b !important;
+  border-radius: 28px !important;
+  box-shadow: 0 0 28px 12px #ff5c5c, 0 0 4px #ff2a2a !important;
+  color: #ff8a8a !important;
 }
 
 body.light-theme .container {
-  background: rgba(245, 250, 255, 0.97);
+  background: #fefefe;
   border-radius: 22px;
-  box-shadow: 0 6px 32px 0 rgba(59, 130, 246, 0.18);
-  color: #222222;
+  box-shadow: 0 6px 32px 0 rgba(251, 181, 72, 0.3);
+  color: #333;
 }
 
-/* ================= Message ================= */
+/* ================= Message Styling ================= */
 .message {
   text-align: center;
   width: 100%;
-  font-weight: bold;
-  margin-bottom: 16px;
-  font-size: 1.13rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  font-size: 1.1rem;
   color: #e74c3c;
 }
+
 body.light-theme .message {
   color: #b91c1c;
 }
+
 body.redblack-theme .message {
-  color: #ff3535;
+  color: #ff6a6a;
 }
 
-/* ================= Responsive adjustments ================= */
-@media (max-width: 700px) {
+/* ================= Responsive ================= */
+@media (max-width: 600px) {
   .container {
-    max-width: 99vw !important;
+    max-width: 96vw !important;
     min-width: unset !important;
-    padding: 8vw 2vw !important;
+    padding: 10vw 4vw !important;
   }
   input, select, button {
     max-width: 97vw;
-    min-width: 140px;
+    min-width: unset;
   }
   form, .screen.active {
     max-width: 97vw;
   }
-  h1 {
-    font-size: 1.35rem;
-    gap: 8px;
-  }
   button {
-    font-size: 1.06rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+  h1 {
+    font-size: 1.9rem;
+    gap: 10px;
   }
 }
