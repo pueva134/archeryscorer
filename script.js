@@ -539,10 +539,16 @@ async function viewHistory() {
   container.innerHTML = "";
   let table = document.createElement("table");
   table.innerHTML = "<tr><th>Date</th><th>Total Score</th><th>Ends</th></tr>";
-  sessionsArr.forEach(s => {
-    const date = s.date ? new Date(s.date.seconds * 1000).toLocaleDateString() : "N/A";
-    table.innerHTML += `<tr><td>${date}</td><td>${s.totalScore}</td><td>${s.ends.length}</td></tr>`;
+  sessionsArr.forEach((session, index) => {
+  const date = session.date ? new Date(session.date.seconds * 1000).toLocaleDateString() : "N/A";
+  const row = document.createElement("tr");
+  row.style.cursor = "pointer";
+  row.innerHTML = `<td>${date}</td><td>${session.totalScore}</td><td>${session.ends.length}</td>`;
+  row.addEventListener('click', () => {
+    showSessionResults(session);
   });
+  table.appendChild(row);
+});
   container.appendChild(table);
   showScreen("historyScreen");
 }
@@ -569,9 +575,6 @@ function attachButtonHandlers() {
     drawTarget();
     updateEndScores();
     updateEndSessionButtons();
-  });
-  document.getElementById("backToMenuBtn")?.addEventListener("click", () => {
-    showScreen("menuScreen");
   });
   if (canvas) {
     canvas.addEventListener("click", handleCanvasScoreClick);
