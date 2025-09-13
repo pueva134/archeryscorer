@@ -517,13 +517,15 @@ const lastEnd = session.ends[session.ends.length - 1];
 // Defensive: Only draw if lastEnd contains arrows as objects
 if (lastEnd && typeof lastEnd === "object") {
   lastEnd.forEach(arrow => {
-    ctx.beginPath();
-    ctx.arc(arrow.x, arrow.y, 7, 0, 2 * Math.PI); // 7px dot
-    ctx.fillStyle = "lime";
-    ctx.fill();
-    ctx.strokeStyle = "#222";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+  if (typeof arrow === "object" && arrow.x !== undefined && arrow.y !== undefined) {
+      ctx.beginPath();
+      ctx.arc(arrow.x, arrow.y, 7, 0, 2 * Math.PI);
+      ctx.fillStyle = "lime";
+      ctx.fill();
+      ctx.strokeStyle = "#222";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
   });
 }
   // Optionally: Plot arrow dots if coordinates tracked (not implemented here)
