@@ -1,58 +1,260 @@
-/* Make sure html and body fill the viewport and use flex centering */
+/* ================= Base Styles ================= */
+
 html, body {
   height: 100vh;
   margin: 0;
   padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: #fff;
+  overflow-x: hidden;  /* Prevent horizontal scroll */
+  overflow-y: auto;
+  width: 100vw;
 }
 
-/* Container always centered and stacked */
 .container {
   display: flex !important;
   flex-direction: column !important;
-  align-items: center !important;
   justify-content: center !important;
+  align-items: center !important;
   margin: auto !important;
   min-width: 320px;
   max-width: 400px;
   width: 90vw;
   max-height: 90vh;
   padding: 30px 28px;
+  background: rgba(24, 31, 42, 0.98);
+  border-radius: 18px;
+  box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
   box-sizing: border-box;
   text-align: center;
   overflow-y: auto;
-  border-radius: 18px;
 }
 
-/* Screens inside container also center-aligned */
+.screen {
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 5px;
+}
+
 .screen.active {
   display: flex !important;
   flex-direction: column !important;
-  align-items: center !important;
   justify-content: center !important;
+  align-items: center !important;
   width: 100%;
   height: auto;
   padding: 5px 0;
 }
 
-/* Ensure themes do not break centering and layout */
-body.light-theme,
-body.redblack-theme,
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px auto;
+  box-sizing: border-box;
 }
 
-/* Responsive adjustment for mobile */
+input, select, button {
+  max-width: 320px;
+  width: 100%;
+  display: block;
+  margin: 7px auto 15px auto;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+h1, h2, h3 {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+button {
+  background: linear-gradient(90deg, #3b82f6, #52c3ff);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  transition: background 0.3s, box-shadow 0.2s;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  min-height: 44px;
+  font-size: 1.12rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  width: 100%;
+}
+
+button:not(:last-child) {
+  margin-bottom: 12px;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+
+.message {
+  color: #e74c3c;
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+  width: 100%;
+}
+
+/* Inputs & Selects: Consistent look in all themes */
+input, select {
+  max-width: 320px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.8px solid transparent;
+  font-size: 1rem;
+  background: #f2f4f8;
+  color: #222;
+}
+
+/* Default Dark Theme Inputs/Selects */
+body:not(.light-theme):not(.redblack-theme) input,
+body:not(.light-theme):not(.redblack-theme) select {
+  background: #1A2332;
+  color: #fff;
+  border: 1.8px solid #3b82f6;
+}
+
+/* Redblack theme Inputs/Selects */
+body.redblack-theme input,
+body.redblack-theme select {
+  background: #23181a;
+  color: #ff5353;
+  border: 1.8px solid #ff3b3b;
+}
+
+/* Light theme Inputs/Selects */
+body.light-theme input,
+body.light-theme select {
+  background: #f8fafe;
+  color: #222;
+  border: 1.8px solid #ffd364;
+}
+
+/* Labels */
+label, .form-label {
+  color: #f2f2f2;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
+}
+
+body.redblack-theme label, body.redblack-theme .form-label {
+  color: #ff5353;
+}
+
+body.light-theme label, body.light-theme .form-label {
+  color: #222;
+}
+
+/* Buttons: Redblack theme */
+body.redblack-theme button {
+  background: linear-gradient(90deg, #ff2121 0%, #ff5353 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 18px 2px #ff2121, 0 2px 8px #b71c1c !important;
+}
+
+body.redblack-theme button:hover,
+body.redblack-theme button:focus {
+  background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
+}
+
+/* Buttons: Light theme */
+body.light-theme button {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
+  color: #222222;
+  font-weight: bold;
+  border: none;
+  transition: background 0.3s ease;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  min-height: 44px;
+  font-size: 1.12rem;
+  width: 100%;
+  box-shadow: 0 2px 9px rgba(59, 130, 246, 0.07);
+}
+
+body.light-theme button:hover {
+  background: linear-gradient(90deg, #ffd364, #fbbf24);
+}
+
+/* Heading */
+h1 {
+  width: 100%;
+  text-align: center;
+  font-size: 2.1rem;
+  margin-bottom: 16px;
+  font-weight: 900;
+}
+
+body.redblack-theme h1 {
+  color: #ff5353 !important;
+  text-shadow: 0 0 9px #ff2020;
+}
+
+body.light-theme h1 {
+  color: #222 !important;
+}
+
+/* Container adjustments for themes */
+body.redblack-theme .container {
+  background: #131313 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 0 38px 12px #ff5353, 0 0 2px #ff2121 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: auto !important;
+  text-align: center;
+}
+
+body.light-theme .container {
+  background: rgba(245, 250, 255, 0.97);
+  border-radius: 18px;
+  box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.12);
+  color: #222222;
+  text-align: center;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: auto !important;
+}
+
+/* Responsive adjustments */
 @media (max-width: 450px) {
   .container {
     max-width: 96vw !important;
-    min-width: unset;
+    min-width: unset !important;
     padding: 8vw 3vw !important;
+  }
+  input, select, button {
+    max-width: 97vw;
+  }
+  button {
+    max-width: 99vw;
+    min-width: 140px;
   }
 }
