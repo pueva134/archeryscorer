@@ -5,41 +5,77 @@ html, body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #1f2937, #111827);
   color: #fff;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;  /* Prevent horizontal scroll */
+  overflow-y: auto;
 }
 
 body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh; /* Ensures full viewport centering */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  overflow-x: hidden;
 }
-
+/* Constrain container max width and allow it to shrink on small screens */
 .container {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Vertical centering of children */
-  align-items: center;     /* Horizontal centering of children */
-  min-width: 340px;
+  justify-content: center;
+  align-items: center;
+  min-width: 320px;  /* slightly smaller min width */
   max-width: 400px;
+  width: 95vw;       /* Use viewport width but capped by max-width */
   padding: 30px 28px;
   background: rgba(24, 31, 42, 0.98);
   border-radius: 18px;
   box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
+  box-sizing: border-box;
+  max-height: 90vh;  /* prevent container height from exceeding viewport */
+  overflow-y: auto;  /* scroll within container if content long */
 }
 
-/* Ensure all screens inside .container are full-width and centered */
+/* Screen containers fill container, scroll within if content overflows */
 .screen {
   width: 100%;
+  max-height: 85vh;  /* limit height to viewport fraction */
+  overflow-y: auto;  /* vertical scroll inside screens */
   display: none;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
+  padding: 5px;
 }
 
+/* Show active screen */
 .screen.active {
   display: flex;
 }
 
+/* Canvas and chart elements responsive */
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px auto;
+  box-sizing: border-box;
+}
+
+/* For very small screens, adjust container */
+@media (max-width: 450px) {
+  .container {
+    max-width: 96vw;
+    min-width: auto;
+    padding: 8vw 3vw;
+  }
+  input, select, button {
+    max-width: 97vw;
+  }
+}
 /* Ensure form elements are symmetrical & centered */
 input, select, button {
   max-width: 320px;
@@ -82,17 +118,6 @@ button:hover {
   margin-bottom: 10px;
   font-weight: 600;
   width: 100%;
-}
-
-/* Responsive: ensure .container centers on all screens */
-@media (max-width: 450px) {
-  .container {
-    max-width: 96vw;
-    padding: 8vw 3vw;
-  }
-  input, select, button {
-    max-width: 97vw;
-  }
 }
 
 /* ===== Red/Black Dark Theme Enhancements (active only when toggled) ===== */
