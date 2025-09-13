@@ -451,7 +451,7 @@ function showSessionResults(session) {
   let table = "<table border='1'><tr><th>End</th>";
   for(let i=1; i<=session.arrowsPerEnd; i++) table += `<th>Arrow ${i}</th>`;
   table += "<th>End Total</th></tr>";
-  session.ends.forEach((end, idx) => {
+ession.ends.forEach((end, idx) => {
   const total = end
     .map(arrow => typeof arrow === "object" ? arrow.score : arrow)
     .filter(s => typeof s === "number")
@@ -463,7 +463,6 @@ function showSessionResults(session) {
   });
   table += `<td>${total}</td></tr>`;
 });
-
   // Draw Chart.js bar chart with end totals & total session score as title
   const chartCanvas = document.getElementById("sessionResultsTrendChart");
   if(window.sessionChartInstance) window.sessionChartInstance.destroy();
