@@ -1,3 +1,4 @@
+/* ================= Center Everything ================= */
 html, body {
   height: 100vh;
   width: 100vw;
@@ -7,7 +8,7 @@ html, body {
   align-items: center;
   justify-content: center;
   font-family: 'Segoe UI', 'Arial', sans-serif;
-  background: linear-gradient(135deg, #1f2937, #111827 85%);
+  background: linear-gradient(135deg, #1f2937, #111827 80%);
   color: #fff;
   box-sizing: border-box;
   overflow-x: hidden;
@@ -15,38 +16,35 @@ html, body {
 }
 
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
   min-width: 100vw;
 }
 
-/* Minimal card */
+/* ================= Card Container ================= */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center; justify-content: center;
-  width: 350px;
+  width: 370px;
   max-width: 96vw;
-  padding: 32px 28px;
-  background: rgba(26, 34, 48, 0.96);
-  border-radius: 20px;
-  box-shadow: 0 2px 22px 0 rgba(41, 84, 247, .10);
+  padding: 38px 26px;
+  background: rgba(28, 38, 52, 0.98);
+  border-radius: 23px;
+  box-shadow: 0 2px 34px 0 rgba(41,84,247, .17), 0 8px 38px 0 rgba(59, 130, 246, 0.13);
   text-align: center;
   box-sizing: border-box;
   overflow-y: auto;
 }
 
-/* Large heading, flat, emojis spaced well */
+/* ================= Heading with Emojis ================= */
 h1 {
   width: 100%;
   margin-top: 0;
   text-align: center;
-  font-size: 2.05rem;
+  font-size: 2.18rem;
   font-weight: 900;
-  letter-spacing: 0.01em;
-  margin-bottom: 25px;
+  letter-spacing: 0.02em;
+  margin-bottom: 29px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,7 +54,7 @@ h1 .emoji {
   font-size: 1.9rem; margin: 0 2px;
 }
 
-/* Form setup for modern tight vertical rhythm */
+/* ================= Form Setup ================= */
 form,
 .screen.active,
 .session-setup-form,
@@ -64,142 +62,206 @@ form,
 .signup-form {
   width: 100%;
   max-width: 350px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 13px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-/* Flat, clean label */
-label, .form-label {
-  font-size: 1rem;
-  font-weight: 400;
-  color: #e3e3e3;
-  margin-bottom: 4px;
-  margin-top: 5px;
-  text-align: left;
+/* ================= Form Group ================= */
+.form-group {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 13px;
 }
 
-/* Inputs */
+/* ================= Labels ================= */
+label {
+  font-size: 1.08rem;
+  font-weight: 500;
+  color: #e3e3e3;
+  margin-bottom: 6px;
+  margin-top: 2px;
+  padding-left: 2px;
+  text-shadow: 0 1px 7px #111827;
+  width: 100%;
+  text-align: left;
+}
+
+/* ================= Inputs and Selects ================= */
 input, select {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: 10px 15px;
-  border-radius: 11px;
+  border-radius: 12px;
   border: none;
-  background: #e6eefb;
+  background: #e7f0fa;
   color: #222;
   font-size: 1.06rem;
   letter-spacing: 0.01em;
-  box-shadow: 0 1.5px 7px rgba(40, 52, 120, 0.07);
+  box-shadow: 0 1px 8px rgba(41,84,247, 0.09);
   box-sizing: border-box;
-  transition: background 0.18s;
-}
-input:focus, select:focus {
-  background: #dbeafe;
+  transition: background 0.18s, box-shadow 0.23s;
   outline: none;
 }
+
+input:focus, select:focus {
+  background: #ddeafd;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.23), 0 2px 12px rgba(41, 84, 247, 0.13);
+}
+
 input::placeholder, select::placeholder {
   color: #888;
-  font-size: 1.05rem;
+  font-size: 1.04rem;
   opacity: 1;
 }
 
+/* Theme-specific input/select styling */
 body.light-theme input,
 body.light-theme select {
   background: #fff;
   color: #222;
 }
+
 body.redblack-theme input,
 body.redblack-theme select {
   background: #26171b;
   color: #ff6565;
 }
+
 body:not(.light-theme):not(.redblack-theme) input,
 body:not(.light-theme):not(.redblack-theme) select {
   background: #e6eefb;
   color: #222;
 }
 
-/* Pill buttons, smooth color, minimal shadow */
+/* ================= Buttons ================= */
 button {
   width: 100%;
-  min-height: 44px;
-  padding: 12px 0;
-  border-radius: 25px;
+  min-height: 46px;
+  padding: 13px 0;
+  border-radius: 26px;
   border: none;
-  font-size: 1.11rem;
+  font-size: 1.13rem;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(90deg, #3b82f6, #52c3ff 80%);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(41,84,247, 0.07);
+  box-shadow: 0 2px 20px 2px rgba(52,133,255,0.15), 0 1px 10px 0 rgba(41,84,247, 0.23);
   margin: 0 !important;
   letter-spacing: 0.02em;
-  transition: background 0.22s;
-}
-
-button:not(:last-child) {
-  margin-bottom: 13px !important;
+  transition: background 0.22s, box-shadow 0.18s;
 }
 
 button:hover, button:focus {
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  background: linear-gradient(90deg, #2563eb, #1d4ed8 100%);
+  box-shadow: 0 2px 28px 4px #3b82f6, 0 2px 14px 0 #2563eb;
 }
 
-body.light-theme button {
-  background: linear-gradient(90deg, #fbbf24, #f59e42);
-  color: #222;
-}
-body.light-theme button:hover {
-  background: linear-gradient(90deg, #ffd364, #fbbf24);
-}
+/* Redblack theme button style */
 body.redblack-theme button {
-  background: linear-gradient(90deg, #ff2121 12%, #ff5353 85%) !important;
+  background: linear-gradient(90deg, #ff3838 0%, #ff6363 100%) !important;
+  box-shadow: 0 0 9px 2px rgba(255, 56, 56, 0.55), 0 2px 7px rgba(200, 45, 45, 0.3);
   color: #fff !important;
-  box-shadow: 0 0 7px 0.5px rgba(255, 33, 33, 0.21);
 }
 body.redblack-theme button:hover,
 body.redblack-theme button:focus {
-  background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
+  background: linear-gradient(90deg, #ff5959 0%, #ff7777 100%) !important;
+  box-shadow: 0 0 18px 5px rgba(255, 89, 89, 0.7), 0 2px 12px rgba(255, 55, 55, 0.4);
 }
 
-/* Messages */
+/* Light theme button style */
+body.light-theme button {
+  background: linear-gradient(90deg, #fcc419 0%, #fb923c 100%);
+  color: #222;
+  box-shadow: 0 4px 20px rgba(251, 181, 72, 0.4);
+}
+body.light-theme button:hover {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+/* ================= Headings ================= */
+h1 {
+  font-weight: 900;
+  font-size: 2.5rem;
+  margin-bottom: 32px;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: #ffcc00;
+  text-shadow: 0 0 12px #ffbb33;
+}
+
+/* Emojis style (if used) */
+h1 .emoji {
+  font-size: 2.2rem;
+}
+
+/* Container background in themes */
+body.redblack-theme {
+  background-color: #0b0000 !important;
+  background-image: none !important;
+}
+
+body.redblack-theme .container {
+  background: #230b0b !important;
+  box-shadow: 0 0 28px 12px #ffbb44, 0 0 6px #ff871f !important;
+  color: #ffcc66 !important;
+}
+
+body.light-theme .container {
+  background: #fff;
+  box-shadow: 0 6px 32px 0 rgba(251, 181, 72, 0.3);
+  color: #222;
+}
+
+/* ================= Messages ================= */
 .message {
   text-align: center;
   width: 100%;
-  font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 1.06rem;
+  font-weight: 700;
+  margin-bottom: 20px;
   color: #e74c3c;
+  font-size: 1.12rem;
 }
-body.light-theme .message { color: #b91c1c; }
-body.redblack-theme .message { color: #ff3535; }
 
-/* Container tweaks for other themes */
-body.redblack-theme {
-  background-color: #000 !important;
-  background-image: none !important;
+body.light-theme .message {
+  color: #b91c1c;
 }
-body.redblack-theme .container {
-  background: #161016 !important;
-  border-radius: 22px;
-  box-shadow: 0 0 18px 2px #ff5353 !important;
-  color: #ff6565 !important;
-}
-body.light-theme .container {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.14);
-  color: #222;
-}
-body.light-theme h1 { color: #222 !important; }
-body.redblack-theme h1 { color: #ffbd4c !important; text-shadow: 0 0 7px #ff2020; }
 
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .container { width: 98vw; min-width: 0; padding: 9vw 2vw; }
-  form, .screen.active { max-width: 99vw; }
-  input, select, button { max-width: 99vw; min-width: 100px; }
-  h1 { font-size: 1.3rem; }
+body.redblack-theme .message {
+  color: #ff9922;
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 600px) {
+  .container {
+    width: 90vw !important;
+    padding: 8vw 4vw !important;
+    max-width: unset;
+  }
+
+  form, .screen.active {
+    max-width: 100vw;
+  }
+
+  input, select, button {
+    max-width: 100vw;
+  }
+
+  h1 {
+    font-size: 1.9rem;
+    gap: 8px;
+  }
+
+  button {
+    font-size: 1rem;
+  }
 }
