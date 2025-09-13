@@ -379,7 +379,7 @@ async function endSession() {
   showScreen("menuScreen");
 }
 
-async function showSessionResults(session) {
+function showSessionResults(session) {
   showScreen("sessionResultsScreen");
   
   // Summary stats
