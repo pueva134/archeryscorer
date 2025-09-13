@@ -1,4 +1,3 @@
-/* ================= Root & Body ================= */
 html, body {
   height: 100vh;
   width: 100vw;
@@ -7,270 +6,200 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #1f2937, #111827);
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  background: linear-gradient(135deg, #1f2937, #111827 85%);
   color: #fff;
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-/* All body themes centered */
-body, body.light-theme, body.redblack-theme {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 100vh;
   min-width: 100vw;
 }
 
-/* ================= Container Panel ================= */
+/* Minimal card */
 .container {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: auto !important;
-  max-width: 480px;
-  width: 90vw;
-  min-width: 320px;
-  max-height: 90vh;
-  padding: 40px 36px;
-  border-radius: 26px;
-  box-shadow: 0 8px 44px 0 rgba(41, 84, 247, 0.13), 0 2px 14px 0 rgba(0, 0, 0, 0.11);
-  background: rgba(24, 31, 42, 0.98);
-  box-sizing: border-box;
-  text-align: center;
-  overflow-y: auto;
-  gap: 24px;
-}
-
-/* ================= Form & Content ================= */
-form, .session-setup-form, .login-form, .signup-form, .screen.active {
-  width: 100%;
-  max-width: 400px;
-  display: flex !important;
+  display: flex;
   flex-direction: column;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 18px;
-  margin: 0 auto;
+  align-items: center; justify-content: center;
+  width: 350px;
+  max-width: 96vw;
+  padding: 32px 28px;
+  background: rgba(26, 34, 48, 0.96);
+  border-radius: 20px;
+  box-shadow: 0 2px 22px 0 rgba(41, 84, 247, .10);
+  text-align: center;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
-/* ================= Inputs & selects ================= */
-input, select {
-  max-width: 100%;
+/* Large heading, flat, emojis spaced well */
+h1 {
   width: 100%;
-  min-width: 280px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  border: 2px solid transparent;
-  font-size: 1.1rem;
-  background: #e9f0ff;
+  margin-top: 0;
+  text-align: center;
+  font-size: 2.05rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+h1 .emoji {
+  font-size: 1.9rem; margin: 0 2px;
+}
+
+/* Form setup for modern tight vertical rhythm */
+form,
+.screen.active,
+.session-setup-form,
+.login-form,
+.signup-form {
+  width: 100%;
+  max-width: 350px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 13px;
+}
+
+/* Flat, clean label */
+label, .form-label {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #e3e3e3;
+  margin-bottom: 4px;
+  margin-top: 5px;
+  text-align: left;
+  width: 100%;
+}
+
+/* Inputs */
+input, select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 15px;
+  border-radius: 11px;
+  border: none;
+  background: #e6eefb;
   color: #222;
-  box-sizing: border-box;
-  letter-spacing: 0.02em;
-  outline: none;
-  box-shadow: 0 3px 22px rgba(30, 60, 120, 0.07);
-  transition: border-color 0.3s ease, background 0.3s ease;
-  margin: 0 !important;
-}
-
-input:focus, select:focus {
-  background: #dcedff;
-  border-color: #3b82f6;
-  box-shadow: 0 5px 28px rgba(30, 60, 120, 0.15);
-}
-
-input::placeholder, select::placeholder {
-  color: #666;
-  opacity: 1;
   font-size: 1.06rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1.5px 7px rgba(40, 52, 120, 0.07);
+  box-sizing: border-box;
+  transition: background 0.18s;
+}
+input:focus, select:focus {
+  background: #dbeafe;
+  outline: none;
+}
+input::placeholder, select::placeholder {
+  color: #888;
+  font-size: 1.05rem;
+  opacity: 1;
 }
 
-/* Theme-dependent input styling */
 body.light-theme input,
 body.light-theme select {
   background: #fff;
   color: #222;
-  border: 2px solid #fbbf24;
 }
-
-body:not(.light-theme):not(.redblack-theme) input,
-body:not(.light-theme):not(.redblack-theme) select {
-  background: #202a3a;
-  color: #e6e6e6;
-  border: 2px solid #3b82f6;
-}
-
 body.redblack-theme input,
 body.redblack-theme select {
-  background: #292021;
-  color: #ff6161;
-  border: 2px solid #ff4040;
+  background: #26171b;
+  color: #ff6565;
+}
+body:not(.light-theme):not(.redblack-theme) input,
+body:not(.light-theme):not(.redblack-theme) select {
+  background: #e6eefb;
+  color: #222;
 }
 
-/* ================= Buttons ================= */
+/* Pill buttons, smooth color, minimal shadow */
 button {
   width: 100%;
-  max-width: 400px;
-  min-height: 50px;
-  padding: 14px 0;
-  font-size: 1.18rem;
-  font-weight: 800;
-  border-radius: 28px;
+  min-height: 44px;
+  padding: 12px 0;
+  border-radius: 25px;
   border: none;
-  box-sizing: border-box;
-  cursor: pointer;
-  transition: background 0.3s ease, box-shadow 0.25s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-  margin: 0 !important;
-  letter-spacing: 0.03em;
-}
-
-/* Consistent gap between buttons */
-form button:not(:last-child),
-.screen.active button:not(:last-child) {
-  margin-bottom: 20px !important;
-}
-
-/* Default theme buttons */
-body:not(.light-theme):not(.redblack-theme) button {
-  background: linear-gradient(90deg, #2196f3 0%, #64b5f6 100%);
+  font-size: 1.11rem;
+  font-weight: 700;
   color: #fff;
+  background: linear-gradient(90deg, #3b82f6, #52c3ff 80%);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(41,84,247, 0.07);
+  margin: 0 !important;
+  letter-spacing: 0.02em;
+  transition: background 0.22s;
 }
 
-body:not(.light-theme):not(.redblack-theme) button:hover {
-  background: linear-gradient(90deg, #1e88e5 0%, #42a5f5 100%);
+button:not(:last-child) {
+  margin-bottom: 13px !important;
 }
 
-/* Light theme buttons */
+button:hover, button:focus {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+
 body.light-theme button {
-  background: linear-gradient(90deg, #fcc419 0%, #fb923c 100%);
+  background: linear-gradient(90deg, #fbbf24, #f59e42);
   color: #222;
-  box-shadow: 0 4px 20px rgba(251, 181, 72, 0.4);
 }
-
 body.light-theme button:hover {
-  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+  background: linear-gradient(90deg, #ffd364, #fbbf24);
 }
-
-/* Red/black theme buttons softened glow */
 body.redblack-theme button {
-  background: linear-gradient(90deg, #ff3838 0%, #ff6363 100%) !important;
+  background: linear-gradient(90deg, #ff2121 12%, #ff5353 85%) !important;
   color: #fff !important;
-  box-shadow: 0 0 9px 2px rgba(255, 56, 56, 0.55), 0 2px 7px rgba(200, 45, 45, 0.3);
+  box-shadow: 0 0 7px 0.5px rgba(255, 33, 33, 0.21);
 }
-
 body.redblack-theme button:hover,
 body.redblack-theme button:focus {
-  background: linear-gradient(90deg, #ff5959 0%, #ff7777 100%) !important;
-  box-shadow: 0 0 18px 5px rgba(255, 89, 89, 0.7), 0 2px 12px rgba(255, 55, 55, 0.4);
+  background: linear-gradient(90deg, #ff3333 0%, #ff5353 100%) !important;
 }
 
-/* ================= Headings ================= */
-h1 {
-  width: 100%;
-  text-align: center;
-  font-size: 2.6rem;
-  margin-bottom: 32px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  color: #ffd700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-}
-
-body.redblack-theme h1 {
-  color: #ff5c5c !important;
-  text-shadow: 0 0 10px #ff3636;
-}
-
-body.light-theme h1 {
-  color: #333 !important;
-}
-
-/* ================= Labels ================= */
-label, .form-label {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #ddd;
-  width: 100%;
-  text-align: left;
-  margin-bottom: 6px;
-}
-
-body.redblack-theme label,
-body.redblack-theme .form-label {
-  color: #ff8a8a;
-}
-
-body.light-theme label,
-body.light-theme .form-label {
-  color: #444;
-}
-
-/* ================= Container Theme Variations ================= */
-body.redblack-theme {
-  background-color: #0b0000 !important;
-  background-image: none !important;
-}
-
-body.redblack-theme .container {
-  background: #230b0b !important;
-  border-radius: 28px !important;
-  box-shadow: 0 0 28px 12px #ff5c5c, 0 0 4px #ff2a2a !important;
-  color: #ff8a8a !important;
-}
-
-body.light-theme .container {
-  background: #fefefe;
-  border-radius: 22px;
-  box-shadow: 0 6px 32px 0 rgba(251, 181, 72, 0.3);
-  color: #333;
-}
-
-/* ================= Message Styling ================= */
+/* Messages */
 .message {
   text-align: center;
   width: 100%;
-  font-weight: 700;
-  margin-bottom: 18px;
-  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-size: 1.06rem;
   color: #e74c3c;
 }
+body.light-theme .message { color: #b91c1c; }
+body.redblack-theme .message { color: #ff3535; }
 
-body.light-theme .message {
-  color: #b91c1c;
+/* Container tweaks for other themes */
+body.redblack-theme {
+  background-color: #000 !important;
+  background-image: none !important;
 }
-
-body.redblack-theme .message {
-  color: #ff6a6a;
+body.redblack-theme .container {
+  background: #161016 !important;
+  border-radius: 22px;
+  box-shadow: 0 0 18px 2px #ff5353 !important;
+  color: #ff6565 !important;
 }
+body.light-theme .container {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.14);
+  color: #222;
+}
+body.light-theme h1 { color: #222 !important; }
+body.redblack-theme h1 { color: #ffbd4c !important; text-shadow: 0 0 7px #ff2020; }
 
-/* ================= Responsive ================= */
-@media (max-width: 600px) {
-  .container {
-    max-width: 96vw !important;
-    min-width: unset !important;
-    padding: 10vw 4vw !important;
-  }
-  input, select, button {
-    max-width: 97vw;
-    min-width: unset;
-  }
-  form, .screen.active {
-    max-width: 97vw;
-  }
-  button {
-    font-size: 1rem;
-    min-height: 44px;
-  }
-  h1 {
-    font-size: 1.9rem;
-    gap: 10px;
-  }
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .container { width: 98vw; min-width: 0; padding: 9vw 2vw; }
+  form, .screen.active { max-width: 99vw; }
+  input, select, button { max-width: 99vw; min-width: 100px; }
+  h1 { font-size: 1.3rem; }
 }
