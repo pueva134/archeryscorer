@@ -31,17 +31,18 @@
     .container {
       display: flex;
       flex-direction: column;
-      align-items: center; 
+      align-items: center;
       justify-content: center;
       width: 370px;
       max-width: 96vw;
-      padding: 38px 26px;
+      padding: 32px 24px;
       background: rgba(28, 38, 52, 0.98);
-      border-radius: 23px;
-      box-shadow: 0 2px 34px 0 rgba(41,84,247, .17), 0 8px 38px 0 rgba(59,130,246,0.13);
+      border-radius: 16px;
+      box-shadow: 0 0 38px 0 #1676ff44, 0 2px 18px 0 #000a;
       text-align: center;
       box-sizing: border-box;
       overflow-y: auto;
+      gap: 16px;
     }
 
     /* ================= Heading with Emojis ================= */
@@ -49,19 +50,20 @@
       width: 100%;
       margin-top: 0;
       text-align: center;
-      font-size: 2.18rem;
+      font-size: 2.1rem;
       font-weight: 900;
-      letter-spacing: 0.02em;
-      margin-bottom: 29px;
+      letter-spacing: 0.012em;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       color: #ffd700;
-      text-shadow: 0 2px 22px #ffbb33;
+      text-shadow: 0 0 14px #1676ff, 0 0 10px #ffd700;
     }
     h1 .emoji {
-      font-size: 1.9rem; margin: 0 2px;
+      font-size: 2rem;
+      margin: 0 2px;
     }
 
     /* ================= Form Setup ================= */
@@ -72,7 +74,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 13px;
+      gap: 12px;
       margin: 0 auto;
       box-sizing: border-box;
     }
@@ -83,16 +85,15 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      margin-bottom: 13px;
+      margin-bottom: 6px;
     }
 
     /* ================= Labels ================= */
     label {
-      font-size: 1.08rem;
+      font-size: 1rem;
       font-weight: 500;
       color: #e3e3e3;
-      margin-bottom: 6px;
-      margin-top: 2px;
+      margin-bottom: 4px;
       padding-left: 2px;
       text-shadow: 0 1px 7px #111827;
       width: 100%;
@@ -102,15 +103,15 @@
     /* ================= Inputs and Selects ================= */
     input, select {
       width: 100%;
-      min-height: 44px;
-      padding: 10px 15px;
+      min-height: 40px;
+      padding: 9px 14px;
       border-radius: 12px;
       border: none;
       background: #e7f0fa;
       color: #222;
-      font-size: 1.06rem;
+      font-size: 1.05rem;
       letter-spacing: 0.01em;
-      box-shadow: 0 1px 8px rgba(41,84,247, 0.09);
+      box-shadow: 0 1px 8px rgba(41,84,247, 0.07);
       box-sizing: border-box;
       transition: background 0.18s, box-shadow 0.23s;
       outline: none;
@@ -118,43 +119,132 @@
     }
 
     input:focus, select:focus {
-      background: #ddeafd;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.23), 0 2px 12px rgba(41, 84, 247, 0.13);
+      background: #dbeafd;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2), 0 2px 12px rgba(41, 84, 247, 0.1);
     }
 
     input::placeholder, select::placeholder {
       color: #888;
-      font-size: 1.04rem;
+      font-size: 1.03rem;
       opacity: 1;
+    }
+
+    /* Theme-specific input/select styling */
+    body.light-theme input,
+    body.light-theme select {
+      background: #fff;
+      color: #222;
+    }
+    body.redblack-theme input,
+    body.redblack-theme select {
+      background: #26171b;
+      color: #ff6565;
+    }
+    body:not(.light-theme):not(.redblack-theme) input,
+    body:not(.light-theme):not(.redblack-theme) select {
+      background: #e6eefb;
+      color: #222;
     }
 
     /* ================= Buttons ================= */
     button {
       width: 100%;
-      min-height: 46px;
-      padding: 13px 0;
-      border-radius: 26px;
+      min-height: 42px;
+      padding: 10px 0;
+      border-radius: 24px;
       border: none;
-      font-size: 1.13rem;
+      font-size: 1.11rem;
       font-weight: 700;
       color: #fff;
       background: linear-gradient(90deg, #3b82f6, #52c3ff 80%);
       cursor: pointer;
-      box-shadow: 0 2px 20px 2px rgba(52,133,255,0.15), 0 1px 10px 0 rgba(41,84,247, 0.23);
+      box-shadow: 0 2px 16px rgba(52,133,255,0.13), 0 1px 10px rgba(41,84,247, 0.2);
       margin: 0 !important;
       letter-spacing: 0.02em;
       transition: background 0.22s, box-shadow 0.18s;
     }
 
-    button:hover, button:focus {
-      background: linear-gradient(90deg, #2563eb, #1d4ed8 100%);
-      box-shadow: 0 2px 28px 4px #3b82f6, 0 2px 14px 0 #2563eb;
+    button:not(:last-child) {
+      margin-bottom: 12px !important;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 480px) {
-      .container { width: 97vw; min-width: 0; padding: 7vw 2vw; }
-      form { max-width: 99vw; }
+    button:hover, button:focus {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8 100%);
+      box-shadow: 0 2px 28px 5px #3b82f6, 0 2px 14px 0 #2563ebaa;
+    }
+
+
+    /* Redblack theme button style */
+    body.redblack-theme button {
+      background: linear-gradient(90deg, #ff3838 0%, #ff6363 100%) !important;
+      box-shadow: 0 0 9px 3px rgba(255, 56, 56, 0.55), 0 2px 7px rgba(200, 45, 45, 0.3);
+      color: #fff !important;
+    }
+    body.redblack-theme button:hover,
+    body.redblack-theme button:focus {
+      background: linear-gradient(90deg, #ff5959 0%, #ff7777 100%) !important;
+      box-shadow: 0 0 18px 6px rgba(255, 89, 89, 0.7), 0 2px 12px rgba(255, 55, 55, 0.4);
+    }
+
+    /* Light theme button style */
+    body.light-theme button {
+      background: linear-gradient(90deg, #fcc419 0%, #fb923c 100%);
+      color: #222;
+      box-shadow: 0 4px 20px rgba(251, 181, 72, 0.4);
+    }
+    body.light-theme button:hover {
+      background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+    }
+
+    /* ================= Headings ================= */
+    body.redblack-theme {
+      background-color: #0b0000 !important;
+      background-image: none !important;
+    }
+    body.redblack-theme .container {
+      background: #230b0b !important;
+      box-shadow: 0 0 28px 12px #ffbb44, 0 0 6px #ff871f !important;
+      color: #ffcc66 !important;
+    }
+    body.light-theme .container {
+      background: #fff;
+      box-shadow: 0 6px 32px 0 rgba(251, 181, 72, 0.3);
+      color: #222;
+    }
+    body.light-theme h1 { color: #222 !important; }
+    body.redblack-theme h1 { color: #ffbd4c !important; text-shadow: 0 0 7px #ff2020; }
+
+    h1 {
+      color: #ffd700;
+      font-weight: 900;
+      font-size: 2.1rem;
+      margin-bottom: 18px;
+      text-shadow: 0 0 15px #ffd700;
+    }
+    h1 .emoji {
+      font-size: 2.1rem;
+    }
+
+    /* ================= Messages ================= */
+    .message {
+      text-align: center;
+      width: 100%;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #e74c3c;
+      font-size: 1.1rem;
+    }
+    body.light-theme .message { color: #b91c1c; }
+    body.redblack-theme .message { color: #ff6a6a; }
+
+    /* ================= Responsive ================= */
+    @media (max-width: 600px) {
+      .container {
+        width: 90vw !important;
+        padding: 8vw 4vw !important;
+        max-width: unset;
+      }
+      form, .screen.active { max-width: 99vw; }
       input, select, button { max-width: 99vw; min-width: 100px; }
       h1 { font-size: 1.9rem; gap: 8px; }
       button { font-size: 1rem; }
@@ -162,23 +252,24 @@
   </style>
 </head>
 <body>
-
-  <div class="container">
+  <div class="container" role="main">
     <h1>
-      <span class="emoji" aria-hidden="true">🏹</span> My Scorer <span class="emoji" aria-hidden="true">🏹</span>
+      <span class="emoji" aria-hidden="true">🏹</span>
+      My Scorer
+      <span class="emoji" aria-hidden="true">🏹</span>
     </h1>
-    <form id="signupForm">
+    <form id="signupForm" aria-label="Signup form">
       <div class="form-group">
         <label for="name">Name:</label>
-        <input id="name" name="name" type="text" placeholder="Enter your name" required />
+        <input id="name" name="name" type="text" placeholder="Enter your name" autocomplete="name" required />
       </div>
       <div class="form-group">
         <label for="email">Email:</label>
-        <input id="email" name="email" type="email" placeholder="Email Address" required />
+        <input id="email" name="email" type="email" placeholder="Email Address" autocomplete="email" required />
       </div>
       <div class="form-group">
         <label for="password">Password:</label>
-        <input id="password" name="password" type="password" placeholder="Enter password" required />
+        <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="new-password" required />
       </div>
       <div class="form-group">
         <label for="role">Role:</label>
@@ -191,6 +282,5 @@
       <button type="button" id="loginBtn">Login</button>
     </form>
   </div>
-
 </body>
 </html>
