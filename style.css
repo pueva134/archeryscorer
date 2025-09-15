@@ -14,34 +14,33 @@ overflow-y: auto;
 }
 
 body {
-display: flex;
-align-items: center;
-justify-content: center;
-min-height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;      /* Vertical center */
+  justify-content: center;  /* Horizontal center */
   margin: 0;
   padding: 0;
-  width: 100vw;
-  overflow-x: hidden;
   box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;            /* Ensure full viewport height */
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: #fff;
 }
-/* Constrain container max width and allow it to shrink on small screens */
 
 .container {
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-min-width: 320px;  /* slightly smaller min width */
-max-width: 400px;
-  width: 95vw;       /* Use viewport width but capped by max-width */
-  width: 95vw;        /* Use viewport width but capped by max-width */
-padding: 30px 28px;
-background: rgba(24, 31, 42, 0.98);
-border-radius: 18px;
-box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
-box-sizing: border-box;
-max-height: 90vh;  /* prevent container height from exceeding viewport */
-overflow-y: auto;  /* scroll within container if content long */
+  display: flex;
+  flex-direction: column;       /* Stack screens vertically */
+  align-items: center;          /* Center content horizontally */
+  justify-content: center;      /* Center content vertically */
+  min-width: 320px;
+  max-width: 400px;
+  width: 95vw;
+  padding: 30px 28px;
+  background: rgba(24, 31, 42, 0.98);
+  border-radius: 18px;
+  box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
+  max-height: 90vh;
+  overflow-y: auto;
   text-align: center;
 }
 
