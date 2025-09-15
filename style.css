@@ -6,7 +6,6 @@ html, body {
   background: linear-gradient(135deg, #1f2937, #111827);
   color: #fff;
   width: 100vw;
-  height: 100vh;
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
@@ -106,6 +105,8 @@ th {
 }
 
 /* Provide vertical spacing between children */
+.screen { display: none; }
+.screen.active { display: block; }
 .screen > *:not(:last-child) {
   margin-bottom: 10px;
 }
