@@ -198,7 +198,6 @@
     <select id="role">
       <option value="archer">Archer</option>
       <option value="coach">Coach</option>
-      <option value="judge">Judge</option>
     </select>
     <button id="signupBtn">Sign Up</button>
     <button id="loginBtn">Login</button>
@@ -272,12 +271,13 @@
   </div>
 
   <!-- Session Results Screen -->
-  <div id="results" class="screen">
+  <div id="sessionResultsScreen" class="screen">
     <h2>Session Results</h2>
-    <div id="sessionSummary"></div>
-    <div id="scoreTable"></div>
-    <canvas id="scoreChart" width="400" height="200" style="margin-top: 20px;"></canvas>
-    <button id="newSessionBtn">New Session</button>
+    <div id="sessionResultsSummary"></div>
+    <div id="sessionResultsTable"></div>
+    <canvas id="sessionResultsTrendChart" width="600" height="300"></canvas>
+    <canvas id="sessionResultsTarget" width="300" height="300"></canvas>
+    <button id="backToMenuBtn">Back to Menu</button>
   </div>
 
   <!-- History Screen -->
