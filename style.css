@@ -1,4 +1,4 @@
-html, body { 
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -7,77 +7,121 @@ html, body {
   color: #fff;
   width: 100vw;
   height: 100vh;
-  box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 body {
   min-height: 100vh;
+  min-width: 100vw;
   display: flex;
-  align-items: center;         
-  justify-content: center;     
-  width: 100vw;
+  align-items: center;        /* Vertical centering */
+  justify-content: center;    /* Horizontal centering */
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;        
-  justify-content: center;    
+  align-items: center;         /* Center children horizontally */
+  justify-content: center;     /* Center children vertically */
   min-width: 320px;
   max-width: 400px;
   width: 95vw;
-  padding: 30px 28px;
+  padding: 28px;
   background: rgba(24, 31, 42, 0.98);
   border-radius: 18px;
-  box-shadow: 0 4px 28px 0 rgba(41, 84, 247, 0.12);
+  box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
   max-height: 90vh;
   overflow-y: auto;
+  text-align: center;          /* Center text in container */
   box-sizing: border-box;
-  text-align: center;         
 }
 
-h1, h2, h3, label, p, .message {
+.screen {
   width: 100%;
-  text-align: center;          
-  margin-bottom: 18px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 5px;
 }
 
+.screen.active {
+  display: flex;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px auto;
+  box-sizing: border-box;
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 450px) {
+  .container {
+    max-width: 96vw;
+    min-width: auto;
+    padding: 8vw 3vw;
+  }
+  input, select, button, textarea {
+    max-width: 97vw;
+  }
+}
+
+/* Inputs, selects, textarea */
 input[type="text"],
 input[type="email"],
 input[type="password"],
-select,
 input[type="number"],
-textarea,
-button {
-  width: 90%;                  
-  max-width: 320px;
-  margin: 10px auto;           
-  display: block;
-  box-sizing: border-box;
-  text-align: center;          
+select,
+textarea {
+  width: 90%;                 
+  max-width: 320px;           
+  margin: 8px auto 15px auto; 
+  display: block;             
+  padding: 10px;
   border-radius: 8px;
   border: none;
   font-size: 1rem;
-  font-weight: 700;
-  padding: 10px;
-  cursor: pointer;
-  transition: background 0.3s ease;
+  box-sizing: border-box;
+  text-align: center;         /* Center input text */
 }
 
+/* Button */
 button {
+  width: 90%;
+  max-width: 320px;
+  padding: 12px 0;
+  margin: 8px auto 15px auto;
+  border-radius: 10px;
+  border: none;
   background: linear-gradient(90deg, #3984f7, #52c3ff);
   color: #fff;
+  font-weight: 700;
+  cursor: pointer;
   font-size: 1.1rem;
-  border-radius: 10px;
-  padding: 12px 0;
+  transition: background 0.3s ease;
+  display: block;
+  text-align: center;
 }
 
 button:hover {
-  background: linear-gradient(90deg, #1a62d1, #3b92f7);
+  background: linear-gradient(90deg, #1a62d1, #3e9bf7);
+}
+
+/* Labels and text */
+label, .message, th, td, h1, h2, h3, p {
+  width: 100%;
+  text-align: center;
 }
 
 table {
@@ -85,9 +129,9 @@ table {
   border-collapse: collapse;
   background-color: #232c42;
   border-radius: 10px;
+  overflow: hidden;
   margin: 0 auto;
   text-align: center;
-  overflow: hidden;
 }
 
 th, td {
@@ -97,89 +141,57 @@ th, td {
 }
 
 th {
-  background-color: #394f81;
+  background-color: #394a79;
 }
 
 .message {
   color: #e74c3c;
+  text-align: center;
+  margin-bottom: 15px;
   font-weight: 600;
+  width: 100%;
 }
 
-/* Provide vertical spacing between children in screens */
-.screen > *:not(:last-child) {
-  margin-bottom: 10px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 450px) {
-  .container {
-    max-width: 96vw;
-    padding: 8vw 3vw;
-  }
-  input, select, button {
-    max-width: 97vw;
-    width: 97vw;
-  }
-}
-
-/* Light Theme */
+/* ===== Light Theme ===== */
 body.light-theme {
   background: linear-gradient(135deg, #f5f8fa, #dbeafe);
-  color: #222;
+  color: #222222;
 }
 
 body.light-theme .container {
   background: rgba(245, 250, 255, 0.97);
   box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.12);
-  color: #222;
+  color: #222222;
 }
 
 body.light-theme input,
-body.light-theme input[type="text"],
-body.light-theme input[type="email"],
-body.light-theme input[type="password"],
 body.light-theme select,
+body.light-theme textarea,
 body.light-theme button {
   background: #ffffff;
-  color: #222;
+  color: #222222;
   border: 1px solid #bfc9d9;
-}
-
-body.light-theme input[type="number"],
-body.light-theme textarea {
-  background: #fafafa;
-  color: #222;
-  border: 1px solid #ccc;
 }
 
 body.light-theme button {
   background: linear-gradient(90deg, #fbbf24, #f59e42);
-  color: #222;
+  color: #222222;
 }
 
 body.light-theme button:hover {
   background: linear-gradient(90deg, #d97706, #b45309);
 }
 
-body.light-theme table {
-  background-color: #fff;
-  color: #222;
-}
-
 body.light-theme th {
-  background-color: #f59e0b;
+  background-color: #f9a825;
   color: #222;
-}
-
-body.light-theme td {
-  border-color: #ddd;
 }
 
 body.light-theme .message {
   color: #b91c1c;
 }
 
-/* Red/Black Dark Theme */
+/* ===== Red/Black Dark Theme ===== */
 body.redblack-theme {
   background-color: #100e0e;
   color: #f87171;
@@ -188,53 +200,54 @@ body.redblack-theme {
 body.redblack-theme .container {
   background: rgba(22, 22, 25, 0.97);
   border-radius: 20px;
-  box-shadow: 0 0 16px 1px rgba(248, 113, 113, 0.7);
+  box-shadow: 0 6px 32px 0 rgba(239, 68, 68, 0.18);
   color: #f87171;
 }
 
 body.redblack-theme input,
-body.redblack-theme input[type="text"],
-body.redblack-theme input[type="email"],
-body.redblack-theme input[type="password"],
 body.redblack-theme select,
+body.redblack-theme textarea,
 body.redblack-theme button {
   background: #1b1717;
-}
-
-body.redblack-theme input[type="number"],
-body.redblack-theme textarea {
-  background: #1c1a1a;
   color: #f87171;
   border: 1px solid #9f1239;
 }
 
 body.redblack-theme button {
-  background: linear-gradient(90deg, #ef4444, #991b1b);
+  background: linear-gradient(90deg, #ef4444, #111112);
   color: #fff;
-  box-shadow: 0 0 12px 1px rgba(248, 113, 113, 0.6);
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.22);
 }
 
 body.redblack-theme button:hover {
-  background: linear-gradient(90deg, #b91c1c, #7f1212);
-}
-
-body.redblack-theme table {
-  background-color: #1c1a1a;
-  color: #f87171;
+  background: linear-gradient(90deg, #991b1b, #000000);
 }
 
 body.redblack-theme th {
-  background-color: #66171a;
+  background-color: #fff;
   color: #f87171;
 }
 
-body.redblack-theme td {
-  border-color: #8b1a20;
+body.redblack-theme .message {
+  color: #b91c1c;
 }
 
-body.redblack-theme .message {
-  color: #ff6b6b;
+/* Responsive themes */
+@media (max-width: 450px) {
+  body.light-theme .container,
+  body.redblack-theme .container {
+    max-width: 96vw;
+    min-width: auto;
+    padding: 8vw 3vw;
+  }
+  body.light-theme input,
+  body.light-theme select,
+  body.light-theme textarea,
+  body.light-theme button,
+  body.redblack-theme input,
+  body.redblack-theme select,
+  body.redblack-theme textarea,
+  body.redblack-theme button {
+    max-width: 97vw;
+  }
 }
