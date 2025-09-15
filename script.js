@@ -387,6 +387,8 @@ async function endSession() {
 // Show session results with chart fix
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
+
+  // Format date
   let dateStr = "N/A";
   if (session.date) {
     if (session.date.seconds) {
@@ -398,143 +400,160 @@ function showSessionResults(session) {
     }
   }
 
+  // Summary
   document.getElementById("sessionResultsSummary").innerHTML = `
-    <strong>Score:</strong> ${session.totalScore} / ${session.endsCount * session.arrowsPerEnd * 10}<br>
-    <strong>Date:</strong> ${dateStr}<br>
-    <strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m<br>
-    <strong>Target Face:</strong> ${session.targetFace}
-  `;
+   <strong>Score:</strong> ${session.totalScore} / ${session.endsCount * session.arrowsPerEnd * 10}<br>
+   <strong>Date:</strong> ${dateStr}<br>
+   <strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m<br>
+   <strong>Target Face:</strong> ${session.targetFace}
+ `;
 
-const tableDiv = document.getElementById("sessionResultsTable");
+  // Table container
+  const tableDiv = document.getElementById("sessionResultsTable");
+  tableDiv.innerHTML = '';
 
-// Clear existing content
-tableDiv.innerHTML = '';
+  if (!session.ends || session.ends.length === 0) {
+    tableDiv.innerHTML = '<p>No session data available.</p>';
+    return;
+  }
 
-if (!session.ends || session.ends.length === 0) {
-  tableDiv.innerHTML = '<p>No session data available.</p>';
-  return;
-}
+  // Build table header
+  let table = "<table border='1' style='width:100%; border-collapse: collapse;'>";
+  table += "<thead><tr><th>End</th>";
+  const arrowsPerEnd = session.arrowsPerEnd || (session.ends[0]?.arrows?.length || session.ends[0]?.length || 0);
+  for (let i = 1; i <= arrowsPerEnd; i++) {
+    table += `<th>Arrow ${i}</th>`;
+  }
+  table += "<th>Total</th></tr></thead><tbody>";
 
-let table = "<table border='1' style='width:100%; border-collapse: collapse;'>";
+  // Build table rows
+  session.ends.forEach((endObj, idx) => {
+    // Accept both shapes: { arrows: [...] } or [...scores...]
+    const scoresArr = Array.isArray(endObj) ? endObj : (Array.isArray(endObj.arrows) ? endObj.arrows : []);
+    const total = scoresArr
+      .map((s) => (typeof s === "object" && s.score !== undefined ? s.score : s))
+      .filter((s) => typeof s === "number")
+      .reduce((acc, val) => acc + val, 0);
 
-// Table header
-table += "<thead><tr><th>End</th>";
-for (let i = 1; i <= (session.arrowsPerEnd || 0); i++) {
-  table += `<th>Arrow ${i}</th>`;
-}
-table += "<th>Total</th></tr></thead><tbody>";
-
-// Table body rows
-session.ends.forEach((end, idx) => {
-  // Defensive: extract array of scores whether wrapped as {score,...} or direct number
-  const scores = Array.isArray(end.arrows) ? end.arrows : end;
-  const total = scores
-    .map(s => (typeof s === 'object' && s.score !== undefined ? s.score : s))
-    .filter(s => typeof s === 'number')
-    .reduce((acc, val) => acc + val, 0);
-
-  table += `<tr><td>${idx + 1}</td>`;
-  scores.forEach(scoreItem => {
-    const val = (typeof scoreItem === 'object' && scoreItem.score !== undefined) ? scoreItem.score : scoreItem;
-    table += `<td>${val}</td>`;
+    table += `<tr><td>${idx + 1}</td>`;
+    // fill arrow cells (if a score is an object, extract .score)
+    for (let i = 0; i < arrowsPerEnd; i++) {
+      const scoreItem = scoresArr[i];
+      const val = (typeof scoreItem === "object" && scoreItem.score !== undefined) ? scoreItem.score : (scoreItem !== undefined ? scoreItem : "");
+      table += `<td>${val}</td>`;
+    }
+    table += `<td>${total}</td></tr>`;
   });
-  table += `<td>${total}</td></tr>`;
-});
 
-table += '</tbody></table>';
+  table += '</tbody></table>';
+  tableDiv.innerHTML = table;
 
-tableDiv.innerHTML = table;
+  // Chart.js graph: prepare canvas and data
+  const chartCanvas = document.getElementById("sessionResultChart");
+  if (chartCanvas) {
+    const chartCtx = chartCanvas.getContext("2d");
 
-  // Chart.js graph fix — clear canvas and destroy previous instance before new chart
-const chartCanvas = document.getElementById("sessionResultChart");
-const ctx = chartCanvas.getContext("2d");
+    // Clear canvas
+    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
 
-// Clear the canvas before drawing
-ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
-
-// Destroy any existing chart instance before creating a new one
-if (window.sessionChartInstance) {
-  window.sessionChartInstance.destroy();
-}
-
-// Prepare data for line chart
-const endTotals = sessionData.ends.map(end =>
-  (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
-);
-
-// Create line chart
-window.sessionChartInstance = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-    datasets: [{
-      label: 'Points per End',
-      data: endTotals,
-      fill: false,
-      borderColor: 'rgba(59, 130, 246, 0.7)',
-      backgroundColor: 'rgba(59, 130, 246, 0.7)',
-      tension: 0.3,
-      pointRadius: 5,
-      pointHoverRadius: 7,
-      borderWidth: 3
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      title: {
-        display: true,
-        text: `Session Total Score: ${sessionData.totalScore}`,
-        font: { size: 16, weight: 'bold' }
-      },
-      legend: { display: true }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: sessionData.arrowsPerEnd * 10,
-        title: { display: true, text: 'Points' }
-      },
-      x: {
-        title: { display: true, text: 'End Number' }
+    // Destroy previous chart if exists
+    if (window.sessionChartInstance) {
+      try {
+        window.sessionChartInstance.destroy();
+      } catch (e) {
+        // ignore if destroy fails
       }
+      window.sessionChartInstance = null;
+    }
+
+    const endTotals = session.ends.map((endObj) => {
+      const scoresArr = Array.isArray(endObj) ? endObj : (Array.isArray(endObj.arrows) ? endObj.arrows : []);
+      return scoresArr
+        .map((s) => (typeof s === "object" && s.score !== undefined ? s.score : s))
+        .filter((s) => typeof s === "number")
+        .reduce((a, b) => a + b, 0);
+    });
+
+    // create bar chart (if Chart is loaded)
+    if (typeof Chart !== "undefined") {
+      window.sessionChartInstance = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+          labels: session.ends.map((_, i) => `End ${i + 1}`),
+          datasets: [{
+            label: 'Points per End',
+            data: endTotals,
+            fill: false,
+            // visual styles are left as-is from your previous code
+            borderColor: 'rgba(59, 130, 246, 0.7)',
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            tension: 0.3,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: `Session Total Score: ${session.totalScore}`,
+              font: { size: 16, weight: 'bold' }
+            },
+            legend: { display: true }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: (session.arrowsPerEnd || arrowsPerEnd) * 10,
+              title: { display: true, text: 'Points' }
+            },
+            x: {
+              title: { display: true, text: 'End Number' }
+            }
+          }
+        }
+      });
     }
   }
-});
 
   // Target rings visualization for last end (unchanged)
   const targetCanvas = document.getElementById("sessionResultsTarget");
-  const targetCtx = targetCanvas.getContext("2d");
-  const radius = targetCanvas.width / 2;
-  const rings = [
-    { color: "#FFFFFF", r: radius },
-    { color: "#000000", r: radius * 0.8 },
-    { color: "#0000FF", r: radius * 0.6 },
-    { color: "#FF0000", r: radius * 0.4 },
-    { color: "#FFFF00", r: radius * 0.2 },
-  ];
-  targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
-  rings.forEach((rg) => {
-    targetCtx.beginPath();
-    targetCtx.arc(radius, radius, rg.r, 0, 2 * Math.PI);
-    targetCtx.fillStyle = rg.color;
-    targetCtx.fill();
-  });
-
-  const lastEnd = session.ends[session.ends.length - 1];
-  if (lastEnd && lastEnd.length) {
-    lastEnd.forEach((arrow) => {
-      if (typeof arrow === "object" && arrow.x !== undefined && arrow.y !== undefined) {
-        targetCtx.beginPath();
-        targetCtx.arc(arrow.x, arrow.y, 7, 0, 2 * Math.PI);
-        targetCtx.fillStyle = "lime";
-        targetCtx.fill();
-        targetCtx.strokeStyle = "#222";
-        targetCtx.lineWidth = 2;
-        targetCtx.stroke();
-      }
+  if (targetCanvas) {
+    const targetCtx = targetCanvas.getContext("2d");
+    const r = targetCanvas.width / 2;
+    const rings = [
+      { color: "#FFFFFF", r: r },
+      { color: "#000000", r: r * 0.8 },
+      { color: "#0000FF", r: r * 0.6 },
+      { color: "#FF0000", r: r * 0.4 },
+      { color: "#FFFF00", r: r * 0.2 },
+    ];
+    targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+    rings.forEach((rg) => {
+      targetCtx.beginPath();
+      targetCtx.arc(r, r, rg.r, 0, 2 * Math.PI);
+      targetCtx.fillStyle = rg.color;
+      targetCtx.fill();
     });
+
+    const lastEndObj = session.ends[session.ends.length - 1];
+    const lastEnd = Array.isArray(lastEndObj) ? lastEndObj : (Array.isArray(lastEndObj?.arrows) ? lastEndObj.arrows : []);
+    if (lastEnd && lastEnd.length) {
+      lastEnd.forEach((arrow) => {
+        if (typeof arrow === "object" && arrow.x !== undefined && arrow.y !== undefined) {
+          targetCtx.beginPath();
+          targetCtx.arc(arrow.x, arrow.y, 7, 0, 2 * Math.PI);
+          targetCtx.fillStyle = "lime";
+          targetCtx.fill();
+          targetCtx.strokeStyle = "#222";
+          targetCtx.lineWidth = 2;
+          targetCtx.stroke();
+        }
+      });
+    }
   }
 }
 
@@ -742,12 +761,12 @@ async function displaySessionResult(sessionData) {
   const chartCanvas = document.getElementById("sessionResultChart");
 
   summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
-    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
-    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
-    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
-    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
-  `;
+   <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
+   <p><strong>Distance:</strong> ${sessionData.distance}m</p>
+   <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
+   <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
+   <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
+ `;
 
   const table = document.createElement("table");
   table.style.width = "100%";
