@@ -82,8 +82,8 @@ function updateEndScores() {
       .map((a) => (typeof a === "object" ? a.score : a))
       .join(" | ");
   }
-
   if (endTotalDiv) {
+    // Only sum numeric scores, ignore "M" (misses)
     const numeric = arrowScores
       .map((a) => (typeof a === "object" ? a.score : a))
       .filter((s) => typeof s === "number")
@@ -98,7 +98,6 @@ function updateEndSessionButtons() {
   const endBtn = document.getElementById("endSessionBtn");
   const lastEnd = currentEndNumber === currentSession.endsCount;
   const arrowsComplete = arrowScores.length === currentSession.arrowsPerEnd;
-
   if (!lastEnd && arrowsComplete) {
     nextBtn.style.display = "inline-block";
     endBtn.style.display = "none";
@@ -127,7 +126,7 @@ function handleCanvasScoreClick(e) {
   const maxRadius = canvas.width / 2;
   const ringWidth = maxRadius / 10;
 
-  let score = "M";
+  let score = "M"; // Miss by default
 
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
@@ -139,7 +138,7 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 8) score = 3;
   else if (dist <= ringWidth * 9) score = 2;
   else if (dist <= ringWidth * 10) score = 1;
-  else score = "M";
+  else score = "M"; // Outside target
 
   arrowScores.push({ score, x, y });
   updateEndScores();
@@ -221,6 +220,7 @@ function updateSessionSetupOptions() {
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
 
+  // Populate bow styles once
   if (bowSelect.options.length === 0) {
     Object.keys(bowDistances).forEach((bow) => {
       const opt = document.createElement("option");
@@ -305,19 +305,25 @@ async function nextEnd() {
     alert("Please score all arrows!");
     return;
   }
+  // Push current end's scores
   currentSession.ends.push([...arrowScores]);
 
+  // Update total score for current session
   currentSession.totalScore += arrowScores
     .map((s) => (typeof s === "object" ? s.score : s))
     .filter((s) => typeof s === "number")
     .reduce((a, b) => a + b, 0);
 
+  // Reset arrow scores for next end
   arrowScores = [];
 
   updateEndScores();
   updateEndSessionButtons();
 
+  console.log("Ends accumulated so far:", currentSession.ends.length);
+
   if (currentEndNumber === currentSession.endsCount) {
+    console.log("All ends completed. Ready to save full session.");
     return;
   }
 
@@ -328,6 +334,8 @@ async function nextEnd() {
 // Save session to Firestore
 async function saveSession() {
   if (!currentUser) return;
+
+  console.log("Saving full session with ends count:", currentSession.ends.length);
 
   const endsObjects = currentSession.ends.map((endArr) => ({ arrows: endArr }));
   const sessionKey = Date.now().toString();
@@ -348,6 +356,7 @@ async function saveSession() {
     await updateDoc(userRef, {
       [`sessions.${sessionKey}`]: newSession,
     });
+    console.log("Session saved:", sessionKey);
   } catch (e) {
     console.error("Failed to save session:", e);
   }
@@ -366,6 +375,7 @@ async function endSession() {
       .filter((s) => typeof s === "number")
       .reduce((a, b) => a + b, 0);
     arrowScores = [];
+    console.log("Final end pushed in endSession");
   }
 
   if (currentSession.ends.length > 0) {
@@ -374,7 +384,7 @@ async function endSession() {
   }
 }
 
-// Show session results with table and chart
+// Show session results with chart fix
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
   let dateStr = "N/A";
@@ -389,108 +399,111 @@ function showSessionResults(session) {
   }
 
   document.getElementById("sessionResultsSummary").innerHTML = `
-    <strong>Score:</strong> ${session.totalScore} / ${
-    session.endsCount * session.arrowsPerEnd * 10
-  }<br>
+    <strong>Score:</strong> ${session.totalScore} / ${session.endsCount * session.arrowsPerEnd * 10}<br>
     <strong>Date:</strong> ${dateStr}<br>
     <strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m<br>
     <strong>Target Face:</strong> ${session.targetFace}
   `;
 
-  const tableDiv = document.getElementById("sessionResultsTable");
-  tableDiv.innerHTML = "";
+const tableDiv = document.getElementById("sessionResultsTable");
 
-  if (!session.ends || session.ends.length === 0) {
-    tableDiv.innerHTML = "<p>No session data available.</p>";
-    return;
-  }
+// Clear existing content
+tableDiv.innerHTML = '';
 
-  let table = "<table border='1' style='width:100%; border-collapse: collapse;'>";
-  table += "<thead><tr><th>End</th>";
-  for (let i = 1; i <= (session.arrowsPerEnd || 0); i++) {
-    table += `<th>Arrow ${i}</th>`;
-  }
-  table += "<th>Total</th></tr></thead><tbody>";
+if (!session.ends || session.ends.length === 0) {
+  tableDiv.innerHTML = '<p>No session data available.</p>';
+  return;
+}
 
-  session.ends.forEach((end, idx) => {
-    const scores = Array.isArray(end.arrows) ? end.arrows : end;
-    const total = scores
-      .map((s) => (typeof s === "object" && s.score !== undefined ? s.score : s))
-      .filter((s) => typeof s === "number")
-      .reduce((acc, val) => acc + val, 0);
+let table = "<table border='1' style='width:100%; border-collapse: collapse;'>";
 
-    table += `<tr><td>${idx + 1}</td>`;
-    scores.forEach((scoreItem) => {
-      const val =
-        typeof scoreItem === "object" && scoreItem.score !== undefined ? scoreItem.score : scoreItem;
-      table += `<td>${val}</td>`;
-    });
-    table += `<td>${total}</td></tr>`;
+// Table header
+table += "<thead><tr><th>End</th>";
+for (let i = 1; i <= (session.arrowsPerEnd || 0); i++) {
+  table += `<th>Arrow ${i}</th>`;
+}
+table += "<th>Total</th></tr></thead><tbody>";
+
+// Table body rows
+session.ends.forEach((end, idx) => {
+  // Defensive: extract array of scores whether wrapped as {score,...} or direct number
+  const scores = Array.isArray(end.arrows) ? end.arrows : end;
+  const total = scores
+    .map(s => (typeof s === 'object' && s.score !== undefined ? s.score : s))
+    .filter(s => typeof s === 'number')
+    .reduce((acc, val) => acc + val, 0);
+
+  table += `<tr><td>${idx + 1}</td>`;
+  scores.forEach(scoreItem => {
+    const val = (typeof scoreItem === 'object' && scoreItem.score !== undefined) ? scoreItem.score : scoreItem;
+    table += `<td>${val}</td>`;
   });
+  table += `<td>${total}</td></tr>`;
+});
 
-  table += "</tbody></table>";
+table += '</tbody></table>';
 
-  tableDiv.innerHTML = table;
+tableDiv.innerHTML = table;
 
-  // Chart.js graph rendering for session results
-  const chartCanvas = document.getElementById("sessionResultChart");
-  const ctx = chartCanvas.getContext("2d");
+  // Chart.js graph fix — clear canvas and destroy previous instance before new chart
+const chartCanvas = document.getElementById("sessionResultChart");
+const ctx = chartCanvas.getContext("2d");
 
-  ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+// Clear the canvas before drawing
+ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
 
-  if (window.sessionChartInstance) {
-    window.sessionChartInstance.destroy();
+// Destroy any existing chart instance before creating a new one
+if (window.sessionChartInstance) {
+  window.sessionChartInstance.destroy();
+}
+
+// Prepare data for line chart
+const endTotals = sessionData.ends.map(end =>
+  (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
+);
+
+// Create line chart
+window.sessionChartInstance = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
+    datasets: [{
+      label: 'Points per End',
+      data: endTotals,
+      fill: false,
+      borderColor: 'rgba(59, 130, 246, 0.7)',
+      backgroundColor: 'rgba(59, 130, 246, 0.7)',
+      tension: 0.3,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: `Session Total Score: ${sessionData.totalScore}`,
+        font: { size: 16, weight: 'bold' }
+      },
+      legend: { display: true }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: sessionData.arrowsPerEnd * 10,
+        title: { display: true, text: 'Points' }
+      },
+      x: {
+        title: { display: true, text: 'End Number' }
+      }
+    }
   }
+});
 
-  const endTotals = session.ends.map((end) =>
-    (end.arrows || [])
-      .filter((s) => typeof s === "number")
-      .reduce((a, b) => a + b, 0),
-  );
-
-  window.sessionChartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: session.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "Points per End",
-          data: endTotals,
-          fill: false,
-          borderColor: "rgba(59, 130, 246, 0.7)",
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-          tension: 0.3,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          borderWidth: 3,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: `Session Total Score: ${session.totalScore}`,
-          font: { size: 16, weight: "bold" },
-        },
-        legend: { display: true },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: session.arrowsPerEnd * 10,
-          title: { display: true, text: "Points" },
-        },
-        x: {
-          title: { display: true, text: "End Number" },
-        },
-      },
-    },
-  });
-
-  // Draw target rings for last end
+  // Target rings visualization for last end (unchanged)
   const targetCanvas = document.getElementById("sessionResultsTarget");
   const targetCtx = targetCanvas.getContext("2d");
   const radius = targetCanvas.width / 2;
@@ -567,30 +580,44 @@ function attachButtonHandlers() {
   document.getElementById("menuStartBtn")?.addEventListener("click", () =>
     showScreen("setup")
   );
-  document.getElementById("menuHistoryBtn")?.addEventListener("click", viewHistory);
-  document.getElementById("menuLogoutBtn")?.addEventListener("click", () =>
-    signOut(auth).then(() => showScreen("loginPage"))
-  );
-  document.getElementById("menuToggleBtn")?.addEventListener("click", () =>
-    alert("Theme toggle not implemented")
-  );
-  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
-  document.getElementById("viewHistoryBtn")?.addEventListener("click", viewHistory);
-  document.getElementById("logoutBtn")?.addEventListener("click", () =>
-    signOut(auth).then(() => showScreen("loginPage"))
-  );
+  document
+    .getElementById("menuHistoryBtn")
+    ?.addEventListener("click", viewHistory);
+  document
+    .getElementById("menuLogoutBtn")
+    ?.addEventListener("click", () =>
+      signOut(auth).then(() => showScreen("loginPage"))
+    );
+  document
+    .getElementById("menuToggleBtn")
+    ?.addEventListener("click", () =>
+      alert("Theme toggle not implemented")
+    );
+  document
+    .getElementById("startSessionBtn")
+    ?.addEventListener("click", startSession);
+  document
+    .getElementById("viewHistoryBtn")
+    ?.addEventListener("click", viewHistory);
+  document
+    .getElementById("logoutBtn")
+    ?.addEventListener("click", () =>
+      signOut(auth).then(() => showScreen("loginPage"))
+    );
   document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
-  document.getElementById("backToSetupBtn")?.addEventListener("click", () => {
-    arrowScores = [];
-    currentSession = {};
-    currentEndNumber = 1;
-    showScreen("setup");
-    drawTarget();
-    updateEndScores();
-    updateEndSessionButtons();
-  });
+  document
+    .getElementById("backToSetupBtn")
+    ?.addEventListener("click", () => {
+      arrowScores = [];
+      currentSession = {};
+      currentEndNumber = 1;
+      showScreen("setup");
+      drawTarget();
+      updateEndScores();
+      updateEndSessionButtons();
+    });
   if (canvas) {
     canvas.addEventListener("click", handleCanvasScoreClick);
   }
@@ -612,9 +639,10 @@ onAuthStateChanged(auth, async (user) => {
   }
   const data = userDoc.data();
   currentUserRole = data.role || "archer";
-  document.getElementById("greeting").innerText = `Hello, ${data.name} (${
-    currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1)
-  })!`;
+  document.getElementById(
+    "greeting"
+  ).innerText = `Hello, ${data.name} (${currentUserRole.charAt(0).toUpperCase() +
+    currentUserRole.slice(1)})!`;
 
   if (currentUserRole === "coach") {
     document.getElementById("startSessionBtn").style.display = "none";
@@ -726,7 +754,8 @@ async function displaySessionResult(sessionData) {
   table.style.borderCollapse = "collapse";
 
   let headerRow = "<tr><th>End</th>";
-  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
+  const arrowsCount =
+    sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
   for (let i = 1; i <= arrowsCount; i++) {
     headerRow += `<th>Arrow ${i}</th>`;
   }
@@ -735,7 +764,9 @@ async function displaySessionResult(sessionData) {
 
   sessionData.ends.forEach((endObj, idx) => {
     const endArr = endObj.arrows || [];
-    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
+    const endTotal = endArr
+      .filter((s) => typeof s === "number")
+      .reduce((a, b) => a + b, 0);
     let row = `<tr><td>${idx + 1}</td>`;
     endArr.forEach((score) => {
       row += `<td>${score}</td>`;
@@ -753,7 +784,9 @@ async function displaySessionResult(sessionData) {
   if (window.sessionChartInstance) window.sessionChartInstance.destroy();
 
   const endTotals = sessionData.ends.map((end) =>
-    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0),
+    (end.arrows || [])
+      .filter((s) => typeof s === "number")
+      .reduce((a, b) => a + b, 0)
   );
 
   window.sessionChartInstance = new Chart(ctx, {
@@ -774,6 +807,18 @@ async function displaySessionResult(sessionData) {
     },
   });
 }
+
+// Show coach dashboard screen and load archers list
+function showCoachDashboard() {
+  showScreen("coachDashboard");
+  loadArchersList();
+}
+
+// Navigation control for coach dashboard back button
+document.getElementById("coachBackBtn").addEventListener("click", () => {
+  document.getElementById("sessionResultContainer").style.display = "none";
+  showScreen("menuScreen");
+});
 
 // Initialization
 window.addEventListener("DOMContentLoaded", () => {
