@@ -606,32 +606,6 @@ function showSessionResults(session) {
   attachBackButtonHandlers();
 }
 
-// Attach event listeners for back buttons across screens
-function attachBackButtonHandlers() {
-  const backButtons = [
-    { id: "backBtn", resetSession: true },
-    { id: "backToMenuBtn", resetSession: true },
-    { id: "backToMenuBtnResults", resetSession: true },
-    { id: "backToMenuBtnHistory", resetSession: false },
-    { id: "coachBackBtn", resetSession: false },
-  ];
-
-  backButtons.forEach(({ id, resetSession }) => {
-    const btn = document.getElementById(id);
-    if (btn) {
-      btn.onclick = e => {
-        e.preventDefault();
-        if (resetSession) {
-          currentSession = {};
-          arrowScores = [];
-          currentEndNumber = 1;
-        }
-        showScreen("menuScreen");
-      };
-    }
-  });
-}
-
 // Layout/UIs binders and entry point
 function setupUI() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
