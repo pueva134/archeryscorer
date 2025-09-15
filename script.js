@@ -4,8 +4,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  signOut,
+} from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -16,8 +16,9 @@ import {
   query,
   where,
   getDocs,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  Timestamp,
+} from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
+
 // Firebase config and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyDhk1JX8LXrt0GXe8YnxprkFP6r4cMmmRw",
