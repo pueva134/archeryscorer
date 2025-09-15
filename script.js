@@ -426,56 +426,62 @@ function showSessionResults(session) {
   tableDiv.innerHTML = table;
 
   // Chart.js graph fix — clear canvas and destroy previous instance before new chart
-  const chartCanvas = document.getElementById("sessionResultsTrendChart");
-  const ctx = chartCanvas.getContext("2d");
-  ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+  const chartCanvas = document.getElementById("sessionResultChart");
+const ctx = chartCanvas.getContext("2d");
 
-  if (window.sessionChartInstance) {
-    window.sessionChartInstance.destroy();
+// Clear the canvas before drawing
+ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+// Destroy any existing chart instance before creating a new one
+if (window.sessionChartInstance) {
+  window.sessionChartInstance.destroy();
+}
+
+// Prepare data for line chart
+const endTotals = sessionData.ends.map(end =>
+  (end.arrows || []).filter(s => typeof s === "number").reduce((a, b) => a + b, 0)
+);
+
+// Create line chart
+window.sessionChartInstance = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
+    datasets: [{
+      label: 'Points per End',
+      data: endTotals,
+      fill: false,
+      borderColor: 'rgba(59, 130, 246, 0.7)',
+      backgroundColor: 'rgba(59, 130, 246, 0.7)',
+      tension: 0.3,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: `Session Total Score: ${sessionData.totalScore}`,
+        font: { size: 16, weight: 'bold' }
+      },
+      legend: { display: true }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: sessionData.arrowsPerEnd * 10,
+        title: { display: true, text: 'Points' }
+      },
+      x: {
+        title: { display: true, text: 'End Number' }
+      }
+    }
   }
-
-  const endTotals = session.ends.map((end) =>
-    end
-      .map((arrow) => (typeof arrow === "object" ? arrow.score : arrow))
-      .filter((s) => typeof s === "number")
-      .reduce((a, b) => a + b, 0)
-  );
-
-  window.sessionChartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: session.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "Points per End",
-          data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: `Session Total Score: ${session.totalScore}`,
-          font: { size: 16, weight: "bold" },
-        },
-        legend: { display: false },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: session.arrowsPerEnd * 10,
-          title: { display: true, text: "Points" },
-        },
-        x: {
-          title: { display: true, text: "End Number" },
-        },
-      },
-    },
-  });
+});
 
   // Target rings visualization for last end (unchanged)
   const targetCanvas = document.getElementById("sessionResultsTarget");
