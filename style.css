@@ -1,37 +1,34 @@
-/* ================= Base Styles (yours with slight additions for consistency) ================= */
-
 html, body {
-height: 100%;
-margin: 0;
-padding: 0;
-font-family: 'Segoe UI', sans-serif;
-background: linear-gradient(135deg, #1f2937, #111827);
-color: #fff;
-width: 100vw;
-height: 100vh;
-overflow-x: hidden;  /* Prevent horizontal scroll */
-overflow-y: auto;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: #fff;
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
   min-height: 100vh;
+  min-width: 100vw;
   display: flex;
-  align-items: center;      /* Vertical center */
-  justify-content: center;  /* Horizontal center */
+  align-items: center;        /* Vertically center the container */
+  justify-content: center;    /* Horizontally center the container */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   width: 100vw;
-  height: 100vh;            /* Ensure full viewport height */
-  background: linear-gradient(135deg, #1f2937, #111827);
-  color: #fff;
+  height: 100vh;
 }
 
 .container {
   display: flex;
-  flex-direction: column;       /* Stack screens vertically */
-  align-items: center;          /* Center content horizontally */
-  justify-content: center;      /* Center content vertically */
+  flex-direction: column;
+  align-items: center;         /* Center all children horizontally */
+  justify-content: center;     /* Center all children vertically */
   min-width: 320px;
   max-width: 400px;
   width: 95vw;
@@ -41,36 +38,33 @@ body {
   box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
   max-height: 90vh;
   overflow-y: auto;
-  text-align: center;
+  text-align: center;          /* Center text in the container */
 }
 
-/* Screen containers fill container, scroll within if content overflows */
 .screen {
-width: 100%;
-max-height: 85vh;  /* limit height to viewport fraction */
-overflow-y: auto;  /* vertical scroll inside screens */
-display: none;
-flex-direction: column;
-align-items: center;
-box-sizing: border-box;
-padding: 5px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 5px;
 }
 
-/* Show active screen */
 .screen.active {
-display: flex;
+  display: flex;
 }
 
-/* Canvas and chart elements responsive */
 canvas {
-max-width: 100%;
-height: auto;
-display: block;
-margin: 0 auto 15px auto;
-box-sizing: border-box;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px auto;
+  box-sizing: border-box;
 }
 
-/* For very small screens, adjust container */
+/* Responsive adjustment for small screens */
 @media (max-width: 450px) {
   .container {
     max-width: 96vw;
@@ -81,206 +75,173 @@ box-sizing: border-box;
     max-width: 97vw;
   }
 }
-/* Ensure form elements are symmetrical & centered */
-/* Input, select, button styles */
-input, select, button {
-max-width: 320px;
-width: 100%;
-display: block;
-margin: 7px auto 15px auto;
-padding: 11px 14px;
-border-radius: 10px;
-border: none;
-font-size: 1rem;
-box-sizing: border-box;
+
+/* Form elements and buttons: Centered content and blocks */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+input[type="number"],
+textarea {
+  width: 100%;
+  max-width: 320px;
+  padding: 10px;
+  margin: 8px 0 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  text-align: center;          /* Center the input text */
+  display: block;              /* Ensure block display for auto margin */
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Headings should be centered */
-/* Headings centered */
-h1, h2, h3 {
-width: 100%;
-text-align: center;
-margin-bottom: 20px;
-}
-
-/* Button gradient and hover style */
-/* Button base style with gradient & hover */
 button {
-background: linear-gradient(90deg, #3b82f6, #52c3ff);
-color: #fff;
-font-weight: bold;
-cursor: pointer;
-border: none;
-transition: background .3s;
-margin-top: 7px;
-margin-bottom: 7px;
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 0;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #3984f7, #52c3ff);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 button:hover {
-background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  background: linear-gradient(90deg, #1a62d1, #3e9bf7);
 }
 
-/* Message styles */
+label, .message, th, td, h1, h2, h3, p {
+  width: 100%;
+  text-align: center;           /* Center headings, labels, tables, messages */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #232c42;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0 auto;
+  text-align: center;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #2a344b;
+  text-align: center;
+}
+
+th {
+  background-color: #394a79;
+}
+
 .message {
-color: #e74c3c;
-text-align: center;
-margin-bottom: 10px;
-font-weight: 600;
-width: 100%;
+  color: #e74c3c;
+  text-align: center;
+  margin-bottom: 15px;
+  font-weight: 600;
+  width: 100%;
 }
 
-/* ===== Red/Black Dark Theme Enhancements (active only when toggled) ===== */
-/* Responsive adjustments */
+/* ===== Theme specific overrides (example for light theme) ===== */
+
+body.light-theme {
+  background: linear-gradient(135deg, #f5f8fa, #dbeafe);
+  color: #222222;
+}
+
+body.light-theme .container {
+  background: rgba(245, 250, 255, 0.97);
+  box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.12);
+  color: #222222;
+}
+
+body.light-theme input,
+body.light-theme select,
+body.light-theme button {
+  background: #ffffff;
+  color: #222222;
+  border: 1px solid #bfc9d9;
+}
+
+body.light-theme button {
+  background: linear-gradient(90deg, #fbbf24, #f59e42);
+  color: #222222;
+}
+
+body.light-theme button:hover {
+  background: linear-gradient(90deg, #d97706, #b45309);
+}
+
+body.light-theme th {
+  background-color: #f9a825;
+  color: #222;
+}
+
+body.light-theme .message {
+  color: #b91c1c;
+}
+
+/* ===== Theme specific overrides (example for red/black) ===== */
+
+body.redblack-theme {
+  background-color: #100e0e;
+  color: #f87171;
+}
+
+body.redblack-theme .container {
+  background: rgba(22, 22, 25, 0.97);
+  border-radius: 20px;
+  box-shadow: 0 6px 32px 0 rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
+
+body.redblack-theme input,
+body.redblack-theme select,
+body.redblack-theme button {
+  background: #1b1717;
+  color: #f87171;
+  border: 1px solid #9f1239;
+}
+
+body.redblack-theme button {
+  background: linear-gradient(90deg, #ef4444, #111112);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.22);
+}
+
+body.redblack-theme button:hover {
+  background: linear-gradient(90deg, #991b1b, #000000);
+}
+
+body.redblack-theme th {
+  background-color: #fff;
+  color: #f87171;
+}
+
+body.redblack-theme .message {
+  color: #b91c1c;
+}
+
+/* Responsive adjustment for themes */
 @media (max-width: 450px) {
-  .container {
+  body.light-theme .container, body.redblack-theme .container {
     max-width: 96vw;
     min-width: auto;
     padding: 8vw 3vw;
   }
-  input, select, button {
+  body.light-theme input, body.light-theme select, body.light-theme button,
+  body.redblack-theme input, body.redblack-theme select, body.redblack-theme button {
     max-width: 97vw;
   }
-}
-
-/* ================= Red/Black Dark Theme ================= */
-
-body.redblack-theme {
-background: #000 !important; /* Pure black background */
-color: #ff5353 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  margin: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-body.redblack-theme .container {
-background: #131313 !important;
-border-radius: 20px;
-color: #ff5353 !important;
-box-shadow: 0 0 32px 8px #ff2121, 0 0 0 1px #ff1818 !important;
-  text-align: center;
-}
-
-/* Buttons: full red gradients, focused red glow */
-body.redblack-theme button {
-background: linear-gradient(90deg, #ff2020 0%, #b71c1c 100%) !important;
-color: #fff !important;
-border: none !important;
-box-shadow: 0 0 18px 2px #ff2121, 0 2px 8px #b71c1c !important;
-transition: box-shadow .22s, background .22s;
-}
-
-/* Even stronger red glow on hover/focus */
-body.redblack-theme button:hover,
-body.redblack-theme button:focus,
-body.redblack-theme button:active {
-background: linear-gradient(90deg, #ff3333, #6b0f0f 100%) !important;
-box-shadow: 0 0 36px 12px #ff3b3b, 0 2px 16px #ff2121 !important;
-}
-
-body.redblack-theme h1 {
-color: #ff5353 !important;
-text-shadow: 0 0 8px #ff2020;
-}
-
-/* ===== Light Theme Adaptation ===== */
-/* ================= Light Theme ================= */
-
-body.light-theme {
-background: linear-gradient(135deg, #f5f8fa, #dbeafe);
-color: #222222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  margin: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-body.light-theme .container {
-background: rgba(245, 250, 255, 0.97);
-border-radius: 18px;
-box-shadow: 0 4px 28px 0 rgba(59, 130, 246, 0.12);
-color: #222222;
-  text-align: center;
-}
-
-body.light-theme input,
-body.light-theme select,
-body.light-theme button {
-max-width: 320px;
-width: 100%;
-display: block;
-margin: 7px auto 15px auto;
-padding: 11px 14px;
-border-radius: 10px;
-border: 1px solid #bfc9d9;
-font-size: 1rem;
-box-sizing: border-box;
-background: #ffffff;
-color: #222222;
-transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-body.light-theme input:focus,
-body.light-theme select:focus,
-body.light-theme button:focus {
-outline: none;
-border-color: #3b82f6;
-background: #e0e7ff;
-}
-
-/* Button styling */
-body.light-theme button {
-background: linear-gradient(90deg, #fbbf24, #f59e42);
-color: #222222;
-font-weight: bold;
-cursor: pointer;
-border: none;
-transition: background 0.3s ease;
-margin-top: 7px;
-margin-bottom: 7px;
-}
-
-body.light-theme button:hover {
-background: linear-gradient(90deg, #d97706, #b45309);
-}
-
-body.light-theme h1, 
-body.light-theme h2, 
-body.light-theme h1,
-body.light-theme h2,
-body.light-theme h3 {
-width: 100%;
-text-align: center;
-margin-bottom: 20px;
-color: #222222;
-}
-
-/* Message style */
-body.light-theme .message {
-color: #b91c1c;
-text-align: center;
-margin-bottom: 10px;
-font-weight: 600;
-width: 100%;
-}
-
-/* Responsive */
-@media (max-width: 450px) {
-body.light-theme .container {
-max-width: 96vw;
-padding: 8vw 3vw;
-}
-body.light-theme input,
-body.light-theme select,
-body.light-theme button {
-max-width: 97vw;
-}
 }
