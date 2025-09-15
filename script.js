@@ -19,7 +19,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase Config
+// Firebase configuration & init
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -29,7 +29,6 @@ const firebaseConfig = {
   appId: "1:243500946215:web:bd976f1bd437edce684f02",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -44,12 +43,12 @@ let currentEndNumber = 1;
 let canvas = document.getElementById("target");
 let ctx = canvas?.getContext("2d");
 
-// Screen helper
+// Show screen helper: manage .active class toggling
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
   const el = document.getElementById(id);
   if (el) el.classList.add("active");
-  attachBackToMenuHandlers();
+  attachBackToMenuHandlers(); // Attach back handlers whenever screen changes
   if (id === "scoringArea") {
     canvas = document.getElementById("target");
     ctx = canvas?.getContext("2d");
@@ -58,7 +57,7 @@ function showScreen(id) {
   if (id === "setup") updateSessionSetupOptions();
 }
 
-// Draw target rings
+// Draw archery target rings on canvas
 function drawTarget(targetElem) {
   const c = targetElem || canvas || document.getElementById("target");
   if (!c) return;
@@ -82,7 +81,7 @@ function drawTarget(targetElem) {
   });
 }
 
-// Update end scores display
+// Update current end arrow scores display
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
@@ -92,6 +91,7 @@ function updateEndScores() {
       .map((a) => (typeof a === "object" && a.score !== undefined ? a.score : a))
       .join(" | ");
   }
+
   if (endTotalDiv) {
     const numeric = arrowScores
       .map((a) => (typeof a === "object" && a.score !== undefined ? a.score : a))
@@ -101,7 +101,7 @@ function updateEndScores() {
   }
 }
 
-// Update next/end buttons visibility
+// Update Next and End buttons visibility appropriately
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
@@ -125,7 +125,7 @@ function updateEndSessionButtons() {
   }
 }
 
-// Handle canvas click for scoring
+// Handle arrow scoring on canvas click or touch
 function handleCanvasScoreClick(e) {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -166,7 +166,7 @@ function handleCanvasScoreClick(e) {
   updateEndSessionButtons();
 }
 
-// Signup function
+// Signup implementation with validation
 async function signup() {
   const usernameEl = document.getElementById("username");
   const emailEl = document.getElementById("email");
@@ -184,12 +184,13 @@ async function signup() {
     if (msgDiv) msgDiv.innerText = "Please fill all fields!";
     return;
   }
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
     await setDoc(doc(db, "users", uid), {
       name: username,
-      role: role,
+      role,
       sessions: {},
     });
     currentUser = userCredential.user;
@@ -200,7 +201,7 @@ async function signup() {
   }
 }
 
-// Login function
+// Login implementation
 async function login() {
   const emailEl = document.getElementById("email");
   const passwordEl = document.getElementById("password");
@@ -221,7 +222,7 @@ async function login() {
   }
 }
 
-// Session setup options
+// Session setup dropdown updates
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70, 80],
@@ -265,8 +266,7 @@ function updateSessionSetupOptions() {
   function updateDistances() {
     distSelect.innerHTML = "";
     const selectedBow = bowSelect.value;
-    const distances = bowDistances[selectedBow] || [];
-    distances.forEach((d) => {
+    (bowDistances[selectedBow] || []).forEach((d) => {
       const opt = document.createElement("option");
       opt.value = d;
       opt.textContent = `${d}m`;
@@ -283,9 +283,10 @@ function updateSessionSetupOptions() {
     if (distance <= 18) {
       faces = selectedBow === "Compound" ? bowTargetFaces.Compound : bowTargetFaces.indoorOnly;
     } else {
-      faces = selectedBow === "Compound"
-        ? bowTargetFaces.Compound
-        : (bowTargetFaces.outdoorOnly || []).concat(bowTargetFaces.indoorOnly || []);
+      faces =
+        selectedBow === "Compound"
+          ? bowTargetFaces.Compound
+          : [...(bowTargetFaces.outdoorOnly || []), ...(bowTargetFaces.indoorOnly || [])];
     }
     faces.forEach((f) => {
       const opt = document.createElement("option");
@@ -301,7 +302,7 @@ function updateSessionSetupOptions() {
   updateDistances();
 }
 
-// Start a scoring session
+// Start a session
 function startSession() {
   if (currentUserRole !== "archer") {
     alert("Only Archers can start a scoring session.");
@@ -348,7 +349,7 @@ function undoLastArrow() {
   updateEndSessionButtons();
 }
 
-// Proceed to the next end
+// Move to next end
 async function nextEnd() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -377,7 +378,7 @@ async function nextEnd() {
   if (currentEndEl) currentEndEl.innerText = currentEndNumber;
 }
 
-// Save session to Firestore
+// Save session
 async function saveSession() {
   if (!currentUser) return;
 
@@ -405,7 +406,7 @@ async function saveSession() {
   }
 }
 
-// End session and save all data once complete
+// End session and save
 async function endSession() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
 
@@ -416,6 +417,7 @@ async function endSession() {
 
   if (arrowScores.length === currentSession.arrowsPerEnd) {
     currentSession.ends.push([...arrowScores]);
+
     const endTotal = arrowScores
       .map((s) => (typeof s === "object" && s.score !== undefined ? s.score : s))
       .filter((s) => typeof s === "number")
@@ -430,7 +432,7 @@ async function endSession() {
   }
 }
 
-// Handle Back to Menu buttons
+// Attach Back to Menu handlers across screens
 function attachBackToMenuHandlers() {
   const backBtnResults = document.getElementById("backToMenuBtnResults");
   if (backBtnResults) {
@@ -442,7 +444,6 @@ function attachBackToMenuHandlers() {
       showScreen("menuScreen");
     };
   }
-
   const backBtnHistory = document.getElementById("backToMenuBtnHistory");
   if (backBtnHistory) {
     backBtnHistory.onclick = (event) => {
@@ -450,7 +451,6 @@ function attachBackToMenuHandlers() {
       showScreen("menuScreen");
     };
   }
-
   const backBtnCoach = document.getElementById("coachBackBtn");
   if (backBtnCoach) {
     backBtnCoach.onclick = (event) => {
@@ -460,7 +460,7 @@ function attachBackToMenuHandlers() {
   }
 }
 
-// Show session results: summary, table, horizontal bar chart, and arrow dispersion
+// Show session results with summary, table, horizontal graph, dispersion
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
 
@@ -511,7 +511,6 @@ function showSessionResults(session) {
   table.style.borderCollapse = "collapse";
   table.style.tableLayout = "fixed";
 
-  // Header
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
   ["End", ...Array.from({ length: arrowsPerEnd }, (_, i) => `Arrow ${i + 1}`), "Total"].forEach(
@@ -529,7 +528,6 @@ function showSessionResults(session) {
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // Body
   const tbody = document.createElement("tbody");
   endsArr.forEach((endObjOrArr, idx) => {
     const endArr = Array.isArray(endObjOrArr)
@@ -572,7 +570,7 @@ function showSessionResults(session) {
   table.appendChild(tbody);
   tableDiv.appendChild(table);
 
-  // Horizontal bar chart for scores
+  // Horizontal bar chart
   let horizChartCanvas = document.getElementById("sessionResultsHorizontalChart");
   if (!horizChartCanvas) {
     horizChartCanvas = document.createElement("canvas");
@@ -611,7 +609,7 @@ function showSessionResults(session) {
         {
           label: "Points per End",
           data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.8)",
+          backgroundColor: "rgba(59, 130, 246, 0.85)",
         },
       ],
     },
@@ -677,39 +675,11 @@ function showSessionResults(session) {
     dispCtx.stroke();
   });
 
-  // Attach Back to Menu button handler after DOM has updated
+  // Attach back to menu button handler
   attachBackToMenuHandlers();
 }
 
-// Attach back to menu event handlers for all screens with back buttons
-function attachBackToMenuHandlers() {
-  const btnResults = document.getElementById("backToMenuBtnResults");
-  if (btnResults) {
-    btnResults.onclick = (event) => {
-      event.preventDefault();
-      currentSession = {};
-      arrowScores = [];
-      currentEndNumber = 1;
-      showScreen("menuScreen");
-    };
-  }
-  const btnHistory = document.getElementById("backToMenuBtnHistory");
-  if (btnHistory) {
-    btnHistory.onclick = (event) => {
-      event.preventDefault();
-      showScreen("menuScreen");
-    };
-  }
-  const btnCoachBack = document.getElementById("coachBackBtn");
-  if (btnCoachBack) {
-    btnCoachBack.onclick = (event) => {
-      event.preventDefault();
-      showScreen("menuScreen");
-    };
-  }
-}
-
-// Attach all main UI handlers
+// Attach main UI event handlers including back buttons
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -735,7 +705,35 @@ function attachButtonHandlers() {
   attachBackToMenuHandlers();
 }
 
-// Track authentication state to update UI accordingly
+// Attach back to menu buttons event handlers
+function attachBackToMenuHandlers() {
+  const backBtnResults = document.getElementById("backToMenuBtnResults");
+  if (backBtnResults) {
+    backBtnResults.onclick = (event) => {
+      event.preventDefault();
+      currentSession = {};
+      arrowScores = [];
+      currentEndNumber = 1;
+      showScreen("menuScreen");
+    };
+  }
+  const backBtnHistory = document.getElementById("backToMenuBtnHistory");
+  if (backBtnHistory) {
+    backBtnHistory.onclick = (event) => {
+      event.preventDefault();
+      showScreen("menuScreen");
+    };
+  }
+  const backBtnCoach = document.getElementById("coachBackBtn");
+  if (backBtnCoach) {
+    backBtnCoach.onclick = (event) => {
+      event.preventDefault();
+      showScreen("menuScreen");
+    };
+  }
+}
+
+// Firebase auth listener manages user state and UI
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUser = null;
@@ -772,7 +770,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// Load UI when document ready
+// Initialize on DOM load
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
@@ -780,7 +778,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndScores();
   updateEndSessionButtons();
 
-  // Dynamically load Chart.js if not present
+  // Dynamically load Chart.js if needed
   if (typeof Chart === "undefined") {
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/chart.js";
