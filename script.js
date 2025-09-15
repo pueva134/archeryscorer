@@ -405,28 +405,48 @@ function showSessionResults(session) {
     <strong>Target Face:</strong> ${session.targetFace}
   `;
 
-  const tableDiv = document.getElementById("sessionResultsTable");
-  let table = "<table border='1'><tr><th>End</th>";
-  for (let i = 1; i <= session.arrowsPerEnd; i++) table += `<th>Arrow ${i}</th>`;
-  table += "<th>End Total</th></tr>";
+const tableDiv = document.getElementById("sessionResultsTable");
 
-  session.ends.forEach((end, idx) => {
-    const total = end
-      .map((arrow) => (typeof arrow === "object" ? arrow.score : arrow))
-      .filter((s) => typeof s === "number")
-      .reduce((a, b) => a + b, 0);
-    table += `<tr><td>${idx + 1}</td>`;
-    end.forEach((arrow) => {
-      let scoreVal = typeof arrow === "object" ? arrow.score : arrow;
-      table += `<td>${scoreVal}</td>`;
-    });
-    table += `<td>${total}</td></tr>`;
+// Clear existing content
+tableDiv.innerHTML = '';
+
+if (!session.ends || session.ends.length === 0) {
+  tableDiv.innerHTML = '<p>No session data available.</p>';
+  return;
+}
+
+let table = "<table border='1' style='width:100%; border-collapse: collapse;'>";
+
+// Table header
+table += "<thead><tr><th>End</th>";
+for (let i = 1; i <= (session.arrowsPerEnd || 0); i++) {
+  table += `<th>Arrow ${i}</th>`;
+}
+table += "<th>Total</th></tr></thead><tbody>";
+
+// Table body rows
+session.ends.forEach((end, idx) => {
+  // Defensive: extract array of scores whether wrapped as {score,...} or direct number
+  const scores = Array.isArray(end.arrows) ? end.arrows : end;
+  const total = scores
+    .map(s => (typeof s === 'object' && s.score !== undefined ? s.score : s))
+    .filter(s => typeof s === 'number')
+    .reduce((acc, val) => acc + val, 0);
+
+  table += `<tr><td>${idx + 1}</td>`;
+  scores.forEach(scoreItem => {
+    const val = (typeof scoreItem === 'object' && scoreItem.score !== undefined) ? scoreItem.score : scoreItem;
+    table += `<td>${val}</td>`;
   });
-  table += "</table>";
-  tableDiv.innerHTML = table;
+  table += `<td>${total}</td></tr>`;
+});
+
+table += '</tbody></table>';
+
+tableDiv.innerHTML = table;
 
   // Chart.js graph fix — clear canvas and destroy previous instance before new chart
-  const chartCanvas = document.getElementById("sessionResultChart");
+const chartCanvas = document.getElementById("sessionResultChart");
 const ctx = chartCanvas.getContext("2d");
 
 // Clear the canvas before drawing
