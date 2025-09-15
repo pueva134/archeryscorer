@@ -7,78 +7,45 @@ html, body {
   color: #fff;
   width: 100vw;
   height: 100vh;
+  box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 body {
   min-height: 100vh;
-  min-width: 100vw;
   display: flex;
-  align-items: center;        /* Vertically center the container */
-  justify-content: center;    /* Horizontally center the container */
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  align-items: center;         /* Vertically center the container */
+  justify-content: center;     /* Horizontally center the container */
   width: 100vw;
-  height: 100vh;
+  padding: 0;
+  margin: 0;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;         /* Center all children horizontally */
-  justify-content: center;     /* Center all children vertically */
+  align-items: center;         /* Center children horizontally */
+  justify-content: center;     /* Center children vertically */
   min-width: 320px;
   max-width: 400px;
   width: 95vw;
-  padding-left: 28px;
-  padding-right: 28px;         /* Symmetrical padding for left and right sides */
+  padding: 30px 28px;
   background: rgba(24, 31, 42, 0.98);
   border-radius: 18px;
   box-shadow: 0 4px 28px 0 rgba(41, 84, 247, .12);
   max-height: 90vh;
   overflow-y: auto;
-  text-align: center;
-  box-sizing: border-box;      /* Include padding in size */
+  box-sizing: border-box;
+  text-align: center;          /* Center text inside container */
 }
 
-.screen {
+h1, h2, h3, label, p, .message {
   width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 5px;
+  text-align: center;          /* Center all text */
+  margin-bottom: 18px;
 }
 
-.screen.active {
-  display: flex;
-}
-
-canvas {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto 15px auto;
-  box-sizing: border-box;
-}
-
-/* Responsive adjustment for small screens */
-@media (max-width: 450px) {
-  .container {
-    max-width: 96vw;
-    min-width: auto;
-    padding: 8vw 3vw;
-  }
-  input, select, button {
-    max-width: 97vw;
-  }
-}
-
-/* Inputs, selects, buttons centered with equal left/right gaps */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -86,40 +53,31 @@ select,
 input[type="number"],
 textarea,
 button {
-  width: 90%;                 /* Less than full container width for breathing room */
-  max-width: 320px;           /* Prevent excessive stretching */
-  margin-left: auto;
-  margin-right: auto;         /* Center horizontally within container */
-  display: block;             /* To make margin auto work */
-  box-sizing: border-box;     /* Include padding/border in width */
-  text-align: center;         /* Center text inside inputs/buttons */
-  padding: 10px;
+  width: 90%;                  /* Leave equal space on sides */
+  max-width: 320px;
+  margin: 10px auto;           /* Center blocks horizontally with vertical margin */
+  display: block;
+  box-sizing: border-box;
+  text-align: center;          /* Center input and button text */
   border-radius: 8px;
   border: none;
   font-size: 1rem;
-  font-weight: 700;           /* For buttons text */
+  padding: 10px;
+  font-weight: 700;            /* Bold text for better readability */
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
-/* Button specific styles */
 button {
   background: linear-gradient(90deg, #3984f7, #52c3ff);
   color: #fff;
-  padding: 12px 0;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  font-size: 1.1rem;
   border-radius: 10px;
+  padding: 12px 0;
 }
 
 button:hover {
   background: linear-gradient(90deg, #1a62d1, #3e9bf7);
-}
-
-/* Labels and text */
-label, .message, th, td, h1, h2, h3, p {
-  width: 100%;
-  text-align: center;
 }
 
 table {
@@ -127,7 +85,6 @@ table {
   border-collapse: collapse;
   background-color: #232c42;
   border-radius: 10px;
-  overflow: hidden;
   margin: 0 auto;
   text-align: center;
 }
@@ -144,12 +101,27 @@ th {
 
 .message {
   color: #e74c3c;
-  margin-bottom: 15px;
   font-weight: 600;
-  width: 100%;
 }
 
-/* ===== Light Theme ===== */
+/* Provide vertical spacing between children in screens */
+.screen > *:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 450px) {
+  .container {
+    max-width: 96vw;
+    padding: 8vw 3vw;
+  }
+  input, select, button {
+    max-width: 97vw;
+    width: 97vw;
+  }
+}
+
+/* Light Theme */
 body.light-theme {
   background: linear-gradient(135deg, #f5f8fa, #dbeafe);
   color: #222222;
@@ -181,7 +153,7 @@ body.light-theme .message {
   color: #b91c1c;
 }
 
-/* ===== Red/Black Dark Theme ===== */
+/* Red/Black Dark Theme */
 body.redblack-theme {
   background-color: #100e0e;
   color: #f87171;
@@ -213,17 +185,4 @@ body.redblack-theme th {
 }
 body.redblack-theme .message {
   color: #b91c1c;
-}
-
-/* Responsive themes */
-@media (max-width: 450px) {
-  body.light-theme .container, body.redblack-theme .container {
-    max-width: 96vw;
-    min-width: auto;
-    padding: 8vw 3vw;
-  }
-  body.light-theme input, body.light-theme select, body.light-theme button,
-  body.redblack-theme input, body.redblack-theme select, body.redblack-theme button {
-    max-width: 97vw;
-  }
 }
