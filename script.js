@@ -221,6 +221,7 @@ function updateSessionSetupOptions() {
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
 
+  // Populate bow styles once
   if (bowSelect.options.length === 0) {
     Object.keys(bowDistances).forEach((bow) => {
       const opt = document.createElement("option");
@@ -443,9 +444,7 @@ function showSessionResults(session) {
   }
 
   const endTotals = session.ends.map((end) =>
-    (end.arrows || [])
-      .filter((s) => typeof s === "number")
-      .reduce((a, b) => a + b, 0),
+    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0),
   );
 
   window.sessionChartInstance = new Chart(ctx, {
@@ -705,104 +704,3 @@ async function loadArcherSessions(archerUID, archerName) {
   sessionListDiv.innerHTML = "";
   sessionListDiv.appendChild(ul);
 }
-
-// Display detailed session result with table and Chart.js
-async function displaySessionResult(sessionData) {
-  document.getElementById("sessionResultContainer").style.display = "block";
-  const summaryDiv = document.getElementById("sessionResultSummary");
-  const tableDiv = document.getElementById("sessionResultTable");
-  const chartCanvas = document.getElementById("sessionResultChart");
-
-  summaryDiv.innerHTML = `
-    <p><strong>Bow Style:</strong> ${sessionData.bowStyle}</p>
-    <p><strong>Distance:</strong> ${sessionData.distance}m</p>
-    <p><strong>Target Face:</strong> ${sessionData.targetFace}</p>
-    <p><strong>Total Score:</strong> ${sessionData.totalScore}</p>
-    <p><strong>Ends:</strong> ${sessionData.ends.length}</p>
-  `;
-
-  const table = document.createElement("table");
-  table.style.width = "100%";
-  table.style.borderCollapse = "collapse";
-
-  let headerRow = "<tr><th>End</th>";
-  const arrowsCount = sessionData.arrowsPerEnd || (sessionData.ends[0]?.arrows.length || 0);
-  for (let i = 1; i <= arrowsCount; i++) {
-    headerRow += `<th>Arrow ${i}</th>`;
-  }
-  headerRow += "<th>End Total</th></tr>";
-  table.innerHTML = headerRow;
-
-  sessionData.ends.forEach((endObj, idx) => {
-    const endArr = endObj.arrows || [];
-    const endTotal = endArr.filter((s) => typeof s === "number").reduce((a, b) => a + b, 0);
-    let row = `<tr><td>${idx + 1}</td>`;
-    endArr.forEach((score) => {
-      row += `<td>${score}</td>`;
-    });
-    row += `<td>${endTotal}</td></tr>`;
-    table.innerHTML += row;
-  });
-
-  tableDiv.innerHTML = "";
-  tableDiv.appendChild(table);
-
-  // Chart.js rendering fix: clear and destroy previous instance
-  const ctx = chartCanvas.getContext("2d");
-  ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
-  if (window.sessionChartInstance) window.sessionChartInstance.destroy();
-
-  const endTotals = sessionData.ends.map((end) =>
-    (end.arrows || []).filter((s) => typeof s === "number").reduce((a, b) => a + b, 0),
-  );
-
-  window.sessionChartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: sessionData.ends.map((_, i) => `End ${i + 1}`),
-      datasets: [
-        {
-          label: "End Total",
-          data: endTotals,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-    },
-  });
-}
-
-// Initialization
-window.addEventListener("DOMContentLoaded", () => {
-  attachButtonHandlers();
-  updateSessionSetupOptions();
-  drawTarget();
-  updateEndScores();
-  updateEndSessionButtons();
-});
-
-// Load Chart.js library dynamically for session result charts
-const chartScript = document.createElement("script");
-chartScript.src = "https://cdn.jsdelivr.net/npm/chart.js";
-document.head.appendChild(chartScript);
-
-document.addEventListener("DOMContentLoaded", () => {
-  const savedTheme = localStorage.getItem("selectedTheme") || "";
-  const themes = ["", "light-theme", "redblack-theme"];
-  if (themes.includes(savedTheme)) document.body.className = savedTheme;
-
-  const toggleBtn = document.getElementById("menuToggleBtn");
-  if (toggleBtn) {
-    toggleBtn.onclick = null;
-    toggleBtn.addEventListener("click", function () {
-      const currentTheme = document.body.className;
-      const themeIndex = themes.indexOf(currentTheme);
-      const nextIndex = (themeIndex + 1) % themes.length;
-      document.body.className = themes[nextIndex];
-      localStorage.setItem("selectedTheme", themes[nextIndex]);
-    });
-  }
-});

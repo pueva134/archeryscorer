@@ -1,3 +1,4 @@
+/* Existing styles from your original CSS */
 html, body {
   height: 100%;
   margin: 0;
@@ -16,7 +17,7 @@ body {
   min-height: 100vh;
   display: flex;
   align-items: center; /* Vertically center */
-  justify-content: center; /* Horizontally center */
+  justify-content: center; /* Horizontally */
   width: 100vw;
   margin: 0;
   padding: 0;
@@ -25,8 +26,8 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center children horizontally */
-  justify-content: center; /* Center children vertically */
+  align-items: center;
+  justify-content: center;
   min-width: 320px;
   max-width: 400px;
   width: 95vw;
@@ -46,13 +47,7 @@ h1, h2, h3, label, p, .message {
   margin-bottom: 18px;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-select,
-input[type="number"],
-textarea,
-button {
+input[type="text"], input[type="email"], input[type="password"], select, input[type="number"], textarea {
   width: 90%;
   max-width: 320px;
   margin: 10px auto;
@@ -134,11 +129,7 @@ body.light-theme .container {
   color: #111827;
 }
 
-body.light-theme input[type="text"],
-body.light-theme input[type="email"],
-body.light-theme input[type="password"],
-body.light-theme select,
-body.light-theme textarea {
+body.light-theme input[type="text"], body.light-theme input[type="email"], body.light-theme input[type="password"], body.light-theme select, body.light-theme textarea {
   background: #fff;
   color: #374151;
   border: 1px solid #9ca3af;
@@ -151,7 +142,7 @@ body.light-theme button {
 }
 
 body.light-theme button:hover {
-  background: linear-gradient(90deg, #b45309, #7c2d12);
+  background: linear-gradient(90deg, #b4530a, #7c2d12);
 }
 
 body.light-theme table {
@@ -168,7 +159,7 @@ body.light-theme td {
   border-color: #d1d5db;
 }
 
-/* Dark/Black Theme */
+/* Dark Theme */
 body.redblack-theme {
   background-color: #120909;
   color: #fa7f7f;
@@ -177,15 +168,11 @@ body.redblack-theme {
 body.redblack-theme .container {
   background: #1f1212;
   border-radius: 18px;
-  box-shadow: 0 0 40px 10px rgba(252, 70, 70, 0.6);
+  box-shadow: 0 4px 28px rgba(252, 70, 70, 0.6);
   color: #fa7f7f;
 }
 
-body.redblack-theme input[type="text"],
-body.redblack-theme input[type="email"],
-body.redblack-theme input[type="password"],
-body.redblack-theme select,
-body.redblack-theme textarea {
+body.redblack-theme input[type="text"], body.redblack-theme input[type="email"], body.redblack-theme input[type="password"], body.redblack-theme select, body.redblack-theme textarea {
   background: #2a1f1f;
   color: #ff9a9a;
   border: 1px solid #ff4747;
@@ -196,7 +183,7 @@ body.redblack-theme button {
   color: #fff;
   font-weight: 700;
   border-radius: 12px;
-  box-shadow: 0 0 20px 8px rgba(252, 70, 70, 0.8);
+  box-shadow: 0 4px 20px rgba(252, 70, 70, 0.8);
 }
 
 body.redblack-theme button:hover {
@@ -221,5 +208,206 @@ body.redblack-theme td {
 
 body.redblack-theme .message {
   color: #ff6b6b;
+}
+
+/* === Session Results Page Enhancements === */
+#sessionResultsScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  min-height: 100vh;
+  padding: 10px 15px;
+  box-sizing: border-box;
+}
+
+.session-results-wrapper {
+  width: 100%;
+  max-width: 400px;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 24px;
+  box-sizing: border-box;
+}
+
+#sessionResultsScreen #sessionResultsChart,
+#sessionResultsScreen #sessionResultsTrend,
+#sessionResultsScreen #sessionResultsChartCanvas,
+#sessionResultsScreen #sessionResultsTrendCanvas,
+#sessionResultsScreen #sessionResultsTrendCanvas,
+#sessionResultsScreen #sessionResultsChart,
+#sessionResultsScreen #sessionResultsTrend,
+#sessionResultsScreen #sessionResultsTrendCanvas,
+#sessionResultsScreen #sessionResultsChartCanvas {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 12px;
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+#sessionResultsScreen #sessionResultsTrend {
+  max-width: 600px;
+  height: 300px;
+}
+
+#sessionResultsScreen #sessionResultsChart {
+  max-width: 400px;
+  height: 200px;
+}
+
+#sessionResultsScreen #sessionResultsTable {
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+#sessionResultsScreen #sessionResultsTable table {
+  border-radius: 10px;
+}
+
+#sessionResultsScreen #sessionResultsTable th,
+#sessionResultsScreen #sessionResultsTable td {
+  border: 1px solid #2f3a57;
+}
+
+#sessionResultsScreen #sessionResultsSummary {
+  margin-bottom: 12px;
+  color: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.4;
+  text-align: center;
+  width: 100%;
+}
+
+#sessionResultsScreen #sessionResultsTrendCanvas {
+  max-width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+#sessionResultsScreen #sessionResultsTrendCanvas {
+  max-width: 600px;
+  width: 100%;
+}
+
+#sessionResultsScreen #sessionResultsTable {
+  max-width: 600px;
+  width: 100%;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+#sessionResultsScreen #sessionResultsTrendCanvas {
+  margin-bottom: 16px;
+}
+
+#sessionResultsScreen #sessionResultsTrend {
+  margin-bottom: 12px;
+}
+
+#sessionResultsScreen #sessionResultsTrend canvas {
+  max-width: 100%;
+}
+
+#sessionResultsScreen #sessionResultsTrendCanvas {
+  display: block;
+}
+
+#sessionResultsScreen #sessionResultsTrend canvas,
+#sessionResultsScreen #sessionResultsTrendCanvas canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+#sessionResultsScreen #sessionResultsTrend canvas {
+  max-width: 600px;
+  height: 300px;
+  margin: 0 auto;
+}
+
+#sessionResultsScreen #sessionResultsTable_wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+#sessionResultsScreen #sessionResultsTrend .chartjs-render-monitor {
+  max-width: 100%;
+  height: auto;
+}
+
+#sessionResultsScreen #sessionResultsTrendCanvas {
+  height: 300px;
+  width: 100%;
+}
+
+#sessionResultsScreen #sessionResultsTrend canvas {
+  max-width: 600px;
+}
+
+#sessionResultsScreen #sessionResultsTrend {
+  margin-bottom: 0;
+}
+
+#sessionResultsScreen .session-results-wrapper::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+#sessionResultsScreen .session-results-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 3px;
+}
+
+#sessionResultsScreen #sessionResultsTrend {
+  box-shadow: none;
+}
+
+#sessionResultsScreen #sessionResultsTrend canvas {
+  box-shadow: none;
+}
+
+#sessionResultsScreen #sessionResultsTrendContainer {
+  box-shadow: none;
+}
+
+#sessionResultsScreen #sessionResultsTrendChart {
+  max-width: 600px;
+  height: 300px;
+}
+
+#sessionResultsScreen #sessionResultsTrendWrapper {
+  box-shadow: none;
+}
+
+#sessionResultsScreen #sessionResultsTrendWrapperCanvas {
+  box-shadow: none;
+}
+
+#sessionResultsScreen #sessionResultsTrendWrapperCanvas canvas {
+  box-shadow: none;
+}
+
+#sessionResultsScreen #sessionResultsTrendWrapperWrapper {
+  box-shadow: none;
+}
+
+/* Back button styling */
+#sessionResultsScreen #backToMenuBtn {
+  margin-top: 16px;
+  width: 90%;
+  max-width: 240px;
+  border-radius: 12px;
+  align-self: center;
+}
+
+/* General responsiveness */
+@media (max-width: 450px) {
+  #sessionResultsScreen {
+    padding: 12px 6px;
+  }
 }
 
