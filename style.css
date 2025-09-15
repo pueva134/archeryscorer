@@ -1,385 +1,225 @@
-/* ================= Center Everything ================= */
-/* ================= Base Styles ================= */
-
 html, body {
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #1f2937, #111827);
   color: #fff;
-  overflow-x: hidden;  /* Prevent horizontal scroll */
-  overflow-y: auto;
+  width: 100vw;
+  height: 100vh;
   box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
+  display: flex;
+  align-items: center; /* Vertically center */
+  justify-content: center; /* Horizontally center */
+  width: 100vw;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  width: 100vw;
-  background: linear-gradient(135deg, #1f2937, #111827 80%);
-  color: #fff;
-  overflow-x: hidden;
-  overflow-y: auto;
-  box-sizing: border-box;
 }
 
-body.light-theme {
-  background: linear-gradient(135deg, #f5f8fa, #dbeafe);
-  color: #222;
-}
-
-body.redblack-theme {
-  background-color: #120909;
-  color: #ffbaba;
-  box-sizing: border-box;
-}
-
-/* ===== Main container - consistent card style ===== */
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-width: 400px;
+  align-items: center; /* Center children horizontally */
+  justify-content: center; /* Center children vertically */
   min-width: 320px;
+  max-width: 400px;
   width: 95vw;
-  max-height: 90vh;   /* prevent container height from exceeding viewport */
-  min-height: 640px;
   padding: 30px 28px;
-  border-radius: 18px;
   background: rgba(24, 31, 42, 0.98);
+  border-radius: 18px;
   box-shadow: 0 4px 28px 0 rgba(41, 84, 247, 0.12);
-  box-sizing: border-box;
-  overflow-y: auto;  /* scroll within container if content long */
-  text-align: center;
-}
-
-body.light-theme .container {
-  background: #fff;
-  box-shadow: 0 4px 36px 4px rgba(59, 130, 246, 0.16);
-  color: #222;
-}
-
-body.redblack-theme .container {
-  background: #131313 !important;
-  border-radius: 20px;
-  color: #ff5353 !important;
-  box-shadow: 0 0 32px 8px #ff2121, 0 0 0 1px #ff1818 !important;
-  text-align: center;
-}
-
-/* ===== Screen management ===== */
-.screen {
-  display: none;
-  width: 100%;
-  height: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  scroll-behavior: smooth;
-  padding: 5px;
-}
-
-.screen.active {
-  display: flex !important;
-}
-
-/* Canvas and chart elements responsive */
-canvas {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto 15px auto;
-  box-sizing: border-box;
-}
-
-/* Responsive container adjustments for small screens */
-@media (max-width: 450px) {
-  .container {
-    max-width: 96vw;
-    min-width: auto;
-    padding: 8vw 3vw;
-  }
-  input, select, button {
-    max-width: 97vw;
-  }
-}
-
-/* ===== Header ===== */
-h1, h2, h3 {
-  width: 100%;
-  margin: 0 0 24px 0;
-  font-weight: 900;
-  letter-spacing: 0.015em;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  text-shadow: 0 0 18px currentColor;
-  color: inherit;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-h1 {
-  font-size: 2.4rem;
-}
-
-/* Button base style with gradient & hover */
-button {
-  background: linear-gradient(90deg, #3b82f6, #52c3ff);
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  border: none;
-  transition: background 0.3s;
-  margin-top: 7px;
-  margin-bottom: 7px;
-  width: 100%;
-  min-height: 52px;
-  padding: 14px 0;
-  font-weight: 800;
-  font-size: 1.2rem;
-  border-radius: 28px;
-  box-shadow: 0 4px 18px rgba(59, 130, 246, 0.26);
-  letter-spacing: 0.03em;
-}
-
-button:last-child {
-  margin-bottom: 0;
-}
-
-button:hover, button:focus {
-  background: linear-gradient(90deg, #2563eb, #1e40af 90%);
-  box-shadow: 0 6px 28px rgba(37, 99, 235, 0.7), 0 2px 12px rgba(41, 84, 247, 0.46);
-}
-
-/* Themes for buttons */
-body.redblack-theme button {
-  color: #fff !important;
-  background: linear-gradient(90deg, #ff2020 0%, #b71c1c 100%) !important;
-  border: none !important;
-  box-shadow: 0 0 18px 2px #ff2121, 0 2px 8px #b71c1c !important;
-  transition: box-shadow 0.22s, background 0.22s;
-}
-
-body.redblack-theme button:hover,
-body.redblack-theme button:focus {
-  background: linear-gradient(90deg, #ff8a8a, #ff4040);
-  box-shadow: 0 0 24px 8px #ff7272, 0 0 8px #f03c3c;
-}
-
-body.light-theme button {
-  color: #222;
-  background: linear-gradient(90deg, #fcc419 0%, #fb923c 100%);
-  box-shadow: 0 4px 20px rgba(251, 181, 72, 0.4);
-}
-
-body.light-theme button:hover {
-  background: linear-gradient(90deg, #b45309, #ea580c);
-  box-shadow: 0 4px 24px rgba(251, 138, 35, 0.6);
-}
-
-
-/* ===== Inputs, selects, textarea ===== */
-input, select, textarea {
-  width: 100%;
-  min-height: 42px;
-  padding: 12px 18px;
-  font-size: 1.1rem;
-  border-radius: 14px;
-  border: none;
-  margin: 0;
-  overflow-x: hidden;
+  max-height: 90vh;
   overflow-y: auto;
   box-sizing: border-box;
-  background: #eaeffa;
-  color: #222;
-  box-shadow: 0 2px 14px rgba(30, 60, 120, 0.08);
-  letter-spacing: 0.02em;
-  transition: background 0.28s ease, box-shadow 0.28s ease;
-  outline-offset: 0;
+  text-align: center;
 }
 
-input:focus, select:focus, textarea:focus {
-  background: #dcedff;
-  box-shadow: 0 0 0 4px rgb(59 130 246 / 0.45), 0 6px 22px rgba(30, 60, 150, 0.13);
-  outline: none;
-}
-
-input::placeholder, select::placeholder, textarea::placeholder {
-  color: #8a8f9a;
-  opacity: 1;
-}
-
-body.light-theme input,
-body.light-theme select,
-body.light-theme textarea {
-  background: #fff;
-  color: #222;
-  box-shadow: 0 2px 18px rgb(251 181 72 / 0.2);
-  border: 1px solid #fbbf24;
-}
-
-body.light-theme input:focus,
-body.light-theme select:focus,
-body.light-theme textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: #e0e7ff;
-}
-
-body.redblack-theme input,
-body.redblack-theme select,
-body.redblack-theme textarea {
-  background: #292021;
-  color: #ff9696;
-  border: 1px solid #ff4c4c;
-  box-shadow: 0 0 12px #ff6a6a inset;
-}
-
-/* ===== Form structure ===== */
-.form-group {
+h1, h2, h3, label, p, .message {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  margin-bottom: 12px;
+  text-align: center;
+  margin-bottom: 18px;
 }
 
-label, .form-label {
-  font-weight: 600;
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+input[type="number"],
+textarea,
+button {
+  width: 90%;
+  max-width: 320px;
+  margin: 10px auto;
+  display: block;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 8px;
+  border: none;
   font-size: 1rem;
-  color: #e3e3e3;
-  text-align: left;
-  width: 100%;
-  user-select: text;
+  font-weight: 700;
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
-body.light-theme label,
-body.light-theme .form-label {
-  color: #333;
+button {
+  background: linear-gradient(90deg, #3984f7, #52c3ff);
+  color: #fff;
+  font-size: 1.1rem;
+  padding: 12px 0;
+  border-radius: 10px;
 }
 
-body.redblack-theme label,
-body.redblack-theme .form-label {
-  color: #ffa07a;
+button:hover {
+  background: linear-gradient(90deg, #1a62d1, #3b92f7);
 }
 
-/* ===== Tables ===== */
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: rgba(35, 44, 90, 0.85);
-  border-radius: 12px;
+  background-color: #232c42;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 0 18px rgba(59, 130, 246, 0.2);
 }
 
 th, td {
-  padding: 12px;
-  border: 1px solid #405580;
+  padding: 10px;
+  border: 1px solid #2f3a57;
   text-align: center;
-  color: #d0d9ff;
+  color: #cbd5e1;
 }
 
 th {
-  background-color: #3b50a3;
-  font-weight: 700;
+  background-color: #394f81;
+  font-weight: 600;
 }
 
-body.redblack-theme table {
-  background-color: #3b1b1b;
-}
-
-body.light-theme table {
-  background-color: #fff;
-  color: #222;
-}
-
-body.light-theme th {
-  background-color: #f59e0b;
-  color: #222;
-}
-
-body.light-theme td {
-  border-color: #ddd;
-}
-
-body.redblack-theme th,
-body.redblack-theme td {
-  color: #ff9696;
-  border-color: #5a1f1f;
-}
-
-/* ===== Messages ===== */
 .message {
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 18px;
-  color: #ee5757;
-  text-align: center;
-  width: 100%;
+  color: #f87171;
+  font-weight: 600;
 }
 
-body.light-theme .message {
-  color: #b91c1c;
-}
-
-body.redblack-theme .message {
-  color: #ff9696;
-}
-
-/* Headings color for themes */
-body.redblack-theme h1 {
-  color: #ff5353 !important;
-  text-shadow: 0 0 8px #ff2020;
-}
-
-body.light-theme h1 {
-  color: #d97706;
-  text-shadow: 0 0 12px #fbbf24;
-}
-
-/* Emoji inside h1 */
-h1 .emoji {
-  font-size: 2.1rem;
+/* Provide vertical spacing between children */
+.screen > *:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 /* Responsive */
-@media (max-width: 700px) {
+@media (max-width: 450px) {
   .container {
-    width: 95vw !important;
-    padding: 6vw 3vw !important;
+    max-width: 96vw;
+    padding: 20px 12px;
   }
-  form,
-  .screen.active {
-    max-width: 100%;
-  }
-  input,
-  select,
-  button {
-    max-width: 100%;
-    min-width: unset;
-    font-size: 1rem;
-  }
-  h1 {
-    font-size: 1.75rem;
-    gap: 8px;
-  }
-  body.light-theme input,
-  body.light-theme select,
-  body.light-theme button {
+  input, select, button {
     max-width: 97vw;
+    width: 97vw;
   }
 }
+
+/* Light Theme */
+body.light-theme {
+  background: linear-gradient(135deg, #f3f4f6, #e0e7ff);
+  color: #111827;
+}
+
+body.light-theme .container {
+  background: #fefefe;
+  box-shadow: 0 4px 28px 0 rgba(101, 116, 255, 0.2);
+  color: #111827;
+}
+
+body.light-theme input[type="text"],
+body.light-theme input[type="email"],
+body.light-theme input[type="password"],
+body.light-theme select,
+body.light-theme textarea {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #9ca3af;
+}
+
+body.light-theme button {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  color: #111827;
+  font-weight: 700;
+}
+
+body.light-theme button:hover {
+  background: linear-gradient(90deg, #b45309, #7c2d12);
+}
+
+body.light-theme table {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+body.light-theme th {
+  background-color: #fbbf24;
+  color: #1f2937;
+}
+
+body.light-theme td {
+  border-color: #d1d5db;
+}
+
+/* Dark/Black Theme */
+body.redblack-theme {
+  background-color: #120909;
+  color: #fa7f7f;
+}
+
+body.redblack-theme .container {
+  background: #1f1212;
+  border-radius: 18px;
+  box-shadow: 0 0 40px 10px rgba(252, 70, 70, 0.6);
+  color: #fa7f7f;
+}
+
+body.redblack-theme input[type="text"],
+body.redblack-theme input[type="email"],
+body.redblack-theme input[type="password"],
+body.redblack-theme select,
+body.redblack-theme textarea {
+  background: #2a1f1f;
+  color: #ff9a9a;
+  border: 1px solid #ff4747;
+}
+
+body.redblack-theme button {
+  background: linear-gradient(90deg, #ff4a4a, #b91c1c);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 12px;
+  box-shadow: 0 0 20px 8px rgba(252, 70, 70, 0.8);
+}
+
+body.redblack-theme button:hover {
+  background: linear-gradient(90deg, #b91c1c, #601010);
+}
+
+body.redblack-theme table {
+  background-color: #2a1f1f;
+  border-radius: 10px;
+  color: #ff9a9a;
+}
+
+body.redblack-theme th {
+  background-color: #660c0c;
+  color: #ffeeee;
+  font-weight: 700;
+}
+
+body.redblack-theme td {
+  border-color: #5c0e0e;
+}
+
+body.redblack-theme .message {
+  color: #ff6b6b;
+}
+
