@@ -443,10 +443,10 @@ async function endSession() {
 }
 
 // Show session results with table and chart
+// Show session results with detailed table and Chart.js line graph
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
 
-  // date handling
   let dateStr = "N/A";
   if (session.date) {
     if (session.date.seconds) {
@@ -458,138 +458,157 @@ function showSessionResults(session) {
     }
   }
 
-  const maxPossible =
-    (session.endsCount || session.ends.length || 0) * (session.arrowsPerEnd || 0) * 10;
-
-  const summaryEl = document.getElementById("sessionResultsSummary");
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <strong>Score:</strong> ${session.totalScore} / ${maxPossible}<br>
-      <strong>Date:</strong> ${dateStr}<br>
-      <strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m<br>
-      <strong>Target Face:</strong> ${session.targetFace}
-    `;
-  }
+  document.getElementById("sessionResultsSummary").innerHTML = `
+    <strong>Score:</strong> ${session.totalScore} / ${
+    session.endsCount * session.arrowsPerEnd * 10
+  }<br>
+    <strong>Date:</strong> ${dateStr}<br>
+    <strong>Bow:</strong> ${session.bowStyle} | <strong>Distance:</strong> ${session.distance}m<br>
+    <strong>Target Face:</strong> ${session.targetFace}
+  `;
 
   const tableDiv = document.getElementById("sessionResultsTable");
-  if (!tableDiv) return;
   tableDiv.innerHTML = "";
 
-  const endsArr = Array.isArray(session.ends) ? session.ends : [];
-
-  if (endsArr.length === 0) {
+  if (!session.ends || session.ends.length === 0) {
     tableDiv.innerHTML = "<p>No session data available.</p>";
     return;
   }
 
-  // Build table
-  const arrowsPerEnd = session.arrowsPerEnd || (endsArr[0]?.arrows?.length || 0);
-  let table = "<table border='1' style='width:100%; border-collapse: collapse;'>";
-  table += "<thead><tr><th>End</th>";
-  for (let i = 1; i <= arrowsPerEnd; i++) {
-    table += `<th>Arrow ${i}</th>`;
+  // Build results table using DOM methods
+  const table = document.createElement("table");
+  table.style.width = "100%";
+  table.style.borderCollapse = "collapse";
+  table.border = "1";
+
+  // Table Header
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+
+  const thEnd = document.createElement("th");
+  thEnd.textContent = "End";
+  headerRow.appendChild(thEnd);
+
+  for (let i = 1; i <= (session.arrowsPerEnd || 0); i++) {
+    const th = document.createElement("th");
+    th.textContent = `Arrow ${i}`;
+    th.style.backgroundColor = "#415a8c"; // consistent styling as in screenshot
+    th.style.color = "white";
+    th.style.padding = "6px";
+    headerRow.appendChild(th);
   }
-  table += "<th>Total</th></tr></thead><tbody>";
 
-  endsArr.forEach((endObjOrArr, idx) => {
-    const endArr = Array.isArray(endObjOrArr)
-      ? endObjOrArr
-      : Array.isArray(endObjOrArr.arrows)
-      ? endObjOrArr.arrows
-      : [];
-    const processed = endArr.map((itm) => (typeof itm === "object" && itm.score !== undefined ? itm.score : itm));
-    const total = processed.filter((v) => typeof v === "number").reduce((a, b) => a + b, 0);
+  const thTotal = document.createElement("th");
+  thTotal.textContent = "Total";
+  thTotal.style.backgroundColor = "#415a8c";
+  thTotal.style.color = "white";
+  thTotal.style.padding = "6px";
+  headerRow.appendChild(thTotal);
 
-    table += `<tr><td>${idx + 1}</td>`;
-    for (let i = 0; i < arrowsPerEnd; i++) {
-      const val = processed[i] !== undefined ? processed[i] : "";
-      table += `<td>${val}</td>`;
-    }
-    table += `<td>${total}</td></tr>`;
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Table Body
+  const tbody = document.createElement("tbody");
+
+  session.ends.forEach((end, idx) => {
+    const scores = Array.isArray(end.arrows) ? end.arrows : end;
+    const total = scores
+      .map(s => (typeof s === "object" && s.score !== undefined ? s.score : s))
+      .filter(s => typeof s === "number")
+      .reduce((acc, val) => acc + val, 0);
+
+    const row = document.createElement("tr");
+
+    const endCell = document.createElement("td");
+    endCell.textContent = (idx + 1).toString();
+    endCell.style.padding = "6px";
+    row.appendChild(endCell);
+
+    scores.forEach(scoreItem => {
+      const val = typeof scoreItem === "object" && scoreItem.score !== undefined ? scoreItem.score : scoreItem;
+      const td = document.createElement("td");
+      td.textContent = val;
+      td.style.padding = "6px";
+      row.appendChild(td);
+    });
+
+    const totalCell = document.createElement("td");
+    totalCell.textContent = total;
+    totalCell.style.padding = "6px";
+    row.appendChild(totalCell);
+
+    tbody.appendChild(row);
   });
 
-  table += "</tbody></table>";
-  tableDiv.innerHTML = table;
+  table.appendChild(tbody);
+  tableDiv.appendChild(table);
 
-  // Chart: find appropriate canvas (coach view used sessionResultChart; user view uses sessionResultsTrendChart)
-  let chartCanvas = document.getElementById("sessionResultChart") || document.getElementById("sessionResultsTrendChart");
-  if (!chartCanvas) {
-    // fallback: create a small canvas and append
-    chartCanvas = document.createElement("canvas");
-    chartCanvas.width = 600;
-    chartCanvas.height = 300;
-    tableDiv.parentElement?.appendChild(chartCanvas);
-  }
+  // Chart.js line graph of end totals
+  const chartCanvas = document.getElementById("sessionResultsTrendChart");
+  if (!chartCanvas) return;
 
-  const chartCtx = chartCanvas.getContext("2d");
-  if (!chartCtx) return;
-  chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+  const ctxChart = chartCanvas.getContext("2d");
+  if (!ctxChart) return;
 
   if (window.sessionChartInstance) {
-    try {
-      window.sessionChartInstance.destroy();
-    } catch (e) {
-      // ignore
-    }
-    window.sessionChartInstance = null;
+    window.sessionChartInstance.destroy();
   }
 
-  const endTotals = endsArr.map((endObjOrArr) => {
-    const endArr = Array.isArray(endObjOrArr)
-      ? endObjOrArr
-      : Array.isArray(endObjOrArr.arrows)
-      ? endObjOrArr.arrows
-      : [];
-    const values = endArr.map((itm) => (typeof itm === "object" && itm.score !== undefined ? itm.score : itm));
-    return values.filter((v) => typeof v === "number").reduce((a, b) => a + b, 0);
+  const endTotals = session.ends.map(end => {
+    const scores = Array.isArray(end.arrows) ? end.arrows : end;
+    return scores
+      .map(s => (typeof s === "object" ? s.score : s))
+      .filter(s => typeof s === "number")
+      .reduce((a, b) => a + b, 0);
   });
 
-  // Create Chart
-  try {
-    window.sessionChartInstance = new Chart(chartCtx, {
-      type: "line",
-      data: {
-        labels: endsArr.map((_, i) => `End ${i + 1}`),
-        datasets: [
-          {
-            label: "Points per End",
-            data: endTotals,
-            fill: false,
-            borderColor: "rgba(59, 130, 246, 0.7)",
-            backgroundColor: "rgba(59, 130, 246, 0.7)",
-            tension: 0.3,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            borderWidth: 3,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: `Session Total Score: ${session.totalScore}`,
-            font: { size: 16, weight: "bold" },
-          },
-          legend: { display: true },
+  // Explicitly set canvas size for stable rendering
+  chartCanvas.width = 400;
+  chartCanvas.height = 200;
+
+  window.sessionChartInstance = new Chart(ctxChart, {
+    type: "line",
+    data: {
+      labels: session.ends.map((_, i) => `End ${i + 1}`),
+      datasets: [
+        {
+          label: "Points per End",
+          data: endTotals,
+          fill: false,
+          borderColor: "rgba(59, 130, 246, 0.7)",
+          backgroundColor: "rgba(59, 130, 246, 0.7)",
+          tension: 0.3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          borderWidth: 3,
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: (session.arrowsPerEnd || 0) * 10,
-            title: { display: true, text: "Points" },
-          },
-          x: {
-            title: { display: true, text: "End Number" },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Session Total Score: ${session.totalScore}`,
+          font: { size: 18 },
+        },
+        legend: { display: true },
+        tooltip: { enabled: true },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: session.arrowsPerEnd * 10,
+          ticks: {
+            stepSize: 1,
           },
         },
       },
-    });
-  } catch (e) {
-    console.error("Chart rendering failed:", e);
-  }
+    },
+  });
+}
 
   // Draw target rings for last end (use sessionResultsTarget canvas if present)
   const targetCanvas = document.getElementById("sessionResultsTarget");
@@ -614,7 +633,7 @@ function showSessionResults(session) {
       });
     }
   }
-}
+
 
 // Attach a button to return to menu and clear session state for all matching back buttons (handles duplicates)
 function attachBackToMenuHandlers() {
