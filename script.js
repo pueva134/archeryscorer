@@ -1,5 +1,6 @@
 // Import Firebase modules (ensure this file is loaded with type="module" in HTML)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
