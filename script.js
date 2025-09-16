@@ -16,7 +16,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase configuration and initialization
+// Firebase config and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -29,7 +29,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Globals for tracking user/session state
+// Globals
 let currentUser = null;
 let currentUserRole = null;
 let currentSession = {};
@@ -38,7 +38,7 @@ let currentEndNumber = 1;
 let canvas = document.getElementById("target");
 let ctx = canvas?.getContext("2d");
 
-// Screen display helper: shows one screen, hides others
+// Show screen: hides all .screen, shows one by id
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
@@ -51,7 +51,7 @@ function showScreen(id) {
   if (id === "setup") updateSessionSetupOptions();
 }
 
-// Draw archery target rings on canvas (or provided element)
+// Draw archery target rings on canvas
 function drawTarget(targetElem) {
   const c = targetElem || canvas || document.getElementById("target");
   if (!c) return;
@@ -74,7 +74,7 @@ function drawTarget(targetElem) {
   });
 }
 
-// Update UI with arrow scores and total for current end
+// Update end arrow scores display
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
@@ -92,7 +92,7 @@ function updateEndScores() {
   }
 }
 
-// Show or hide Next End / End Session buttons based on progress
+// Show/hide next/end buttons based on session state
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
@@ -115,7 +115,7 @@ function updateEndSessionButtons() {
   }
 }
 
-// Handle canvas click or touch to record arrow score based on distance from center
+// Handle canvas scoring clicks/touches
 function handleCanvasScoreClick(e) {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -152,7 +152,7 @@ function handleCanvasScoreClick(e) {
   updateEndSessionButtons();
 }
 
-// User signup: validation, Firebase Auth, Firestore user doc creation
+// Signup new user
 async function signup() {
   const usernameEl = document.getElementById("username");
   const emailEl = document.getElementById("email");
@@ -186,7 +186,7 @@ async function signup() {
   }
 }
 
-// User login handling with basic validation and error display
+// User login
 async function login() {
   const emailEl = document.getElementById("email");
   const passwordEl = document.getElementById("password");
@@ -206,7 +206,7 @@ async function login() {
   }
 }
 
-// Update session setup options (bow style, distances, target faces) dynamically
+// Dynamic update of session setup options (bow style, distances, target faces)
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70, 80],
@@ -284,7 +284,7 @@ function updateSessionSetupOptions() {
   updateDistances();
 }
 
-// Start new scoring session validating user role and inputs
+// Start scoring session (only for archers)
 function startSession() {
   if (currentUserRole !== "archer") {
     alert("Only Archers can start a scoring session.");
@@ -318,7 +318,7 @@ function startSession() {
   updateEndSessionButtons();
 }
 
-// Undo the last scored arrow during an end
+// Undo last scored arrow
 function undoLastArrow() {
   if (arrowScores.length === 0) return;
   arrowScores.pop();
@@ -326,7 +326,7 @@ function undoLastArrow() {
   updateEndSessionButtons();
 }
 
-// Proceed to next end saving current scores
+// Proceed to next scoring end
 async function nextEnd() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -348,7 +348,7 @@ async function nextEnd() {
   if (currentEndEl) currentEndEl.innerText = currentEndNumber;
 }
 
-// Save completed session to Firestore
+// Save session data to Firebase Firestore
 async function saveSession() {
   if (!currentUser) return;
   const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
@@ -373,7 +373,7 @@ async function saveSession() {
   }
 }
 
-// End the scoring session, save, and show results screen
+// End session and show results
 async function endSession() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length > 0 && arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -395,7 +395,7 @@ async function endSession() {
   }
 }
 
-// Display session results with score table and charts
+// Display session results, table and charts
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
   const maxPossible =
@@ -409,7 +409,6 @@ function showSessionResults(session) {
     else if (typeof session.date === "string") dtObj = new Date(session.date);
     if (dtObj instanceof Date && !isNaN(dtObj)) dateTimeStr = dtObj.toLocaleString();
   }
-
   const summaryEl = document.getElementById("sessionResultsSummary");
   if (summaryEl) {
     summaryEl.innerHTML = `
@@ -433,15 +432,13 @@ function showSessionResults(session) {
   }
 
   const arrowsPerEnd = session.arrowsPerEnd || (endsArr[0]?.arrows?.length || 0);
-
-  // Build the HTML table of scores
   const table = document.createElement("table");
   table.style.width = "100%";
   table.style.borderCollapse = "collapse";
   table.style.tableLayout = "fixed";
   table.style.overflow = "hidden";
 
-  // Table header
+  // Header
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
   ["End", ...Array.from({ length: arrowsPerEnd }, (_, i) => `Arrow ${i + 1}`), "Total"].forEach(text => {
@@ -456,7 +453,7 @@ function showSessionResults(session) {
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // Table body
+  // Body
   const tbody = document.createElement("tbody");
   endsArr.forEach((endObjOrArr, idx) => {
     const endArr = Array.isArray(endObjOrArr)
@@ -495,7 +492,7 @@ function showSessionResults(session) {
   table.appendChild(tbody);
   tableDiv.appendChild(table);
 
-  // Horizontal bar chart for points per end using Chart.js
+  // Horizontal bar chart for points per end (Chart.js)
   let horizChartCanvas = document.getElementById("sessionResultsHorizontalChart");
   if (!horizChartCanvas) {
     horizChartCanvas = document.createElement("canvas");
@@ -505,13 +502,11 @@ function showSessionResults(session) {
     horizChartCanvas.style.marginTop = "20px";
     tableDiv.parentElement?.appendChild(horizChartCanvas);
   }
-
   const ctxH = horizChartCanvas.getContext("2d");
   if (window.sessionHorizontalChartInstance) {
     try { window.sessionHorizontalChartInstance.destroy(); } catch {}
     window.sessionHorizontalChartInstance = null;
   }
-
   const endTotals = endsArr.map(endObjOrArr => {
     const arr = Array.isArray(endObjOrArr)
       ? endObjOrArr
@@ -521,7 +516,6 @@ function showSessionResults(session) {
     const values = arr.map(itm => (typeof itm === "object" && itm.score !== undefined ? itm.score : itm));
     return values.filter(v => typeof v === "number").reduce((a, b) => a + b, 0);
   });
-
   window.sessionHorizontalChartInstance = new Chart(ctxH, {
     type: "bar",
     data: {
@@ -537,23 +531,14 @@ function showSessionResults(session) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: {
-          min: 0,
-          max: (session.arrowsPerEnd || 0) * 10,
-          title: { display: true, text: "Points" }
-        },
-        y: {
-          title: { display: true, text: "End" }
-        }
+        x: { min: 0, max: (session.arrowsPerEnd || 0) * 10, title: { display: true, text: "Points" } },
+        y: { title: { display: true, text: "End" } }
       },
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: true }
-      }
+      plugins: { legend: { display: false }, tooltip: { enabled: true } }
     },
   });
 
-  // Canvas for arrow grouping / dispersion pattern
+  // Dispersion canvas drawing of all arrow points
   let dispCanvas = document.getElementById("sessionResultsDispersion");
   if (!dispCanvas) {
     dispCanvas = document.createElement("canvas");
@@ -566,10 +551,8 @@ function showSessionResults(session) {
   }
   const dispCtx = dispCanvas.getContext("2d");
   if (!dispCtx) return;
-
   dispCtx.clearRect(0, 0, dispCanvas.width, dispCanvas.height);
   drawTarget(dispCanvas);
-
   const allArrows = [];
   endsArr.forEach(endObj => {
     const endArr = Array.isArray(endObj)
@@ -583,7 +566,6 @@ function showSessionResults(session) {
       }
     });
   });
-
   dispCtx.fillStyle = "lime";
   dispCtx.strokeStyle = "#222";
   dispCtx.lineWidth = 2;
@@ -595,7 +577,7 @@ function showSessionResults(session) {
   });
 }
 
-// Attach event handlers to UI buttons and canvas
+// Attach event handlers including the back to menu button with debug log
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -608,10 +590,13 @@ function attachButtonHandlers() {
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
 
-  // Add back to menu button handler (on results screen)
-  document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+  // Back to Menu button (critical fix)
+  document.getElementById("backToMenuBtn")?.addEventListener("click", () => {
+    console.log("Back to Menu clicked"); // Debug log to verify click
+    showScreen("menuScreen");
+  });
 
-  // Example: Add My History button handler if appropriate
+  // Optional: My History button if used
   document.getElementById("myHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
 
   const c = document.getElementById("target");
@@ -624,7 +609,7 @@ function attachButtonHandlers() {
   }
 }
 
-// Firebase authentication state listener to update UI accordingly
+// Firebase auth state listener to handle UI based on login status
 onAuthStateChanged(auth, async user => {
   if (!user) {
     currentUser = null;
@@ -650,7 +635,7 @@ onAuthStateChanged(auth, async user => {
       const startBtn = document.getElementById("startSessionBtn");
       if (startBtn) startBtn.style.display = "inline-block";
     } else {
-      // Customize for coach or other roles if needed
+      // Coach or other roles handling if desired
       showScreen("menuScreen");
     }
   } catch (error) {
@@ -659,7 +644,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// Initialize UI components and handlers after DOM loads
+// Initialize UI once DOM content is fully loaded
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
@@ -667,7 +652,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndScores();
   updateEndSessionButtons();
 
-  // Load Chart.js dynamically if not already loaded
+  // Dynamically load Chart.js if needed
   if (typeof Chart === "undefined") {
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/chart.js";
