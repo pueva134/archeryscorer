@@ -674,39 +674,6 @@ function showSessionResults(session) {
   });
 }
 
-function attachButtonHandlers() {
-  document.getElementById("signupBtn")?.addEventListener("click", signup);
-  document.getElementById("loginBtn")?.addEventListener("click", login);
-  document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
-  document.getElementById("menuLogoutBtn")?.addEventListener("click", () =>
-    signOut(auth).then(() => showScreen("loginPage"))
-  );
-  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
-  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
-  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
-  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
-
-  // Correct back to menu button handlers matching your HTML IDs
-  document.getElementById("backToMenuBtnResults")?.addEventListener("click", () => showScreen("menuScreen"));
-  document.getElementById("backToMenuBtnHistory")?.addEventListener("click", () => showScreen("menuScreen"));
-
-  // Correct view history buttons matching your HTML IDs
-  document.getElementById("menuHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
-  document.getElementById("viewHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
-
-  // Additional buttons for coach dashboard back to menu if applicable
-  document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
-
-  const c = document.getElementById("target");
-  if (c) {
-    c.addEventListener("click", handleCanvasScoreClick);
-    c.addEventListener("touchstart", ev => {
-      ev.preventDefault();
-      handleCanvasScoreClick(ev);
-    });
-  }
-}
-
 // Firebase Auth state observer
 onAuthStateChanged(auth, async user => {
   if (!user) {
