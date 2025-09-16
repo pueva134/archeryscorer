@@ -48,26 +48,17 @@ function capitalize(str) {
 }
 
 // Manage display of single active screen
-function showScreen(screenId) {
-  const screens = document.querySelectorAll(".screen");
-  screens.forEach(screen => screen.classList.remove("active"));
-  const screen = document.getElementById(screenId);
-  if (screen) screen.classList.add("active");
-
-  // Attach back buttons handlers on each screen load
-  attachBackButtonHandlers();
-
-  // Redraw target for scoring screen
-  if (screenId === "scoringArea") {
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  const el = document.getElementById(id);
+  if (el) el.classList.add("active");
+  attachBackToMenuHandlers(); // always call this
+  if (id === "scoringArea") {
     canvas = document.getElementById("target");
-    if (canvas) ctx = canvas.getContext("2d");
-    drawTarget(canvas);
+    ctx = canvas?.getContext("2d");
+    drawTarget();
   }
-
-  // Update setup selects on setup screen
-  if (screenId === "setup") {
-    updateSetupOptions();
-  }
+  if (id === "setup") updateSessionSetupOptions();
 }
 
 // Draw archery target rings to a canvas
@@ -420,25 +411,22 @@ async function endSession() {
 }
 
 // Attach handlers for all back buttons to show menu and reset session state
-function attachBackButtonHandlers() {
-  const buttons = [
-    { id: "backBtn", resetSession: true },
-    { id: "backToMenuBtn", resetSession: true },
-    { id: "backToMenuBtnResults", resetSession: true },
-    { id: "backToMenuBtnHistory", resetSession: false },
-    { id: "coachBackBtn", resetSession: false },
+// Attach Back to Menu handlers for all navigation
+function attachBackToMenuHandlers() {
+  const ids = [
+    "backToMenuBtn",
+    "backToMenuBtnResults",
+    "backToMenuBtnHistory",
+    "coachBackBtn"
   ];
-
-  buttons.forEach(({ id, resetSession }) => {
+  ids.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
-      btn.onclick = e => {
+      btn.onclick = function (e) {
         e.preventDefault();
-        if (resetSession) {
-          currentSession = {};
-          arrowScores = [];
-          currentEndNumber = 1;
-        }
+        currentSession = {};
+        arrowScores = [];
+        currentEndNumber = 1;
         showScreen("menuScreen");
       };
     }
@@ -671,4 +659,5 @@ window.addEventListener("DOMContentLoaded", () => {
     script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
     document.head.appendChild(script);
   }
+  attachBackToMenuHandlers(); 
 });
