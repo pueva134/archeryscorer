@@ -390,6 +390,108 @@ async function endSession() {
   }
 }
 
+// Load and display session history in history screen
+async function loadSessionHistory() {
+  if (!currentUser) return;
+  const historyTable = document.getElementById("historyTable");
+  if (!historyTable) return;
+  try {
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    if (!userDoc.exists()) {
+      historyTable.innerHTML = "<p>No session history found.</p>";
+      return;
+    }
+    const data = userDoc.data();
+    const sessionsObj = data.sessions || {};
+
+    // Convert sessions object to array with ids
+    const sessionsArr = Object.entries(sessionsObj).map(([key, session]) => ({
+      id: key,
+      ...session,
+    }));
+
+    if (sessionsArr.length === 0) {
+      historyTable.innerHTML = "<p>No session history found.</p>";
+      return;
+    }
+
+    // Build sessions history table
+    let html = '<table><thead><tr><th>Date</th><th>Bow Style</th><th>Distance</th><th>Total Score</th><th>View Details</th></tr></thead><tbody>';
+
+    sessionsArr.forEach(session => {
+      let dateStr = "N/A";
+      if (session.date) {
+        const dt = session.date.seconds ? new Date(session.date.seconds * 1000) : new Date(session.date);
+        if (!isNaN(dt)) dateStr = dt.toLocaleString();
+      }
+      html += `<tr>
+        <td>${dateStr}</td>
+        <td>${session.bowStyle || ''}</td>
+        <td>${session.distance || ''}m</td>
+        <td>${session.totalScore || 0}</td>
+        <td><button class="viewSessionDetailsBtn" data-sessionid="${session.id}">View</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    historyTable.innerHTML = html;
+
+    // Add click handlers to detail buttons
+    document.querySelectorAll(".viewSessionDetailsBtn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const sid = e.target.getAttribute("data-sessionid");
+        const sess = sessionsObj[sid];
+        if (sess) {
+          showSessionResults(sess);
+          showScreen("sessionResultsScreen");
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("Failed to load session history:", error);
+    historyTable.innerHTML = "<p>Error loading session history.</p>";
+  }
+}
+
+function attachButtonHandlers() {
+  document.getElementById("signupBtn")?.addEventListener("click", signup);
+  document.getElementById("loginBtn")?.addEventListener("click", login);
+  document.getElementById("menuStartBtn")?.addEventListener("click", () => showScreen("setup"));
+  document.getElementById("menuLogoutBtn")?.addEventListener("click", () =>
+    signOut(auth).then(() => showScreen("loginPage"))
+  );
+  document.getElementById("startSessionBtn")?.addEventListener("click", startSession);
+  document.getElementById("undoBtn")?.addEventListener("click", undoLastArrow);
+  document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
+  document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
+
+  // Back to menu buttons with correct IDs
+  document.getElementById("backToMenuBtnResults")?.addEventListener("click", () => showScreen("menuScreen"));
+  document.getElementById("backToMenuBtnHistory")?.addEventListener("click", () => showScreen("menuScreen"));
+
+  // View history buttons, now loading history each time
+  document.getElementById("menuHistoryBtn")?.addEventListener("click", () => {
+    showScreen("historyScreen");
+    loadSessionHistory();
+  });
+  document.getElementById("viewHistoryBtn")?.addEventListener("click", () => {
+    showScreen("historyScreen");
+    loadSessionHistory();
+  });
+
+  // Coach back button if applicable
+  document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+
+  const c = document.getElementById("target");
+  if (c) {
+    c.addEventListener("click", handleCanvasScoreClick);
+    c.addEventListener("touchstart", ev => {
+      ev.preventDefault();
+      handleCanvasScoreClick(ev);
+    });
+  }
+}
+
 // Display session results, table and charts
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
