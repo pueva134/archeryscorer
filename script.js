@@ -48,17 +48,26 @@ function capitalize(str) {
 }
 
 // Manage display of single active screen
-function showScreen(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  const el = document.getElementById(id);
-  if (el) el.classList.add("active");
-  attachBackToMenuHandlers(); // always call this
-  if (id === "scoringArea") {
+function showScreen(screenId) {
+  const screens = document.querySelectorAll(".screen");
+  screens.forEach(screen => screen.classList.remove("active"));
+  const screen = document.getElementById(screenId);
+  if (screen) screen.classList.add("active");
+
+  // Attach back buttons handlers on each screen load
+  attachBackButtonHandlers();
+
+  // Redraw target for scoring screen
+  if (screenId === "scoringArea") {
     canvas = document.getElementById("target");
-    ctx = canvas?.getContext("2d");
-    drawTarget();
+    if (canvas) ctx = canvas.getContext("2d");
+    drawTarget(canvas);
   }
-  if (id === "setup") updateSessionSetupOptions();
+
+  // Update setup selects on setup screen
+  if (screenId === "setup") {
+    updateSetupOptions();
+  }
 }
 
 // Draw archery target rings to a canvas
@@ -411,22 +420,25 @@ async function endSession() {
 }
 
 // Attach handlers for all back buttons to show menu and reset session state
-// Attach Back to Menu handlers for all navigation
-function attachBackToMenuHandlers() {
-  const ids = [
-    "backToMenuBtn",
-    "backToMenuBtnResults",
-    "backToMenuBtnHistory",
-    "coachBackBtn"
+function attachBackButtonHandlers() {
+  const buttons = [
+    { id: "backBtn", resetSession: true },
+    { id: "backToMenuBtn", resetSession: true },
+    { id: "backToMenuBtnResults", resetSession: true },
+    { id: "backToMenuBtnHistory", resetSession: false },
+    { id: "coachBackBtn", resetSession: false },
   ];
-  ids.forEach(id => {
+
+  buttons.forEach(({ id, resetSession }) => {
     const btn = document.getElementById(id);
     if (btn) {
-      btn.onclick = function (e) {
+      btn.onclick = e => {
         e.preventDefault();
-        currentSession = {};
-        arrowScores = [];
-        currentEndNumber = 1;
+        if (resetSession) {
+          currentSession = {};
+          arrowScores = [];
+          currentEndNumber = 1;
+        }
         showScreen("menuScreen");
       };
     }
