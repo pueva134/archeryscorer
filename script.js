@@ -713,49 +713,43 @@ function showSessionResults(session) {
   });
 
   // Dispersion canvas drawing of all arrow points
-// Dispersion canvas drawing of all arrow points
-let dispCanvas = document.getElementById("sessionResultsDispersion");
-if (!dispCanvas) {
-  dispCanvas = document.createElement("canvas");
-  dispCanvas.id = "sessionResultsDispersion";
-  dispCanvas.style.marginTop = "20px";
-  dispCanvas.style.border = "1px solid #ccc";
-  tableDiv.parentElement?.appendChild(dispCanvas);
-}
-
-const scoringCanvas = document.getElementById("target");
-dispCanvas.width = scoringCanvas ? scoringCanvas.width : 300;  // Match scoring target canvas size
-dispCanvas.height = scoringCanvas ? scoringCanvas.height : 300;
-
-const dispCtx = dispCanvas.getContext("2d");
-if (!dispCtx) return;
-
-dispCtx.clearRect(0, 0, dispCanvas.width, dispCanvas.height);
-drawTarget(dispCanvas);
-
-const allArrows = [];
-endsArr.forEach(endObj => {
-  const endArr = Array.isArray(endObj)
-    ? endObj
-    : Array.isArray(endObj.arrows)
-    ? endObj.arrows
-    : [];
-  endArr.forEach(arrow => {
-    if (arrow && typeof arrow === "object" && "x" in arrow && "y" in arrow) {
-      allArrows.push(arrow);
-    }
+  let dispCanvas = document.getElementById("sessionResultsDispersion");
+  if (!dispCanvas) {
+    dispCanvas = document.createElement("canvas");
+    dispCanvas.id = "sessionResultsDispersion";
+    dispCanvas.width = 400;
+    dispCanvas.height = 400;
+    dispCanvas.style.marginTop = "20px";
+    dispCanvas.style.border = "1px solid #ccc";
+    tableDiv.parentElement?.appendChild(dispCanvas);
+  }
+  const dispCtx = dispCanvas.getContext("2d");
+  if (!dispCtx) return;
+  dispCtx.clearRect(0, 0, dispCanvas.width, dispCanvas.height);
+  drawTarget(dispCanvas);
+  const allArrows = [];
+  endsArr.forEach(endObj => {
+    const endArr = Array.isArray(endObj)
+      ? endObj
+      : Array.isArray(endObj.arrows)
+      ? endObj.arrows
+      : [];
+    endArr.forEach(arrow => {
+      if (arrow && typeof arrow === "object" && "x" in arrow && "y" in arrow) {
+        allArrows.push(arrow);
+      }
+    });
   });
-});
-
-dispCtx.fillStyle = "lime";
-dispCtx.strokeStyle = "#222";
-dispCtx.lineWidth = 2;
-allArrows.forEach(({ x, y }) => {
-  dispCtx.beginPath();
-  dispCtx.arc(x, y, 5, 0, 2 * Math.PI);
-  dispCtx.fill();
-  dispCtx.stroke();
-});
+  dispCtx.fillStyle = "lime";
+  dispCtx.strokeStyle = "#222";
+  dispCtx.lineWidth = 2;
+  allArrows.forEach(({ x, y }) => {
+    dispCtx.beginPath();
+    dispCtx.arc(x, y, 5, 0, 2 * Math.PI);
+    dispCtx.fill();
+    dispCtx.stroke();
+  });
+}
 
 // Firebase Auth state observer
 onAuthStateChanged(auth, async user => {
@@ -810,4 +804,3 @@ window.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(script);
   }
 });
-}
