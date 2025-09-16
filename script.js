@@ -1,4 +1,4 @@
-// Import Firebase modules (make sure your <script type="module"> calls this file)
+// Import Firebase modules (ensure this file is loaded with type="module" in HTML)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,
@@ -38,7 +38,7 @@ let currentEndNumber = 1;
 let canvas = document.getElementById("target");
 let ctx = canvas?.getContext("2d");
 
-// Show screen: hides all .screen, shows one by id
+// Show screen helper
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
@@ -74,7 +74,7 @@ function drawTarget(targetElem) {
   });
 }
 
-// Update end arrow scores display
+// Update displayed end arrow scores and end total in UI
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
@@ -92,7 +92,7 @@ function updateEndScores() {
   }
 }
 
-// Show/hide next/end buttons based on session state
+// Show/hide next and end session buttons based on session state
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
@@ -115,7 +115,7 @@ function updateEndSessionButtons() {
   }
 }
 
-// Handle canvas scoring clicks/touches
+// Handle scoring arrow on canvas click/touch
 function handleCanvasScoreClick(e) {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -135,7 +135,6 @@ function handleCanvasScoreClick(e) {
   const maxRadius = c.width / 2;
   const ringWidth = maxRadius / 10;
   let score = "M";
-
   if (dist <= ringWidth * 1) score = 10;
   else if (dist <= ringWidth * 2) score = 9;
   else if (dist <= ringWidth * 3) score = 8;
@@ -146,25 +145,22 @@ function handleCanvasScoreClick(e) {
   else if (dist <= ringWidth * 8) score = 3;
   else if (dist <= ringWidth * 9) score = 2;
   else if (dist <= ringWidth * 10) score = 1;
-
   arrowScores.push({ score, x, y });
   updateEndScores();
   updateEndSessionButtons();
 }
 
-// Signup new user
+// User signup
 async function signup() {
   const usernameEl = document.getElementById("username");
   const emailEl = document.getElementById("email");
   const passwordEl = document.getElementById("password");
   const roleEl = document.getElementById("role");
   const msgDiv = document.getElementById("loginMessage");
-
   const username = usernameEl ? usernameEl.value.trim() : "";
   const email = emailEl ? emailEl.value.trim() : "";
   const password = passwordEl ? passwordEl.value : "";
   const role = roleEl ? roleEl.value : "archer";
-
   if (msgDiv) msgDiv.innerText = "";
   if (!username || !email || !password) {
     if (msgDiv) msgDiv.innerText = "Please fill all fields!";
@@ -191,7 +187,6 @@ async function login() {
   const emailEl = document.getElementById("email");
   const passwordEl = document.getElementById("password");
   const msgDiv = document.getElementById("loginMessage");
-
   const email = emailEl ? emailEl.value.trim() : "";
   const password = passwordEl ? passwordEl.value : "";
   if (msgDiv) msgDiv.innerText = "";
@@ -577,7 +572,6 @@ function showSessionResults(session) {
   });
 }
 
-// Attach event handlers including the back to menu button with debug log
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -590,14 +584,16 @@ function attachButtonHandlers() {
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
 
-  // Back to Menu button (critical fix)
-  document.getElementById("backToMenuBtn")?.addEventListener("click", () => {
-    console.log("Back to Menu clicked"); // Debug log to verify click
-    showScreen("menuScreen");
-  });
+  // Correct back to menu button handlers matching your HTML IDs
+  document.getElementById("backToMenuBtnResults")?.addEventListener("click", () => showScreen("menuScreen"));
+  document.getElementById("backToMenuBtnHistory")?.addEventListener("click", () => showScreen("menuScreen"));
 
-  // Optional: My History button if used
-  document.getElementById("myHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
+  // Correct view history buttons matching your HTML IDs
+  document.getElementById("menuHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
+  document.getElementById("viewHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
+
+  // Additional buttons for coach dashboard back to menu if applicable
+  document.getElementById("coachBackBtn")?.addEventListener("click", () => showScreen("menuScreen"));
 
   const c = document.getElementById("target");
   if (c) {
@@ -609,7 +605,7 @@ function attachButtonHandlers() {
   }
 }
 
-// Firebase auth state listener to handle UI based on login status
+// Firebase Auth state observer
 onAuthStateChanged(auth, async user => {
   if (!user) {
     currentUser = null;
@@ -635,7 +631,6 @@ onAuthStateChanged(auth, async user => {
       const startBtn = document.getElementById("startSessionBtn");
       if (startBtn) startBtn.style.display = "inline-block";
     } else {
-      // Coach or other roles handling if desired
       showScreen("menuScreen");
     }
   } catch (error) {
@@ -644,7 +639,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// Initialize UI once DOM content is fully loaded
+// Initialize app UI after DOM content loaded
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
@@ -652,7 +647,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndScores();
   updateEndSessionButtons();
 
-  // Dynamically load Chart.js if needed
+  // Dynamically load Chart.js if not available
   if (typeof Chart === "undefined") {
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/chart.js";
