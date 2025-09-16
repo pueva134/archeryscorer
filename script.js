@@ -1,4 +1,4 @@
-// Import Firebase modules (ensure this file is loaded with type="module" in HTML)
+// Import Firebase modules (make sure your <script type="module"> calls this file)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,
@@ -16,7 +16,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Firebase config and initialization
+// Firebase configuration and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyAAc3sRW7WuQXbvlVKKdb8pFa3UOpidalM",
   authDomain: "my-scorer.firebaseapp.com",
@@ -29,7 +29,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Globals
+// Globals for tracking user/session state
 let currentUser = null;
 let currentUserRole = null;
 let currentSession = {};
@@ -38,7 +38,7 @@ let currentEndNumber = 1;
 let canvas = document.getElementById("target");
 let ctx = canvas?.getContext("2d");
 
-// Show screen helper (hides all .screen elements, shows one by id)
+// Screen display helper: shows one screen, hides others
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const el = document.getElementById(id);
@@ -51,7 +51,7 @@ function showScreen(id) {
   if (id === "setup") updateSessionSetupOptions();
 }
 
-// Draw archery target rings on a canvas (defaults to global canvas)
+// Draw archery target rings on canvas (or provided element)
 function drawTarget(targetElem) {
   const c = targetElem || canvas || document.getElementById("target");
   if (!c) return;
@@ -74,7 +74,7 @@ function drawTarget(targetElem) {
   });
 }
 
-// Update displayed end arrow scores and end total in UI
+// Update UI with arrow scores and total for current end
 function updateEndScores() {
   const endScoresDiv = document.getElementById("endScores");
   const endTotalDiv = document.getElementById("endTotal");
@@ -92,7 +92,7 @@ function updateEndScores() {
   }
 }
 
-// Show/hide next and end session buttons based on session state
+// Show or hide Next End / End Session buttons based on progress
 function updateEndSessionButtons() {
   const nextBtn = document.getElementById("nextEndBtn");
   const endBtn = document.getElementById("endSessionBtn");
@@ -115,7 +115,7 @@ function updateEndSessionButtons() {
   }
 }
 
-// Handle scoring arrow on canvas click/touch
+// Handle canvas click or touch to record arrow score based on distance from center
 function handleCanvasScoreClick(e) {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length >= currentSession.arrowsPerEnd) {
@@ -152,7 +152,7 @@ function handleCanvasScoreClick(e) {
   updateEndSessionButtons();
 }
 
-// User signup
+// User signup: validation, Firebase Auth, Firestore user doc creation
 async function signup() {
   const usernameEl = document.getElementById("username");
   const emailEl = document.getElementById("email");
@@ -186,7 +186,7 @@ async function signup() {
   }
 }
 
-// User login
+// User login handling with basic validation and error display
 async function login() {
   const emailEl = document.getElementById("email");
   const passwordEl = document.getElementById("password");
@@ -206,7 +206,7 @@ async function login() {
   }
 }
 
-// Update session setup options dynamically
+// Update session setup options (bow style, distances, target faces) dynamically
 function updateSessionSetupOptions() {
   const bowDistances = {
     Recurve: [10, 12, 15, 18, 20, 30, 40, 50, 60, 70, 80],
@@ -235,7 +235,6 @@ function updateSessionSetupOptions() {
   const bowSelect = document.getElementById("bowStyle");
   const distSelect = document.getElementById("distance");
   const faceSelect = document.getElementById("targetFace");
-
   if (!bowSelect || !distSelect || !faceSelect) return;
 
   if (bowSelect.options.length === 0) {
@@ -285,7 +284,7 @@ function updateSessionSetupOptions() {
   updateDistances();
 }
 
-// Start scoring session
+// Start new scoring session validating user role and inputs
 function startSession() {
   if (currentUserRole !== "archer") {
     alert("Only Archers can start a scoring session.");
@@ -319,7 +318,7 @@ function startSession() {
   updateEndSessionButtons();
 }
 
-// Undo last scored arrow
+// Undo the last scored arrow during an end
 function undoLastArrow() {
   if (arrowScores.length === 0) return;
   arrowScores.pop();
@@ -327,7 +326,7 @@ function undoLastArrow() {
   updateEndSessionButtons();
 }
 
-// Proceed to next end
+// Proceed to next end saving current scores
 async function nextEnd() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -349,7 +348,7 @@ async function nextEnd() {
   if (currentEndEl) currentEndEl.innerText = currentEndNumber;
 }
 
-// Save session data to Firestore
+// Save completed session to Firestore
 async function saveSession() {
   if (!currentUser) return;
   const endsObjects = currentSession.ends.map(endArr => ({ arrows: endArr }));
@@ -374,7 +373,7 @@ async function saveSession() {
   }
 }
 
-// End session and save results
+// End the scoring session, save, and show results screen
 async function endSession() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
   if (arrowScores.length > 0 && arrowScores.length !== currentSession.arrowsPerEnd) {
@@ -396,7 +395,7 @@ async function endSession() {
   }
 }
 
-// Show session results with score table and charts (requires Chart.js)
+// Display session results with score table and charts
 function showSessionResults(session) {
   showScreen("sessionResultsScreen");
   const maxPossible =
@@ -435,14 +434,14 @@ function showSessionResults(session) {
 
   const arrowsPerEnd = session.arrowsPerEnd || (endsArr[0]?.arrows?.length || 0);
 
-  // Build table
+  // Build the HTML table of scores
   const table = document.createElement("table");
   table.style.width = "100%";
   table.style.borderCollapse = "collapse";
   table.style.tableLayout = "fixed";
   table.style.overflow = "hidden";
 
-  // Header
+  // Table header
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
   ["End", ...Array.from({ length: arrowsPerEnd }, (_, i) => `Arrow ${i + 1}`), "Total"].forEach(text => {
@@ -457,7 +456,7 @@ function showSessionResults(session) {
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // Body
+  // Table body
   const tbody = document.createElement("tbody");
   endsArr.forEach((endObjOrArr, idx) => {
     const endArr = Array.isArray(endObjOrArr)
@@ -496,7 +495,7 @@ function showSessionResults(session) {
   table.appendChild(tbody);
   tableDiv.appendChild(table);
 
-  // Create horizontal bar chart for points per end
+  // Horizontal bar chart for points per end using Chart.js
   let horizChartCanvas = document.getElementById("sessionResultsHorizontalChart");
   if (!horizChartCanvas) {
     horizChartCanvas = document.createElement("canvas");
@@ -534,7 +533,7 @@ function showSessionResults(session) {
       }],
     },
     options: {
-      indexAxis: 'y', // horizontal bar chart
+      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
       scales: {
@@ -554,7 +553,7 @@ function showSessionResults(session) {
     },
   });
 
-  // Canvas to show arrow grouping and dispersion pattern
+  // Canvas for arrow grouping / dispersion pattern
   let dispCanvas = document.getElementById("sessionResultsDispersion");
   if (!dispCanvas) {
     dispCanvas = document.createElement("canvas");
@@ -568,11 +567,9 @@ function showSessionResults(session) {
   const dispCtx = dispCanvas.getContext("2d");
   if (!dispCtx) return;
 
-  // Clear canvas and draw target rings for scale
   dispCtx.clearRect(0, 0, dispCanvas.width, dispCanvas.height);
   drawTarget(dispCanvas);
 
-  // Collect all arrow points from all ends
   const allArrows = [];
   endsArr.forEach(endObj => {
     const endArr = Array.isArray(endObj)
@@ -587,7 +584,6 @@ function showSessionResults(session) {
     });
   });
 
-  // Draw all arrows as circles on dispersion canvas
   dispCtx.fillStyle = "lime";
   dispCtx.strokeStyle = "#222";
   dispCtx.lineWidth = 2;
@@ -599,7 +595,7 @@ function showSessionResults(session) {
   });
 }
 
-// Attach event handlers to buttons and canvas
+// Attach event handlers to UI buttons and canvas
 function attachButtonHandlers() {
   document.getElementById("signupBtn")?.addEventListener("click", signup);
   document.getElementById("loginBtn")?.addEventListener("click", login);
@@ -612,8 +608,11 @@ function attachButtonHandlers() {
   document.getElementById("nextEndBtn")?.addEventListener("click", nextEnd);
   document.getElementById("endSessionBtn")?.addEventListener("click", endSession);
 
-  // Back to menu button handler (add this if needed)
+  // Add back to menu button handler (on results screen)
   document.getElementById("backToMenuBtn")?.addEventListener("click", () => showScreen("menuScreen"));
+
+  // Example: Add My History button handler if appropriate
+  document.getElementById("myHistoryBtn")?.addEventListener("click", () => showScreen("historyScreen"));
 
   const c = document.getElementById("target");
   if (c) {
@@ -625,7 +624,7 @@ function attachButtonHandlers() {
   }
 }
 
-// Firebase Auth state observer to handle user login/logout and role-based UI
+// Firebase authentication state listener to update UI accordingly
 onAuthStateChanged(auth, async user => {
   if (!user) {
     currentUser = null;
@@ -651,7 +650,7 @@ onAuthStateChanged(auth, async user => {
       const startBtn = document.getElementById("startSessionBtn");
       if (startBtn) startBtn.style.display = "inline-block";
     } else {
-      // For coach or other roles, you can customize here.
+      // Customize for coach or other roles if needed
       showScreen("menuScreen");
     }
   } catch (error) {
@@ -660,7 +659,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// Initialize app UI after DOM content loaded
+// Initialize UI components and handlers after DOM loads
 window.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
   updateSessionSetupOptions();
@@ -668,7 +667,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateEndScores();
   updateEndSessionButtons();
 
-  // Dynamically load Chart.js if not available
+  // Load Chart.js dynamically if not already loaded
   if (typeof Chart === "undefined") {
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/chart.js";
