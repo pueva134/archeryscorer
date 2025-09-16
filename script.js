@@ -321,6 +321,82 @@ function undoLastArrow() {
   updateEndSessionButtons();
 }
 
+// Load all archers (users with role 'archer') for coach dashboard
+async function loadArchersList() {
+  const archerListEl = document.getElementById("archerList");
+  if (!archerListEl) return;
+  archerListEl.innerHTML = "<li>Loading archers...</li>";
+  try {
+    // NOTE: Firestore does not allow querying all users across collection without admin sdk or cloud function
+    // Assume you have a 'users' collection and can query role == 'archer'
+    // If not, adjust accordingly for your data structure or backend
+    const usersSnap = await getDocs(collection(db, "users")); // Import getDocs and collection from firestore
+    const archers = [];
+    usersSnap.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.role === "archer") {
+        archers.push({ uid: docSnap.id, name: data.name || "Unnamed" });
+      }
+    });
+    if (archers.length === 0) {
+      archerListEl.innerHTML = "<li>No archers found.</li>";
+      return;
+    }
+    archerListEl.innerHTML = "";
+    archers.forEach(archer => {
+      const li = document.createElement("li");
+      li.textContent = archer.name;
+      li.style.cursor = "pointer";
+      li.dataset.uid = archer.uid;
+      li.addEventListener("click", () => loadArcherSessions(archer.uid, archer.name));
+      archerListEl.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Error loading archers:", err);
+    archerListEl.innerHTML = "<li>Error loading archers.</li>";
+  }
+}
+
+// Load sessions for a selected archer (coach dashboard)
+async function loadArcherSessions(uid, archerName) {
+  const sessionListEl = document.getElementById("archerSessionList");
+  const selectedNameEl = document.getElementById("selectedArcherName");
+  const sessionResultContainer = document.getElementById("sessionResultContainer");
+
+  if (selectedNameEl) selectedNameEl.textContent = archerName || "Unknown";
+  if (sessionResultContainer) sessionResultContainer.style.display = "none"; // hide session details initially
+  if (!sessionListEl) return;
+  sessionListEl.innerHTML = "Loading sessions...";
+  try {
+    const userDoc = await getDoc(doc(db, "users", uid));
+    if (!userDoc.exists()) {
+      sessionListEl.innerHTML = "<p>No sessions found for this archer.</p>";
+      return;
+    }
+    const sessions = userDoc.data().sessions || {};
+    const sessionEntries = Object.entries(sessions);
+    if (sessionEntries.length === 0) {
+      sessionListEl.innerHTML = "<p>No sessions available.</p>";
+      return;
+    }
+    sessionListEl.innerHTML = "";
+    sessionEntries.forEach(([sessionId, session]) => {
+      const btn = document.createElement("button");
+      btn.textContent = `Session on ${session.date ? (session.date.seconds ? new Date(session.date.seconds * 1000).toLocaleString() : session.date) : "Unknown date"}`;
+      btn.style.display = "block";
+      btn.style.margin = "5px 0";
+      btn.addEventListener("click", () => {
+        showSessionResults(session);
+        if (sessionResultContainer) sessionResultContainer.style.display = "block";
+      });
+      sessionListEl.appendChild(btn);
+    });
+  } catch (err) {
+    console.error("Error loading archer sessions:", err);
+    sessionListEl.innerHTML = "<p>Error loading sessions.</p>";
+  }
+}
+
 // Proceed to next scoring end
 async function nextEnd() {
   if (!currentSession || !currentSession.arrowsPerEnd) return;
@@ -699,7 +775,11 @@ onAuthStateChanged(auth, async user => {
       showScreen("menuScreen");
       const startBtn = document.getElementById("startSessionBtn");
       if (startBtn) startBtn.style.display = "inline-block";
-    } else {
+    }
+    else if(currentUserRole === "coach") {
+  showScreen("coachDashboard");
+  await loadArchersList();}
+   else {
       showScreen("menuScreen");
     }
   } catch (error) {
