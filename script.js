@@ -518,6 +518,47 @@ async function loadSessionHistory() {
       return;
     }
 
+    function exportSessionHistoryToCSV() {
+  if (!currentUser) return;
+  const historyTable = document.getElementById("historyTable");
+  if (!historyTable) return;
+
+  getDoc(doc(db, "users", currentUser.uid)).then(userDoc => {
+    const data = userDoc.data();
+    const sessionsObj = data.sessions || {};
+    const sessionsArr = Object.entries(sessionsObj).map(([key, session]) => ({
+      id: key,
+      ...session,
+    }));
+    if (sessionsArr.length === 0) {
+      alert("No session history to export!");
+      return;
+    }
+    let csv = "Date,Bow Style,Distance (m),Target Face,Total Score\n";
+    sessionsArr.forEach(session => {
+      let dateStr = "";
+      if (session.date) {
+        const dt = session.date.seconds ? new Date(session.date.seconds * 1000) : new Date(session.date);
+        if (!isNaN(dt)) dateStr = dt.toLocaleString();
+      }
+      csv += `"${dateStr}","${session.bowStyle || ''}","${session.distance || ''}","${session.targetFace || ''}","${session.totalScore || 0}"\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const tmpLink = document.createElement("a");
+    tmpLink.href = url;
+    tmpLink.download = "archery_sessions.csv";
+    document.body.appendChild(tmpLink);
+    tmpLink.click();
+    document.body.removeChild(tmpLink);
+    URL.revokeObjectURL(url);
+  }).catch(error => {
+    alert("Export failed: Unable to retrieve session history.");
+    console.error(error);
+  });
+}
+
+
 
     // Build sessions history table
     let html = '<table><thead><tr><th>Date</th><th>Bow Style</th><th>Distance</th><th>Total Score</th><th>View Details</th></tr></thead><tbody>';
@@ -588,6 +629,8 @@ function attachButtonHandlers() {
     showScreen("historyScreen");
     loadSessionHistory();
   });
+  document.getElementById("exportCsvBtn")?.addEventListener("click", exportCsvFunction);
+
 
 
   // Coach back button if applicable
