@@ -79,6 +79,21 @@ button:hover {
   background: linear-gradient(90deg, #1a62d1, #3b92f7);
 }
 
+#exportCsvBtn {
+  margin-top: 15px;
+  display: block;
+  width: auto;
+  padding: 10px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+#exportCsvBtn:hover {
+  background: linear-gradient(90deg, #15803d, #15803d);
+}
+
+
 table {
   width: 100%;
   border-collapse: collapse;
